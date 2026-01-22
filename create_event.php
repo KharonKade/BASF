@@ -2,14 +2,10 @@
 session_start();
 
 if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
-    // Not logged in as admin, redirect to admin login page
     header("Location: admin_login.php");
     exit();
 }
 ?>
-
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -19,8 +15,12 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
     <title>Create Event</title>
     <link rel="stylesheet" href="Css/admin.css?v=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+    <style>
+        * { font-family: 'Poppins', sans-serif; }
+    </style>
 </head>
 <body>
     <div class="admin-container">
@@ -28,18 +28,13 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
             <h2>Admin Dashboard</h2>
             <ul>
                 <li><a href="admin.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="create_event.php"><i class="fas fa-calendar-plus"></i> Create Event</a></li>
-                <li><a href="manage_upcoming.php"><i class="fas fa-calendar-check"></i> Manage Events</a></li>
-                <li><a href="archived_events.php"><i class="fas fa-archive"></i> Archived Events</a></li>
-                <li><a href="create_news.php"><i class="fas fa-newspaper"></i> Create News & Announcements</a></li>
-                <li><a href="manage_news.php"><i class="fas fa-edit"></i> Manage News & Announcements</a></li>
-                <li><a href="archived_news.php"><i class="fas fa-history"></i> Archived News</a></li>
-                <li><a href="admin_gallery.php"><i class="fas fa-images"></i> Manage Gallery Page</a></li>
-                <li><a href="editInlinePage.php"><i class="fas fa-skating"></i> Manage Inline Page</a></li>
-                <li><a href="editBmxPage.php"><i class="fas fa-bicycle"></i> Manage BMX Page</a></li>
-                <li><a href="editSkateboardPage.php"><i class="fas fa-snowboarding"></i> Manage Skateboard Page</a></li>
+                <li><a href="manage_upcoming.php"><i class="fas fa-calendar-check"></i>Events</a></li>
+                <li><a href="manage_news.php"><i class="fas fa-edit"></i>News & Announcements</a></li>
+                <li><a href="admin_gallery.php"><i class="fas fa-images"></i>Gallery Page</a></li>
+                <li><a href="editInlinePage.php"><i class="fas fa-skating"></i>Inline Page</a></li>
+                <li><a href="editBmxPage.php"><i class="fas fa-bicycle"></i>BMX Page</a></li>
+                <li><a href="editSkateboardPage.php"><i class="fas fa-snowboarding"></i>Skateboard Page</a></li>
                 <li><a href="view_inquiries.php"><i class="fas fa-question-circle"></i> Inquiries</a></li>
-                <li><a href="archived_inquiries.php"><i class="fas fa-archive"></i> Archived Inquiries</a></li>
                 <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </nav>
@@ -73,6 +68,17 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
                 <div id="registration-options" style="display: none;">
                     <label for="registration_limit">Registration Limit:</label>
                     <input type="number" name="registration_limit" id="registration_limit" min="1">
+                    
+                    <label for="registration_type">Registration Type:</label>
+                    <select name="registration_type" id="registration_type">
+                        <option value="free">Free</option>
+                        <option value="paid">Paid</option>
+                    </select>
+
+                    <div id="fee-container" style="display: none; margin-top: 10px;">
+                        <label for="registration_fee">Registration Fee (PHP):</label>
+                        <input type="number" name="registration_fee" id="registration_fee" min="1" step="0.01">
+                    </div>
                 </div>
 
                 <div id="schedule-container">
@@ -105,15 +111,13 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
         ClassicEditor
         .create(document.querySelector('#description'))
         .then(editor => {
-            // Show the textarea once CKEditor is fully initialized
             editor.ui.view.editable.element.parentElement.style.display = 'block';
+            editorInstance = editor;
         })
         .catch(error => {
             console.error(error);
         });
 
-
-        // Listen for form submission and sync the editor content
         document.querySelector('form').addEventListener('submit', function (e) {
             try {
                 if (editorInstance) {
@@ -124,17 +128,13 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
             }
         });
 
-        // Get references to the button and container
         const addScheduleButton = document.getElementById('add_schedule');
         const scheduleContainer = document.getElementById('schedule-container');
 
-        // Add an event listener to the "Add Another Schedule" button
         addScheduleButton.addEventListener('click', () => {
-            // Create a new div for the additional schedule
             const newSchedule = document.createElement('div');
             newSchedule.classList.add('schedule-item');
 
-            // Add the necessary input fields for a new schedule
             newSchedule.innerHTML = `
                 <label for="event_date">Event Date:</label>
                 <input type="date" name="event_date[]" required>
@@ -145,10 +145,8 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
                 <button type="button" class="remove-schedule">Remove</button>
             `;
 
-            // Append the new schedule div to the container
             scheduleContainer.appendChild(newSchedule);
 
-            // Add functionality to remove the schedule
             newSchedule.querySelector('.remove-schedule').addEventListener('click', () => {
                 newSchedule.remove();
             });
@@ -159,6 +157,19 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
             registrationOptions.style.display = this.checked ? "block" : "none";
         });
 
+        document.getElementById("registration_type").addEventListener("change", function () {
+            var feeContainer = document.getElementById("fee-container");
+            var feeInput = document.getElementById("registration_fee");
+            
+            if (this.value === "paid") {
+                feeContainer.style.display = "block";
+                feeInput.required = true;
+            } else {
+                feeContainer.style.display = "none";
+                feeInput.required = false;
+                feeInput.value = "";
+            }
+        });
     </script>
 </body>
 </html>

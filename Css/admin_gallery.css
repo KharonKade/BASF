@@ -1,6 +1,7 @@
-/* General Styles */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: 'Poppins', sans-serif;
     margin: 0;
     padding: 0;
     background: #f7f9fc;
@@ -12,7 +13,6 @@ body {
     min-height: 100vh;
 }
 
-/* Sidebar */
 .sidebar {
     width: 250px;
     background: #2c3e50;
@@ -28,9 +28,8 @@ body {
 }
 
 .sidebar i {
-    margin-right: 10px; /* Adds space between icon and text */
+    margin-right: 10px;
 }
-
 
 .sidebar h2 {
     text-align: center;
@@ -55,50 +54,36 @@ body {
     display: block;
     border-radius: 5px;
     transition: background 0.3s;
-    position: relative; /* Required for the pseudo-element */
-    overflow-wrap: break-word; /* Ensures long words break */
-
+    position: relative;
+    overflow-wrap: break-word;
 }
 
-/* Indent the second line */
 .sidebar ul li a {
-    padding-left: 45px; /* Add padding to the left for the first line */
-    text-indent: -15px; /* Negative indent to pull the first line back */
+    padding-left: 45px;
+    text-indent: -15px;
 }
-
-
 
 .sidebar ul li a:hover {
     background: #34495e;
 }
 
-/* Main Content */
 .content {
-    margin-left: 290px; /* Pushes content to the right */
+    margin-left: 290px;
     flex-grow: 1;
     padding: 20px;
     background-color: #fff;
     box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
-    overflow-y: auto; /* Allows content to scroll */
-    min-height: 100vh; /* Ensures content fills viewport */
+    overflow-y: auto;
+    min-height: 100vh;
 }
 
-.content h2 {
-    margin-bottom: 20px;
-    font-size: 1.8rem;
+.content h2, h1 {
+    font-size: 26px;
     color: #1e293b;
-    text-align: center;
-    border-bottom: 2px solid #ecf0f1;
-    padding-bottom: 10px;
-}
-
-h1 {
     margin-bottom: 20px;
-    font-size: 1.8rem;
-    color: #1e293b;
-    text-align: center;
-    border-bottom: 2px solid #ecf0f1;
-    padding-bottom: 10px;
+    text-align: left; 
+    border-bottom: none;
+    padding-bottom: 0;
 }
 
 .editheader h2 {
@@ -109,48 +94,81 @@ h1 {
     border-bottom: 2px solid #ecf0f1;
     padding-bottom: 10px;
     display: flex;
-    justify-content: center;  /* Centers horizontally */
-    align-items: center;      /* Centers vertically (if height is specified for the parent container) */
-    height: 100%;             /* Ensures vertical centering works if the parent has a height */
+    justify-content: center;
+    align-items: center;
+    height: 100%;
 }
 
+.action-buttons {
+    margin-bottom: 20px;
+    display: flex;
+}
 
-/* Buttons */
 .btn {
-    display: inline-block;
-    background: #3498db;
-    color: white;
+    display: inline-flex;
+    align-items: center;
     padding: 10px 15px;
     text-decoration: none;
     border-radius: 5px;
-    font-weight: bold;
-    transition: background 0.3s;
-    text-align: center;
+    font-size: 14px;
+    transition: background-color 0.3s;
+    font-weight: 500;
 }
 
-.btn:hover {
-    background: #2980b9;
+.btn i {
+    margin-right: 8px;
 }
 
-/* Table Styling */
+.btn-primary {
+    background-color: #2c3e50;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background-color: #34495e;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
     background: white;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    table-layout: fixed; 
+}
+
+table thead {
+    background-color: #1e293b;
+    color: #fff;
 }
 
 th, td {
-    padding: 12px;
+    padding: 12px 15px;
     text-align: left;
-    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
 }
 
 th {
-    background: #1e293b;
-    color: white;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+
+.col-thumb { width: 130px; }
+.col-title { width: 20%; }
+.col-desc  { width: auto; }
+.col-actions { width: 140px; }
+
+.text-limit {
+    display: -webkit-box;
+    -webkit-line-clamp: 2; 
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    word-break: break-word;
 }
 
 table td a {
@@ -158,15 +176,15 @@ table td a {
     color: #333;
     font-size: 1.2rem;
     transition: color 0.3s ease;
-    text-decoration: none; /* Remove underline */
+    text-decoration: none;
 }
 
 table td a:hover {
-    color: #ff4500; /* hover color */
+    color: #ff4500;
 }
 
-tr:hover {
-    background: #f1f1f1;
+tbody tr:hover {
+    background-color: #f1f5f9;
 }
 
 img {
@@ -174,7 +192,6 @@ img {
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-/* Form Styling */
 form {
     max-width: 900px;
     margin: 0 auto;
@@ -223,7 +240,6 @@ form button:hover {
     background: #2980b9;
 }
 
-/* Container */
 .view-container {
     max-width: 80%;
     margin: 40px auto;
@@ -234,7 +250,6 @@ form button:hover {
     text-align: center;
 }
 
-/* Title */
 .view-container h1 {
     font-size: 1.8rem;
     color: #1e293b;
@@ -242,7 +257,6 @@ form button:hover {
     padding-bottom: 10px;
 }
 
-/* Thumbnail */
 .view-thumbnail {
     width: 100%;
     max-width: 400px;
@@ -251,36 +265,33 @@ form button:hover {
     margin: 20px 0;
 }
 
-/* Description */
 .view-description {
     font-size: 1.1rem;
     line-height: 1.6;
     padding: 10px;
     border-radius: 5px;
     background: white;
-    word-wrap: break-word; /* Enables word wrapping */
+    word-wrap: break-word;
 }
 
-
-/* Gallery Images */
 .gallery-container {
     display: flex;
-    flex-wrap: nowrap; /* Prevent images from wrapping to the next line */
-    overflow-x: auto; /* Allow horizontal scrolling */
+    flex-wrap: nowrap;
+    overflow-x: auto;
     gap: 10px;
     padding: 10px 0;
-    scroll-snap-type: x mandatory; /* Smooth scroll behavior */
+    scroll-snap-type: x mandatory;
 }
 
 .gallery-container img {
-    height: 350px; /* Set the common height */
-    width: auto;   /* Let the width adjust to maintain aspect ratio */
-    object-fit: contain; /* Ensure the full image is visible */
+    height: 350px;
+    width: auto;
+    object-fit: contain;
     border-radius: 5px;
     transition: transform 0.3s ease-in-out;
     cursor: pointer;
     background-color: #f0f0f0;
-    scroll-snap-align: center; /* Snap the image to the center when scrolling */
+    scroll-snap-align: center;
 }
 
 .gallery-container img:hover {
@@ -315,34 +326,23 @@ form button:hover {
     border: none;
     cursor: pointer;
     text-decoration: none;
-    display: inline-block; /* Ensure the button is treated as a block element */
+    display: inline-block;
 }
 
 .buttonRemove:hover {
     background-color: #d32f2f;
 }
 
-
-/* Button */
-.btn {
-    display: inline-block;
-    background: #3498db;
-    color: white;
-    padding: 10px 15px;
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: bold;
-    transition: background 0.3s;
-    text-align: center;
-    margin-top: 20px;
-}
-
-.btn:hover {
-    background: #2980b9;
-}
-
-/* Responsive */
 @media (max-width: 768px) {
+    .sidebar {
+        width: 200px;
+    }
+    
+    .content {
+        margin-left: 0;
+        padding: 15px;
+    }
+
     .view-container {
         margin: 20px;
         padding: 15px;
@@ -350,31 +350,5 @@ form button:hover {
 
     .gallery-container img {
         width: 120px;
-    }
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .admin-container {
-        flex-direction: column;
-    }
-
-    .sidebar {
-        width: 100%;
-        flex-direction: row;
-        justify-content: space-around;
-    }
-
-    .sidebar h2 {
-        display: none;
-    }
-
-    .content {
-        margin: 10px;
-        padding: 20px;
-    }
-
-    form {
-        padding: 0 10px;
     }
 }

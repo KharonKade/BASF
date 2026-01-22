@@ -32,18 +32,13 @@ $result = $conn->query($sql);
             <h2>Admin Dashboard</h2>
             <ul>
                 <li><a href="admin.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="create_event.php"><i class="fas fa-calendar-plus"></i> Create Event</a></li>
-                <li><a href="manage_upcoming.php"><i class="fas fa-calendar-check"></i> Manage Events</a></li>
-                <li><a href="archived_events.php"><i class="fas fa-archive"></i> Archived Events</a></li>
-                <li><a href="create_news.php"><i class="fas fa-newspaper"></i> Create News & Announcements</a></li>
-                <li><a href="manage_news.php"><i class="fas fa-edit"></i> Manage News & Announcements</a></li>
-                <li><a href="archived_news.php"><i class="fas fa-history"></i> Archived News</a></li>
-                <li><a href="admin_gallery.php"><i class="fas fa-images"></i> Manage Gallery Page</a></li>
-                <li><a href="editInlinePage.php"><i class="fas fa-skating"></i> Manage Inline Page</a></li>
-                <li><a href="editBmxPage.php"><i class="fas fa-bicycle"></i> Manage BMX Page</a></li>
-                <li><a href="editSkateboardPage.php"><i class="fas fa-snowboarding"></i> Manage Skateboard Page</a></li>
+                <li><a href="manage_upcoming.php"><i class="fas fa-calendar-check"></i>Events</a></li>
+                <li><a href="manage_news.php"><i class="fas fa-edit"></i>News & Announcements</a></li>
+                <li><a href="admin_gallery.php"><i class="fas fa-images"></i>Gallery Page</a></li>
+                <li><a href="editInlinePage.php"><i class="fas fa-skating"></i>Inline Page</a></li>
+                <li><a href="editBmxPage.php"><i class="fas fa-bicycle"></i>BMX Page</a></li>
+                <li><a href="editSkateboardPage.php"><i class="fas fa-snowboarding"></i>Skateboard Page</a></li>
                 <li><a href="view_inquiries.php"><i class="fas fa-question-circle"></i> Inquiries</a></li>
-                <li><a href="archived_inquiries.php"><i class="fas fa-archive"></i> Archived Inquiries</a></li>
                 <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </nav>

@@ -1,6 +1,8 @@
 <?php
 header('Content-Type: application/json');
-ob_start(); // Start output buffering early
+ob_start();
+
+require_once 'secrets.php';
 
 $servername = "localhost";
 $username = "root";
@@ -14,10 +16,7 @@ if ($conn->connect_error) {
     exit;
 }
 
-// reCAPTCHA verification
-$recaptcha_secret = '6LezuAorAAAAADinMO5ygVph7jNNtovpEL2t42Tj';
 $recaptcha_response = $_POST['g-recaptcha-response'] ?? '';
-
 $verify_response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$recaptcha_secret}&response={$recaptcha_response}");
 $captcha_data = json_decode($verify_response, true);
 
@@ -26,7 +25,6 @@ if (!$captcha_data['success']) {
     exit;
 }
 
-// Get and validate form data
 $name = $_POST['name'] ?? '';
 $email = $_POST['email'] ?? '';
 $phone = $_POST['phone'] ?? '';
@@ -36,11 +34,24 @@ $category = $_POST['category'] ?? '';
 $event_id = $_POST['event_id'] ?? 0;
 
 if (empty($name) || empty($email) || empty($phone) || empty($age) || empty($gender) || empty($category) || empty($event_id)) {
-    echo json_encode(["success" => false, "message" => "Please fill all the required fields."]);
+    echo json_encode(["success" => false, "message" => "Please fill all required fields."]);
     exit;
 }
 
-// Generate unique token
+$fee_stmt = $conn->prepare("SELECT registration_fee FROM upcoming_events WHERE id = ?");
+$fee_stmt->bind_param("i", $event_id);
+$fee_stmt->execute();
+$fee_result = $fee_stmt->get_result();
+$event_data = $fee_result->fetch_assoc();
+$fee_stmt->close();
+
+if (!$event_data) {
+    echo json_encode(["success" => false, "message" => "Event not found."]);
+    exit;
+}
+
+$registration_fee = (float)$event_data['registration_fee'];
+
 function generateToken($length = 6) {
     $characters = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz';
     $token = '';
@@ -51,15 +62,88 @@ function generateToken($length = 6) {
 }
 
 $token = generateToken();
+$status = ($registration_fee > 0) ? 'pending' : 'paid';
 
-// Use prepared statements to avoid SQL injection
-$stmt = $conn->prepare("INSERT INTO event_registrations (event_id, name, email, phone, age, gender, category, token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-$stmt->bind_param("isssisss", $event_id, $name, $email, $phone, $age, $gender, $category, $token);
+$stmt = $conn->prepare("INSERT INTO event_registrations (event_id, name, email, phone, age, gender, category, token, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+$stmt->bind_param("isssissss", $event_id, $name, $email, $phone, $age, $gender, $category, $token, $status);
 
 if ($stmt->execute()) {
-    ob_end_clean(); // Clean output buffer before sending JSON
-    echo json_encode(["success" => true, "token" => $token]);
-    exit;
+    $db_id = $stmt->insert_id;
+    
+    if ($registration_fee > 0) {
+        $amount = $registration_fee * 100; 
+        $description = "Registration Fee for " . $name;
+        
+        $domain = "http://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']);
+        $success_url = $domain . "/payment_callback.php?db_id=" . $db_id;
+        $cancel_url = $domain . "/eventPages.php?id=" . $event_id;
+
+        $data = [
+            'data' => [
+                'attributes' => [
+                    'billing' => [
+                        'name' => $name,
+                        'email' => $email,
+                        'phone' => $phone
+                    ],
+                    'line_items' => [[
+                        'currency' => 'PHP',
+                        'amount' => $amount,
+                        'description' => $description,
+                        'name' => 'Event Registration',
+                        'quantity' => 1
+                    ]],
+                    'payment_method_types' => ['gcash', 'card', 'paymaya'],
+                    'success_url' => $success_url,
+                    'cancel_url' => $cancel_url,
+                    'description' => $description,
+                    'metadata' => [
+                        'db_id' => $db_id,
+                        'token' => $token,
+                        'event_id' => $event_id
+                    ]
+                ]
+            ]
+        ];
+
+        $ch = curl_init('https://api.paymongo.com/v1/checkout_sessions');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'Authorization: Basic ' . base64_encode($paymongo_secret_key)
+        ]);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+
+        $response = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        $result = json_decode($response, true);
+
+        if ($http_code == 200 && isset($result['data']['attributes']['checkout_url'])) {
+            $checkout_url = $result['data']['attributes']['checkout_url'];
+            $checkout_id = $result['data']['id'];
+
+            $update_stmt = $conn->prepare("UPDATE event_registrations SET paymongo_id = ? WHERE id = ?");
+            $update_stmt->bind_param("si", $checkout_id, $db_id);
+            $update_stmt->execute();
+
+            ob_end_clean();
+            echo json_encode(["success" => true, "is_paid_event" => true, "checkout_url" => $checkout_url]);
+            exit;
+        } else {
+            ob_end_clean();
+            error_log("PayMongo Error: " . $response);
+            echo json_encode(["success" => false, "message" => "Failed to initiate payment."]);
+            exit;
+        }
+    } else {
+        ob_end_clean();
+        echo json_encode(["success" => true, "is_paid_event" => false, "token" => $token]);
+        exit;
+    }
+
 } else {
     ob_end_clean();
     echo json_encode(["success" => false, "message" => "Database error: " . $stmt->error]);

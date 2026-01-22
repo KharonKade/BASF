@@ -43,53 +43,71 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="Css/admin_gallery.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
     <title>Add Gallery Item</title>
 </head>
 <body>
 
-    <h1>Add New Gallery Item</h1>
-    <form action="" method="POST" enctype="multipart/form-data">
-        <label>Title:</label>
-        <input type="text" name="title" required><br>
-        
-        <label>Description:</label>
-        <textarea id="description" name="description"></textarea><br>
-        
-        <label>Thumbnail Image:</label>
-        <input type="file" name="thumbnail" required><br>
-        
-        <label>Additional Images:</label>
-        <input type="file" name="images[]" multiple required><br>
-        
-        <button type="submit">Add Gallery Item</button>
-        <button type="button" class="button" onclick="history.back();">Cancel</button>
-    </form>
+<div class="admin-container">
+    <nav class="sidebar">
+        <h2>Admin Dashboard</h2>
+        <ul>
+            <li><a href="admin.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            <li><a href="manage_upcoming.php"><i class="fas fa-calendar-check"></i> Events</a></li>
+            <li><a href="manage_news.php"><i class="fas fa-edit"></i> News & Announcements</a></li>
+            <li><a href="admin_gallery.php"><i class="fas fa-images"></i> Gallery Page</a></li>
+            <li><a href="editInlinePage.php"><i class="fas fa-skating"></i> Inline Page</a></li>
+            <li><a href="editBmxPage.php"><i class="fas fa-bicycle"></i> BMX Page</a></li>
+            <li><a href="editSkateboardPage.php"><i class="fas fa-snowboarding"></i> Skateboard Page</a></li>
+            <li><a href="view_inquiries.php"><i class="fas fa-question-circle"></i> Inquiries</a></li>
+            <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </nav>
 
-    <script>
-        let editorInstance;
+    <div class="content">
+        <h1>Add New Gallery Item</h1>
+        <form action="" method="POST" enctype="multipart/form-data">
+            <label>Title:</label>
+            <input type="text" name="title" required><br>
+            
+            <label>Description:</label>
+            <textarea id="description" name="description"></textarea><br>
+            
+            <label>Thumbnail Image:</label>
+            <input type="file" name="thumbnail" required><br>
+            
+            <label>Additional Images:</label>
+            <input type="file" name="images[]" multiple required><br>
+            
+            <button type="submit">Add Gallery Item</button>
+            <button type="button" class="button" onclick="history.back();">Cancel</button>
+        </form>
+    </div>
+</div>
 
-        ClassicEditor
-        .create(document.querySelector('#description'))
-        .then(editor => {
-            // Show the textarea once CKEditor is fully initialized
-            editor.ui.view.editable.element.parentElement.style.display = 'block';
-        })
-        .catch(error => {
-            console.error(error);
-        });
+<script>
+    let editorInstance;
 
+    ClassicEditor
+    .create(document.querySelector('#description'))
+    .then(editor => {
+        editor.ui.view.editable.element.parentElement.style.display = 'block';
+        editorInstance = editor;
+    })
+    .catch(error => {
+        console.error(error);
+    });
 
-        // Listen for form submission and sync the editor content
-        document.querySelector('form').addEventListener('submit', function (e) {
-            try {
-                if (editorInstance) {
-                    document.querySelector('#description').value = editorInstance.getData();
-                }
-            } catch (error) {
-                console.error("CKEditor content sync failed:", error);
+    document.querySelector('form').addEventListener('submit', function (e) {
+        try {
+            if (editorInstance) {
+                document.querySelector('#description').value = editorInstance.getData();
             }
-        });
-    </script>
+        } catch (error) {
+            console.error("CKEditor content sync failed:", error);
+        }
+    });
+</script>
 </body>
 </html>

@@ -6,6 +6,7 @@
     <title>Inline Page</title>
     <link rel="stylesheet" href="Css/inline.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
@@ -31,7 +32,6 @@
     </section>
 
     <?php
-    // Database connection
     $servername = "localhost";
     $username = "root";
     $password = "";
@@ -83,11 +83,11 @@
                 <option value="this-week">This Week</option>
                 <option value="this-month">This Month</option>
             </select>
-
-            <div id="event-count" class="event-count">Total Events: 0</div>
         </div>
-        <h2>Events & Activities</h2>
-        <div class="event-carousel" id="eventCarousel">
+        
+        <h2 class="container event-container animate-on-scroll">Events & Activities</h2>
+        <div id="event-count" class="event-count">Total Events: 0</div>
+        <div class="event-grid" id="eventGrid">
             <?php
             $sql = "
             SELECT 
@@ -104,7 +104,7 @@
                 event_images i ON e.id = i.event_id
             WHERE 
                 e.status = 'active'   
-                AND (e.category = 'All' OR e.category = 'Inline')  -- Filter category
+                AND (e.category = 'All' OR e.category = 'Inline')
             GROUP BY 
                 e.id
             ORDER BY 
@@ -112,26 +112,38 @@
             
             $result = $conn_events->query($sql);
 
+            $trending_events = [];
+            $regular_events = [];
+
             if ($result->num_rows > 0) {
                 while ($row = $result->fetch_assoc()) {
-                    // Trending logic
                     $trend_sql = "
-                    SELECT 
-                        COUNT(r.id) AS recent_registrations
-                    FROM 
-                        event_registrations r
-                    WHERE 
-                        r.event_id = " . $row['id'] . "
-                        AND r.registration_time > NOW() - INTERVAL 7 DAY";
-                    
+                        SELECT COUNT(r.id) AS recent_registrations
+                        FROM event_registrations r
+                        WHERE r.event_id = " . $row['id'] . "
+                        AND r.registration_time > NOW() - INTERVAL 7 DAY
+                    ";
                     $trend_result = $conn_events->query($trend_sql);
                     $trend_row = $trend_result->fetch_assoc();
                     $recent_registrations = $trend_row['recent_registrations'];
-                    $is_trending = $recent_registrations > 10;
+                    $is_trending = $recent_registrations > 5;
+
+                    if ($is_trending) {
+                        $trending_events[] = ['data' => $row, 'trending' => true];
+                    } else {
+                        $regular_events[] = ['data' => $row, 'trending' => false];
+                    }
+                }
+
+                $all_events = array_merge($trending_events, $regular_events);
+
+                foreach ($all_events as $event) {
+                    $row = $event['data'];
+                    $is_trending = $event['trending'];
 
                     echo '<div class="event-item animate-on-scroll" 
-                                data-category="' . htmlspecialchars($row['category']) . '" 
-                                data-date="' . htmlspecialchars($row['event_date']) . '">
+                            data-category="' . htmlspecialchars($row['category']) . '" 
+                            data-date="' . htmlspecialchars($row['event_date']) . '">
                             <a href="eventPages.php?id=' . $row['id'] . '">
                                 <div class="flip-card">
                                     <div class="flip-card-inner">
@@ -139,7 +151,7 @@
                                         <div class="flip-card-front">
                                             <img src="' . $row["image_path"] . '" alt="' . $row["event_name"] . '">
                                         </div>
-                                        <div class="flip-card-back" style="background-image: url(' . "'" . $row["image_path"] . "'" . ')">
+                                        <div class="flip-card-back" style="background-image: url(' . "'" . $row["image_path"] . "'" . ');">
                                             <div class="back-content">
                                                 <p>' . $row["event_name"] . '</p>
                                                 <p>Category: ' . $row["category"] . '</p>';
@@ -148,8 +160,7 @@
                                                 $formatted_date = $event_date->format('l, F j, Y');
                                                 echo '<p>Date: ' . $formatted_date . '</p>';
 
-                                                echo '<br>
-                                                <p>Click for more...</p>
+                                                echo '<br><p>Click for more...</p>
                                             </div>
                                         </div>
                                     </div>
@@ -162,12 +173,14 @@
             }
             ?>
         </div>
+        
+        <div id="pagination-controls" class="pagination-container"></div>
     </section>
 
     <div class="highlight-carousel-section animate-on-scroll">
         <h1 class="carousel-heading">Highlight</h1>
-        <div class="carousel-container">
-            <div class="carousel">
+        <div class="grid-wrapper">
+            <div class="grid-layout video-grid" id="highlightGrid">
                 <?php
                 $result = $conn_content->query("SELECT id, video, title, description FROM highlight_carousel");
 
@@ -178,32 +191,30 @@
                             $description = htmlspecialchars($row["description"], ENT_QUOTES);
                             $source = 'inline';
 
-                            echo '<div class="carousel-item">
-                                <video 
-                                    src="' . $video . '" 
-                                    autoplay muted loop
-                                    data-id="' . $row["id"] . '"
-                                    data-source="' . $source . '"
-                                    onclick=\'openModal(this, ' . json_encode($title) . ', ' . json_encode($description) . ')\'>
-                                </video>
-                                <div class="video-overlay">
-                                    <strong>' . $title . '</strong>
+                            echo '<div class="highlight-item">
+                                <div class="video-wrapper">
+                                    <video 
+                                        src="' . $video . '" 
+                                        autoplay muted loop
+                                        data-id="' . $row["id"] . '"
+                                        data-source="' . $source . '"
+                                        onclick=\'openModal(this, ' . json_encode($title) . ', ' . json_encode($description) . ')\'>
+                                    </video>
+                                    <div class="video-overlay">
+                                        <strong>' . $title . '</strong>
+                                    </div>
                                 </div>
                             </div>';
-
-                            // Debugging Output
-                            echo "<!-- DEBUG: ID=" . $row["id"] . ", Video=" . $video . ", Title=" . $title . ", Desc=" . $description . " -->";
                         }
                     } else {
                         echo '<p class="no-videos">No highlight videos available at the moment.</p>';
                     }
-
                 ?>
             </div>
+            <div class="pagination-container" id="highlightPagination"></div>
         </div>
     </div>
 
-    <!-- Video Popup Modal -->
     <div class="video-modal" id="videoModal">
         <div class="video-modal-content">
             <button class="close-btn" id="closeModalBtn">&times;</button>
@@ -222,8 +233,6 @@
         </div>
     </div>
 
-
-
     <div class="players animate-on-scroll" id="top-athletes">
         <h2>Top Athletes</h2>
         <div class="slider">
@@ -237,7 +246,7 @@
                         <h1>' . $row["name"] . '</h1>
                         <p>' . $row["description"] . '</p>
                         <button class="explore-btn">
-                            <a href="playerPage.php?id=' . $row['id'] . '">Check This Out</a>
+                            <a href="playerPage.php?id=' . $row['id'] . '">Check Athlete</a>
                         </button>
                     </div>
                   </div>';            
@@ -253,15 +262,12 @@
         </div>
     </div>
 
-
     <div class="community-leaders-section animate-on-scroll">
         <h1 class="section-heading">Community Leaders</h1>
         <div class="leaders-container">
             <?php
-            // Fetch community leaders from the database
             $result = $conn_content->query("SELECT name, role, image FROM community_leaders");
 
-            // Check if there are community leaders
             if ($result && $result->num_rows > 0) {
                 while ($row = $result->fetch_assoc()) {
                     echo '<div class="leader">
@@ -275,34 +281,28 @@
                         </div>';
                 }
             } else {
-                // Message when there are no leaders
                 echo '<p class="no-data">No community leaders available.</p>';
             }
             ?>
         </div>
     </div>
 
-
     <section class="partnership-section animate-on-scroll">
         <h2>Partners & Sponsors</h2>
         <div class="partner-logos">
             <?php
-            // Fetch partner logos from the 'partnerships' table
             $result = $conn_content->query("SELECT logo FROM partnerships");
 
-            // Check if there are any partners
             if ($result && $result->num_rows > 0) {
                 while ($row = $result->fetch_assoc()) {
                     echo '<div class="partner-logo-container"><img src="' . htmlspecialchars($row["logo"]) . '" alt="Partner Logo" class="partner-logo"></div>';
                 }
             } else {
-                // Display message when there are no partners
                 echo '<p class="no-data">No partners or sponsors available at the moment.</p>';
             }
             ?>
         </div>
     </section>
-
 
     <?php
     $conn_content->close();
@@ -316,12 +316,10 @@
     </div>
 
     <footer class="footer animate-on-scroll">
-        <!-- BASF Logo Section -->
         <div class="footer-section logo-section">
             <img src="images/whitelogo.png" alt="BASF Logo" class="footer-logo">
         </div>
     
-        <!-- Explore Us Section -->
         <div class="footer-section explore-section">
             <h3>Explore Us</h3>
             <ul>
@@ -337,7 +335,6 @@
             </ul>
         </div>
     
-        <!-- Contact Us Section -->
         <div class="footer-section contact-section">
             <h3>Contact Us</h3>
             <ul>
@@ -348,7 +345,6 @@
             </ul>
         </div>
     
-        <!-- Connect with Us Section -->
         <div class="footer-section social-section">
             <h3>Connect with us</h3>
             <div class="social-icons">
@@ -357,7 +353,6 @@
             </div>
         </div>
     
-        <!-- Supported by Section -->
         <div class="footer-section supported-section">
             <h3>Supported by</h3>
             <img src="images/vanswhite.png" alt="Sponsor Logo" class="sponsor-logo">
@@ -378,7 +373,7 @@
         const modalViews = document.getElementById("videoViews");
 
         const videoId = video.dataset.id;
-        const source = video.dataset.source; // <-- Get the video source type
+        const source = video.dataset.source; 
 
         modal.style.opacity = "1";
         modal.style.visibility = "visible";
@@ -387,7 +382,6 @@
         modalTitle.innerText = title;
         modalDescription.innerText = description;
 
-        // Fetch and update views
         fetch('update_video_views.php', {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
@@ -399,7 +393,6 @@
         });
     }
 
-    // Close modal
     document.getElementById("closeModalBtn").addEventListener("click", function () {
         const modal = document.getElementById("videoModal");
         const modalVideo = document.getElementById("modalVideo");
@@ -446,7 +439,6 @@
 
     document.addEventListener("DOMContentLoaded", function () {
 
-        // Animate on scroll
         const elements = document.querySelectorAll('.animate-on-scroll');
         elements.forEach(el => {
             el._fadeTimeout = null;
@@ -474,17 +466,6 @@
         window.addEventListener('scroll', toggleVisibility);
         window.addEventListener('resize', toggleVisibility);
         toggleVisibility();
-
-        // Carousel horizontal scroll
-        const carousel = document.querySelector(".event-carousel");
-        if (carousel) {
-            carousel.addEventListener("wheel", (e) => {
-                e.preventDefault();
-                let scrollAmount = e.deltaY * 1.5;
-                scrollAmount = Math.sign(scrollAmount) * Math.max(10, Math.abs(scrollAmount));
-                carousel.scrollLeft += scrollAmount;
-            });
-        }
     });
     </script>
     <script>
@@ -512,66 +493,221 @@
             currentAd = (currentAd + 1) % ads.length;
         }
 
-        rotateAd(); // Initial
-        setInterval(rotateAd, 3000); // Change every 8 seconds
+        rotateAd(); 
+        setInterval(rotateAd, 3000); 
     </script>
     <script>
-        document.getElementById('categoryFilter').addEventListener('change', filterEvents);
-        document.getElementById('dateFilter').addEventListener('change', filterEvents);
+        let currentPage = 1;
+        let itemsPerPage = 8;
+        let filteredItems = []; 
+
+        document.getElementById('categoryFilter').addEventListener('change', () => { currentPage = 1; filterEvents(); });
+        document.getElementById('dateFilter').addEventListener('change', () => { currentPage = 1; filterEvents(); });
+        window.addEventListener('resize', () => { calculateItemsPerPage(); renderPage(); });
+
+        function calculateItemsPerPage() {
+            const grid = document.getElementById('eventGrid');
+            if (!grid) return;
+            
+            const gridWidth = grid.offsetWidth;
+            const cardWidth = 270; 
+            
+            let columns = Math.floor(gridWidth / cardWidth);
+            if (columns < 1) columns = 1;
+            
+            itemsPerPage = columns * 2;
+        }
 
         function filterEvents() {
             const category = document.getElementById('categoryFilter').value;
             const date = document.getElementById('dateFilter').value;
-            const items = document.querySelectorAll('.event-item');
-
+            const allItems = Array.from(document.querySelectorAll('.event-item'));
             const today = new Date();
 
-            items.forEach(item => {
+            filteredItems = allItems.filter(item => {
                 const itemCategory = item.getAttribute('data-category');
                 const itemDate = new Date(item.getAttribute('data-date'));
-                let show = true;
+                let matchCategory = true;
+                let matchDate = true;
 
-                if (category !== 'all' && category !== itemCategory) {
-                    show = false;
+                if (category !== 'all' && category.toLowerCase() !== itemCategory.toLowerCase()) {
+                    matchCategory = false;
                 }
 
                 if (date === 'upcoming' && itemDate < today) {
-                    show = false;
+                    matchDate = false;
                 } else if (date === 'this-week') {
-                    const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
+                    const dayOfWeek = today.getDay();
                     const startOfWeek = new Date(today);
                     startOfWeek.setDate(today.getDate() - dayOfWeek);
-
                     const endOfWeek = new Date(today);
                     endOfWeek.setDate(today.getDate() + (6 - dayOfWeek));
 
-                    // Remove time for accurate comparison
                     startOfWeek.setHours(0, 0, 0, 0);
                     endOfWeek.setHours(23, 59, 59, 999);
                     itemDate.setHours(0, 0, 0, 0);
 
                     if (itemDate < startOfWeek || itemDate > endOfWeek) {
-                        show = false;
+                        matchDate = false;
                     }
                 } else if (date === 'this-month') {
                     if (itemDate.getMonth() !== today.getMonth() || itemDate.getFullYear() !== today.getFullYear()) {
-                        show = false;
+                        matchDate = false;
                     }
                 }
 
-                item.style.display = show ? 'inline-block' : 'none';
+                return matchCategory && matchDate;
             });
 
-            updateEventCount(); // Update count after filter
+            updateEventCount(filteredItems.length);
+            calculateItemsPerPage();
+            renderPage();
         }
+
+        function renderPage() {
+            const allItems = document.querySelectorAll('.event-item');
+            allItems.forEach(item => item.style.display = 'none');
+
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageItems = filteredItems.slice(start, end);
+
+            pageItems.forEach(item => {
+                item.style.display = 'block';
+            });
+
+            renderPaginationControls();
+        }
+
+        function renderPaginationControls() {
+            const container = document.getElementById('pagination-controls');
+            container.innerHTML = '';
+
+            const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+
+            if (totalPages <= 1) return;
+
+            const prevBtn = document.createElement('button');
+            prevBtn.innerText = 'Prev';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.onclick = () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderPage();
+                }
+            };
+            container.appendChild(prevBtn);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.innerText = i;
+                if (i === currentPage) btn.classList.add('active');
+                btn.onclick = () => {
+                    currentPage = i;
+                    renderPage();
+                };
+                container.appendChild(btn);
+            }
+
+            const nextBtn = document.createElement('button');
+            nextBtn.innerText = 'Next';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.onclick = () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderPage();
+                }
+            };
+            container.appendChild(nextBtn);
+        }
+
+        function updateEventCount(count) {
+            document.getElementById('event-count').textContent = `Total Events: ${count}`;
+        }
+
+        window.onload = function() {
+            filterEvents();
+        };
     </script>
     <script>
-    function updateEventCount() {
-        const visibleItems = document.querySelectorAll('.event-item:not([style*="display: none"])');
-        document.getElementById('event-count').textContent = `Total Events: ${visibleItems.length}`;
-    }
+    document.addEventListener("DOMContentLoaded", function () {
+        const highlightGrid = document.getElementById('highlightGrid');
+        const paginationContainer = document.getElementById('highlightPagination');
+        const items = Array.from(document.querySelectorAll('.highlight-item'));
+        
+        let currentPage = 1;
+        let itemsPerPage = 6;
 
-    window.onload = updateEventCount;
-    </script>
+        function calculateLayout() {
+            const gridWidth = highlightGrid.offsetWidth;
+            const cardWidth = 270; 
+            let columns = Math.floor(gridWidth / cardWidth);
+            if (columns < 1) columns = 1;
+            
+            itemsPerPage = columns * 2;
+            
+            const totalPages = Math.ceil(items.length / itemsPerPage);
+            if (currentPage > totalPages) currentPage = 1;
+            
+            renderHighlights();
+        }
+
+        function renderHighlights() {
+            items.forEach(item => item.style.display = 'none');
+
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageItems = items.slice(start, end);
+
+            pageItems.forEach(item => item.style.display = 'block');
+
+            renderPagination();
+        }
+
+        function renderPagination() {
+            paginationContainer.innerHTML = '';
+            const totalPages = Math.ceil(items.length / itemsPerPage);
+
+            if (totalPages <= 1) return;
+
+            const prevBtn = document.createElement('button');
+            prevBtn.innerText = 'Prev';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.onclick = () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderHighlights();
+                }
+            };
+            paginationContainer.appendChild(prevBtn);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.innerText = i;
+                if (i === currentPage) btn.classList.add('active');
+                btn.onclick = () => {
+                    currentPage = i;
+                    renderHighlights();
+                };
+                paginationContainer.appendChild(btn);
+            }
+
+            const nextBtn = document.createElement('button');
+            nextBtn.innerText = 'Next';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.onclick = () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderHighlights();
+                }
+            };
+            paginationContainer.appendChild(nextBtn);
+        }
+
+        window.addEventListener('resize', calculateLayout);
+        
+        calculateLayout();
+    });
+</script>
 </body>
 </html>

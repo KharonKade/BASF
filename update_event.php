@@ -5,10 +5,8 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Get the event ID and validate
 $event_id = intval($_POST['event_id']);
 
-// Update main event details
 $event_name = $conn->real_escape_string($_POST['event_name']);
 $location = $conn->real_escape_string($_POST['location']);
 $description = $conn->real_escape_string($_POST['description']);
@@ -16,6 +14,10 @@ $category = $conn->real_escape_string($_POST['category']);
 $registration = isset($_POST['registration']) ? 1 : 0;
 $registration_limit = isset($_POST['registration_limit']) ? intval($_POST['registration_limit']) : NULL;
 
+$registration_fee = 0.00;
+if ($registration == 1 && isset($_POST['registration_type']) && $_POST['registration_type'] === 'paid') {
+    $registration_fee = isset($_POST['registration_fee']) ? floatval($_POST['registration_fee']) : 0.00;
+}
 
 $update_event_sql = "
     UPDATE upcoming_events 
@@ -24,7 +26,8 @@ $update_event_sql = "
         description = '$description', 
         category = '$category', 
         registration = '$registration',
-        registration_limit = " . ($registration_limit !== NULL ? $registration_limit : "NULL") . " 
+        registration_limit = " . ($registration_limit !== NULL ? $registration_limit : "NULL") . ",
+        registration_fee = $registration_fee
     WHERE id = $event_id";
 
 if (!$conn->query($update_event_sql)) {
@@ -32,7 +35,6 @@ if (!$conn->query($update_event_sql)) {
     die("Error updating event. Please try again later.");
 }
 
-// Update schedules
 $conn->query("DELETE FROM event_schedules WHERE event_id = $event_id");
 
 if (!empty($_POST['event_date'])) {
@@ -51,7 +53,6 @@ if (!empty($_POST['event_date'])) {
     }
 }
 
-// Handle posters
 $existing_posters = !empty($_POST['existing_posters']) ? $_POST['existing_posters'] : [];
 if (!empty($existing_posters)) {
     $existing_posters_placeholder = "'" . implode("','", array_map([$conn, 'real_escape_string'], $existing_posters)) . "'";
@@ -63,7 +64,6 @@ if (!empty($existing_posters)) {
     $conn->query("DELETE FROM event_images WHERE event_id = $event_id");
 }
 
-// Upload new posters
 foreach ($_FILES['posters']['tmp_name'] as $index => $tmp_name) {
     if (!empty($tmp_name)) {
         $poster_name = uniqid() . "_" . basename($_FILES['posters']['name'][$index]);
@@ -77,7 +77,6 @@ foreach ($_FILES['posters']['tmp_name'] as $index => $tmp_name) {
     }
 }
 
-// Handle sponsor logos
 $existing_sponsors = !empty($_POST['existing_sponsors']) ? $_POST['existing_sponsors'] : [];
 if (!empty($existing_sponsors)) {
     $existing_sponsors_placeholder = "'" . implode("','", array_map([$conn, 'real_escape_string'], $existing_sponsors)) . "'";
@@ -89,7 +88,6 @@ if (!empty($existing_sponsors)) {
     $conn->query("DELETE FROM sponsor_logos WHERE event_id = $event_id");
 }
 
-// Upload new sponsor logos
 foreach ($_FILES['sponsors']['tmp_name'] as $index => $tmp_name) {
     if (!empty($tmp_name)) {
         $sponsor_name = uniqid() . "_" . basename($_FILES['sponsors']['name'][$index]);

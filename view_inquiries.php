@@ -15,48 +15,38 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
     <title>View Inquiries</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="Css/view_inquiries.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="admin-container">
-        <!-- Sidebar Navigation -->
         <nav class="sidebar">
             <h2>Admin Dashboard</h2>
             <ul>
                 <li><a href="admin.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="create_event.php"><i class="fas fa-calendar-plus"></i> Create Event</a></li>
-                <li><a href="manage_upcoming.php"><i class="fas fa-calendar-check"></i> Manage Events</a></li>
-                <li><a href="archived_events.php"><i class="fas fa-archive"></i> Archived Events</a></li>
-                <li><a href="create_news.php"><i class="fas fa-newspaper"></i> Create News & Announcements</a></li>
-                <li><a href="manage_news.php"><i class="fas fa-edit"></i> Manage News & Announcements</a></li>
-                <li><a href="archived_news.php"><i class="fas fa-history"></i> Archived News</a></li>
-                <li><a href="admin_gallery.php"><i class="fas fa-images"></i> Manage Gallery Page</a></li>
-                <li><a href="editInlinePage.php"><i class="fas fa-skating"></i> Manage Inline Page</a></li>
-                <li><a href="editBmxPage.php"><i class="fas fa-bicycle"></i> Manage BMX Page</a></li>
-                <li><a href="editSkateboardPage.php"><i class="fas fa-snowboarding"></i> Manage Skateboard Page</a></li>
+                <li><a href="manage_upcoming.php"><i class="fas fa-calendar-check"></i>Events</a></li>
+                <li><a href="manage_news.php"><i class="fas fa-edit"></i>News & Announcements</a></li>
+                <li><a href="admin_gallery.php"><i class="fas fa-images"></i>Gallery Page</a></li>
+                <li><a href="editInlinePage.php"><i class="fas fa-skating"></i>Inline Page</a></li>
+                <li><a href="editBmxPage.php"><i class="fas fa-bicycle"></i>BMX Page</a></li>
+                <li><a href="editSkateboardPage.php"><i class="fas fa-snowboarding"></i>Skateboard Page</a></li>
                 <li><a href="view_inquiries.php"><i class="fas fa-question-circle"></i> Inquiries</a></li>
-                <li><a href="archived_inquiries.php"><i class="fas fa-archive"></i> Archived Inquiries</a></li>
                 <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </nav>
 
-        <!-- Main Content -->
         <div class="main-content">
             <?php
-            // Database connection
-            $servername = "localhost";  // Your database host
-            $username = "root";         // Your database username
-            $password = "";             // Your database password
-            $dbname = "contact_us";     // Your database name
+            $servername = "localhost";
+            $username = "root";
+            $password = "";
+            $dbname = "contact_us";
 
-            // Create a connection
             $conn = new mysqli($servername, $username, $password, $dbname);
 
-            // Check the connection
             if ($conn->connect_error) {
                 die("Connection failed: " . $conn->connect_error);
             }
 
-            // Fetch contact inquiries from the database, ordered by ID DESC
             $sql = "SELECT id, full_name, email, contact_number, concerns, message, submitted_at, archived FROM contact_inquiries ORDER BY id DESC";
             $result = $conn->query($sql);
 
@@ -66,7 +56,6 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
                 echo "<h2>Contact Inquiries</h2>";
                 $filter = isset($_GET['filter']) ? $_GET['filter'] : '';
 
-                // Optional: Fetch distinct concerns for the dropdown
                 $concernResult = $conn->query("SELECT DISTINCT concerns FROM contact_inquiries");
                 $concernOptions = '';
                 while ($cRow = $concernResult->fetch_assoc()) {
@@ -74,7 +63,6 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
                     $concernOptions .= "<option value='" . htmlspecialchars($cRow['concerns']) . "' $selected>" . htmlspecialchars($cRow['concerns']) . "</option>";
                 }
 
-                // Filtered SQL query
                 $sql = "SELECT id, full_name, email, contact_number, concerns, message, submitted_at, archived FROM contact_inquiries";
                 if (!empty($filter)) {
                     $sql .= " WHERE concerns = '" . $conn->real_escape_string($filter) . "'";
@@ -82,9 +70,9 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
                 $sql .= " ORDER BY id DESC";
                 $result = $conn->query($sql);
 
-                // Filter Form
+                echo "<div class='filter-action-container'>";
                 echo "
-                <form method='get' style='margin-bottom: 20px;'>
+                <form method='get'>
                     <label for='filter'><strong>Filter by Concern:</strong></label>
                     <select name='filter' id='filter' onchange='this.form.submit()'>
                         <option value=''>All</option>
@@ -92,6 +80,13 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
                     </select>
                 </form>
                 ";
+                
+                echo "
+                <div class='action-buttons'>
+                    <a href='archived_inquiries.php' class='btn btn-secondary'><i class='fas fa-archive'></i> Archived Inquiries</a>
+                </div>
+                </div>";
+
                 echo "<table>
                         <thead>
                             <tr>
@@ -107,12 +102,9 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
                         </thead>
                         <tbody>";
 
-                // Initialize a counter for the row numbers
                 $counter = 1;
 
-                // Output data of each row
                 while($row = $result->fetch_assoc()) {
-                    // Only show inquiries that are not archived (optional, can be modified)
                     if ($row["archived"] == 0) {
                         $shortMessage = strlen($row["message"]) > 25 ? substr($row["message"], 0, 25) . '...' : $row["message"];
                         echo "<tr>
@@ -146,7 +138,6 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
 
             echo "</div>";
 
-            // Close the connection
             $conn->close();
             ?>
         </div>

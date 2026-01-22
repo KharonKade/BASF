@@ -1,7 +1,5 @@
 <?php
 session_start();
-
-// Replace with secure credentials or database check in production
 $admin_username = "admin";
 $admin_hashed_password = '$2y$10$63CGLTs10sIm7AeZ/gcmzOlCJewedw0o9Iykk.1sAuXA0yq5GFk.2';
 
@@ -11,9 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Check username first
     if ($username === $admin_username) {
-        // Verify hashed password
         if (password_verify($password, $admin_hashed_password)) {
             $_SESSION['is_admin'] = true;
             header("Location: admin.php");

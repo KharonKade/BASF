@@ -1,11 +1,10 @@
-/* Reset Styles */
 body {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
 }
 
-/* Header Styling */
 header {
     background-color: rgba(255, 255, 255, 0.6);
     padding: 10px 20px;
@@ -15,21 +14,18 @@ header {
     z-index: 1000;
 }
 
-/* Navbar */
 .navbar {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* Logo */
 .logo {
     height: 80px;
     width: 200px;
     margin-right: auto;
 }
 
-/* Navigation Links */
 .nav-links {
     list-style: none;
     display: flex;
@@ -43,7 +39,7 @@ header {
     text-decoration: none;
     color: #000;
     font-weight: bold;
-    font-size: larger; /* increased from 'larger' to a more consistent size */
+    font-size: larger;
     transition: color 0.3s ease;
 }
 
@@ -54,12 +50,9 @@ header {
 }
 
 .nav-links a:hover {
-    color: #0073e6; /* Highlight color on hover */
+    color: #0073e6;
 }
 
-
-/* Body */
-/* Sports Container */
 .sports-container {
     background-image: url('../images/herobg.png'); 
     background-size: cover;
@@ -91,7 +84,7 @@ header {
 }
 
 .sports-buttons button {
-    font-family: 'Permanent Marker', cursive;
+    font-family: 'Poppins', sans-serif;
     font-size: 2.2rem;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -100,7 +93,7 @@ header {
         -2px -2px 5px rgba(255,255,255,0.1);
     padding: 40px 70px;
     background: linear-gradient(145deg, #3a3a3a, #2b2b2b);
-    border: 2px solid #ff4500; /* Sporty orange-red border */
+    border: 2px solid #ff4500;
     border-radius: 20px;
     color: white;
     cursor: pointer;
@@ -117,11 +110,10 @@ header {
     background-color: #1a1a1a;
     box-shadow: 
         0 10px 20px rgba(0,0,0,0.5),
-        0 0 20px rgba(255,69,0,0.3); /* Glowing sporty feel */
-    transform: rotate(-2deg); /* Slight edgy rotation */
+        0 0 20px rgba(255,69,0,0.3);
+    transform: rotate(-2deg);
 }
 
-/* Slight random rotation for other buttons */
 .sports-buttons button:nth-child(2) {
     transform: rotate(1.5deg);
 }
@@ -129,7 +121,6 @@ header {
     transform: rotate(-1deg);
 }
 
-/* Shine effect */
 .sports-buttons button::before {
     content: '';
     position: absolute;
@@ -141,7 +132,6 @@ header {
     transform: skewX(-25deg);
 }
 
-/* Button hover = pop like a "kick" */
 .sports-buttons button:hover {
     background: linear-gradient(145deg, #4a4a4a, #3b3b3b);
     transform: scale(1.08) rotate(0deg);
@@ -207,50 +197,27 @@ header {
     text-shadow: 1px 1px #fff;
 }
 
-.news-carousel-wrapper {
-    overflow-x: auto;
-    overflow-y: hidden; /* Prevents blocking vertical scroll */
-    touch-action: pan-y;
-    scroll-behavior: smooth;
-    padding-bottom: 10px;
+.news-grid-wrapper {
     width: 80%;
-    margin: 0 auto; /* Centers the element horizontally */
-}
-
-.news-carousel {
+    margin: 0 auto;
     display: flex;
-    gap: 20px;
-    padding: 10px;
-    scroll-snap-type: x mandatory;
-    white-space: nowrap;
+    flex-direction: column;
+    align-items: center;
 }
 
-.news-carousel-wrapper::-webkit-scrollbar {
-    height: 20px;
-}
-
-.news-carousel-wrapper::-webkit-scrollbar-thumb {
-    background: #ccc; /* Thumb color */
-    border-radius: 10px;
-}
-
-.news-carousel-wrapper::-webkit-scrollbar-track {
-    background: #f1f1f1; /* Track color */
-    border-radius: 10px;
-}
-
-.news-carousel-wrapper::-webkit-scrollbar-thumb:hover {
-    background: #555; /* Darker shade when hovered */
+.news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+    width: 100%;
 }
 
 .news-item {
-    flex: 0 0 340px;
     background: rgba(255, 255, 255, 0.25);
     border: 2px solid transparent;
     border-radius: 15px;
     backdrop-filter: blur(10px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-    scroll-snap-align: start;
     display: flex;
     flex-direction: column;
     transition: transform 0.4s ease, box-shadow 0.4s ease;
@@ -258,6 +225,8 @@ header {
     cursor: pointer;
     animation: bounceIn 0.8s ease forwards;
     border-image: linear-gradient(45deg, #26a69a, #81c784) 1;
+    overflow: hidden;
+    height: 100%;
 }
 
 .news-item:hover {
@@ -279,9 +248,7 @@ header {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    overflow: hidden;
 }
-
 
 .news-item-content h3 {
     font-size: 1.4rem;
@@ -294,15 +261,14 @@ header {
     color: #333;
     margin-bottom: 10px;
     line-height: 1.5;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .news-item-content .news-desc {
-    height: 3em; /* shorter height for 2 lines of text */
-    margin-bottom: 6px; /* reduce space */
+    height: 3em; 
+    margin-bottom: 6px; 
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-
 
 .news-item-content .publish-date {
     font-size: 0.85rem;
@@ -340,7 +306,32 @@ header {
     margin-left: 8px;
 }
 
-/* Animations */
+.pagination {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.page-link {
+    padding: 10px 15px;
+    background-color: #26a69a;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    font-weight: bold;
+}
+
+.page-link:hover {
+    background-color: #00796b;
+}
+
+.page-link.active {
+    background-color: #004d40;
+    cursor: default;
+}
+
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -366,8 +357,6 @@ header {
     }
 }
 
-
-/* Advertisement Section */
 .advertisement {
     text-align: center;
     padding: 20px 0;
@@ -438,7 +427,6 @@ header {
     transform: scale(1.1);
 }
 
-/* Footer Styling */
 .footer {
     display: flex;
     justify-content: space-around;
@@ -497,7 +485,6 @@ header {
     margin-top: 10px;
 }
 
-/* Ramp Icons */
 .footer-ramp-icons {
     position: relative;
     height: 60px;
@@ -530,7 +517,6 @@ header {
 }
 
 
-/* Responsive */
 @media (max-width: 768px) {
     .footer {
         flex-direction: column;
@@ -546,7 +532,6 @@ header {
     }
 }
 
-/* Basic animation setup */
 .animate-on-scroll {
     opacity: 0;
     transform: translateY(30px);
@@ -559,6 +544,3 @@ header {
     transform: translateY(0);
     visibility: visible;
 }
-
-
-

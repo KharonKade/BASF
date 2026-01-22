@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Page</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="Css/event.css">
 </head>
 
@@ -63,22 +66,21 @@
 
     <section class="container event-container animate-on-scroll" id="upcoming">
         <h2>Events & Activities</h2>
-        <div class="event-carousel" id="eventCarousel">
+        
+        <div class="event-grid" id="eventGrid">
             <?php
-            // Database connection
-            $servername = "localhost"; // Your database host
-            $username = "root";        // Your database username
-            $password = "";            // Your database password
-            $dbname = "basf_events";    // Your database name
+            $servername = "localhost";
+            $username = "root";
+            $password = "";
+            $dbname = "basf_events";
 
             $conn = new mysqli($servername, $username, $password, $dbname);
 
-            // Check the connection
             if ($conn->connect_error) {
                 die("Connection failed: " . $conn->connect_error);
             }
 
-           $sql = "
+            $sql = "
             SELECT 
                 e.id,
                 e.event_name, 
@@ -97,7 +99,7 @@
                 e.id
             ORDER BY 
                 e.id DESC
-        ";
+            ";
 
             $result = $conn->query($sql);
 
@@ -106,7 +108,6 @@
 
             if ($result->num_rows > 0) {
                 while ($row = $result->fetch_assoc()) {
-                    // Check if trending
                     $trend_sql = "
                         SELECT COUNT(r.id) AS recent_registrations
                         FROM event_registrations r
@@ -118,7 +119,6 @@
                     $recent_registrations = $trend_row['recent_registrations'];
                     $is_trending = $recent_registrations > 5;
 
-                    // Add to appropriate array
                     if ($is_trending) {
                         $trending_events[] = ['data' => $row, 'trending' => true];
                     } else {
@@ -126,7 +126,6 @@
                     }
                 }
 
-                // Merge arrays (trending first)
                 $all_events = array_merge($trending_events, $regular_events);
 
                 foreach ($all_events as $event) {
@@ -167,6 +166,8 @@
             $conn->close();
             ?>
         </div>
+        
+        <div id="pagination-controls" class="pagination-container"></div>
     </section>
 
     
@@ -177,12 +178,10 @@
     </div>
     
     <footer class="footer animate-on-scroll">
-        <!-- BASF Logo Section -->
         <div class="footer-section logo-section">
             <img src="images/whitelogo.png" alt="BASF Logo" class="footer-logo">
         </div>
     
-        <!-- Explore Us Section -->
         <div class="footer-section explore-section">
             <h3>Explore Us</h3>
             <ul>
@@ -198,7 +197,6 @@
             </ul>
         </div>
     
-        <!-- Contact Us Section -->
         <div class="footer-section contact-section">
             <h3>Contact Us</h3>
             <ul>
@@ -209,7 +207,6 @@
             </ul>
         </div>
     
-        <!-- Connect with Us Section -->
         <div class="footer-section social-section">
             <h3>Connect with us</h3>
             <div class="social-icons">
@@ -218,7 +215,6 @@
             </div>
         </div>
     
-        <!-- Supported by Section -->
         <div class="footer-section supported-section">
             <h3>Supported by</h3>
             <img src="images/vanswhite.png" alt="Sponsor Logo" class="sponsor-logo">
@@ -229,23 +225,10 @@
 
     <script>
     document.addEventListener("DOMContentLoaded", function () {
-    const carousel = document.querySelector(".event-carousel");
-
-        carousel.addEventListener("wheel", (e) => {
-            e.preventDefault(); // Prevent vertical scrolling
-
-            let scrollAmount = e.deltaY * 1.5; // Adjust sensitivity
-            scrollAmount = Math.sign(scrollAmount) * Math.max(10, Math.abs(scrollAmount)); // Ensure a minimum scroll step
-
-            carousel.scrollLeft += scrollAmount;
-        });
-    });
-
-    document.addEventListener("DOMContentLoaded", function () {
         const elements = document.querySelectorAll('.animate-on-scroll');
 
         elements.forEach(el => {
-            el._fadeTimeout = null; // custom property for tracking timeout
+            el._fadeTimeout = null;
         });
 
         function toggleVisibility() {
@@ -254,27 +237,22 @@
                 const inView = rect.top <= window.innerHeight * 0.85 && rect.bottom >= 0;
 
                 if (inView) {
-                    clearTimeout(el._fadeTimeout); // cancel any pending hide
+                    clearTimeout(el._fadeTimeout);
                     el.classList.add('visible');
+                    el.style.visibility = 'visible';
                 } else {
-                    // fade out first, then hide after transition
                     el.classList.remove('visible');
                     clearTimeout(el._fadeTimeout);
                     el._fadeTimeout = setTimeout(() => {
                         el.style.visibility = 'hidden';
-                    }, 600); // must match transition duration
-                }
-
-                // Always reset visibility to visible if showing
-                if (inView) {
-                    el.style.visibility = 'visible';
+                    }, 600);
                 }
             });
         }
 
         window.addEventListener('scroll', toggleVisibility);
         window.addEventListener('resize', toggleVisibility);
-        toggleVisibility(); // Run on load
+        toggleVisibility();
     });
 
     </script>
@@ -303,68 +281,142 @@
             currentAd = (currentAd + 1) % ads.length;
         }
 
-        rotateAd(); // Initial
-        setInterval(rotateAd, 3000); // Change every 8 seconds
+        rotateAd();
+        setInterval(rotateAd, 3000);
     </script>
+    
     <script>
-        document.getElementById('categoryFilter').addEventListener('change', filterEvents);
-        document.getElementById('dateFilter').addEventListener('change', filterEvents);
+        let currentPage = 1;
+        let itemsPerPage = 8;
+        let filteredItems = []; 
+
+        document.getElementById('categoryFilter').addEventListener('change', () => { currentPage = 1; filterEvents(); });
+        document.getElementById('dateFilter').addEventListener('change', () => { currentPage = 1; filterEvents(); });
+        window.addEventListener('resize', () => { calculateItemsPerPage(); renderPage(); });
+
+        function calculateItemsPerPage() {
+            const grid = document.getElementById('eventGrid');
+            if (!grid) return;
+            
+            const gridWidth = grid.offsetWidth;
+            const cardWidth = 270; 
+            
+            let columns = Math.floor(gridWidth / cardWidth);
+            if (columns < 1) columns = 1;
+            
+            itemsPerPage = columns * 2;
+        }
 
         function filterEvents() {
             const category = document.getElementById('categoryFilter').value;
             const date = document.getElementById('dateFilter').value;
-            const items = document.querySelectorAll('.event-item');
-
+            const allItems = Array.from(document.querySelectorAll('.event-item'));
             const today = new Date();
 
-            items.forEach(item => {
+            filteredItems = allItems.filter(item => {
                 const itemCategory = item.getAttribute('data-category');
                 const itemDate = new Date(item.getAttribute('data-date'));
-                let show = true;
+                let matchCategory = true;
+                let matchDate = true;
 
                 if (category !== 'all' && category !== itemCategory) {
-                    show = false;
+                    matchCategory = false;
                 }
 
                 if (date === 'upcoming' && itemDate < today) {
-                    show = false;
+                    matchDate = false;
                 } else if (date === 'this-week') {
-                    const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
+                    const dayOfWeek = today.getDay();
                     const startOfWeek = new Date(today);
                     startOfWeek.setDate(today.getDate() - dayOfWeek);
-
                     const endOfWeek = new Date(today);
                     endOfWeek.setDate(today.getDate() + (6 - dayOfWeek));
 
-                    // Remove time for accurate comparison
                     startOfWeek.setHours(0, 0, 0, 0);
                     endOfWeek.setHours(23, 59, 59, 999);
                     itemDate.setHours(0, 0, 0, 0);
 
                     if (itemDate < startOfWeek || itemDate > endOfWeek) {
-                        show = false;
+                        matchDate = false;
                     }
                 } else if (date === 'this-month') {
                     if (itemDate.getMonth() !== today.getMonth() || itemDate.getFullYear() !== today.getFullYear()) {
-                        show = false;
+                        matchDate = false;
                     }
                 }
 
-                item.style.display = show ? 'inline-block' : 'none';
+                return matchCategory && matchDate;
             });
 
-            updateEventCount(); // Update count after filter
+            updateEventCount(filteredItems.length);
+            calculateItemsPerPage();
+            renderPage();
         }
+
+        function renderPage() {
+            const allItems = document.querySelectorAll('.event-item');
+            allItems.forEach(item => item.style.display = 'none');
+
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageItems = filteredItems.slice(start, end);
+
+            pageItems.forEach(item => {
+                item.style.display = 'block';
+            });
+
+            renderPaginationControls();
+        }
+
+        function renderPaginationControls() {
+            const container = document.getElementById('pagination-controls');
+            container.innerHTML = '';
+
+            const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+
+            if (totalPages <= 1) return;
+
+            const prevBtn = document.createElement('button');
+            prevBtn.innerText = 'Prev';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.onclick = () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderPage();
+                }
+            };
+            container.appendChild(prevBtn);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.innerText = i;
+                if (i === currentPage) btn.classList.add('active');
+                btn.onclick = () => {
+                    currentPage = i;
+                    renderPage();
+                };
+                container.appendChild(btn);
+            }
+
+            const nextBtn = document.createElement('button');
+            nextBtn.innerText = 'Next';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.onclick = () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderPage();
+                }
+            };
+            container.appendChild(nextBtn);
+        }
+
+        function updateEventCount(count) {
+            document.getElementById('event-count').textContent = `Total Events: ${count}`;
+        }
+
+        window.onload = function() {
+            filterEvents();
+        };
     </script>
-    <script>
-    function updateEventCount() {
-        const visibleItems = document.querySelectorAll('.event-item:not([style*="display: none"])');
-        document.getElementById('event-count').textContent = `Total Events: ${visibleItems.length}`;
-    }
-
-    window.onload = updateEventCount;
-    </script>
-
-
 </body>
 </html>

@@ -7,17 +7,15 @@ if ($conn->connect_error) {
 
 $event_id = $_GET['id'];
 
-// Fetch event details
 $event = $conn->query("SELECT * FROM upcoming_events WHERE id = $event_id")->fetch_assoc();
 
-// Fetch schedules
 $schedules = $conn->query("SELECT * FROM event_schedules WHERE event_id = $event_id");
 
-// Fetch posters
 $images = $conn->query("SELECT * FROM event_images WHERE event_id = $event_id");
 
-// Fetch sponsors
 $sponsors = $conn->query("SELECT * FROM sponsor_logos WHERE event_id = $event_id");
+
+$is_paid = ($event['registration_fee'] > 0);
 ?>
 
 <!DOCTYPE html>
@@ -27,7 +25,11 @@ $sponsors = $conn->query("SELECT * FROM sponsor_logos WHERE event_id = $event_id
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Event</title>
     <link rel="stylesheet" href="Css/edit_event.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+    <style>
+        * { font-family: 'Poppins', sans-serif; }
+    </style>
 </head>
 <body>
     <div class="admin-container">
@@ -52,13 +54,25 @@ $sponsors = $conn->query("SELECT * FROM sponsor_logos WHERE event_id = $event_id
             <textarea name="description" id="description"><?php echo $event['description']; ?></textarea>
 
             <label>Registration:
-            <input type="checkbox" name="registration" <?php if ($event['registration']) echo "checked"; ?>>
+            <input type="checkbox" name="registration" id="registration" <?php if ($event['registration']) echo "checked"; ?>>
             <span>Yes</span>
             </label>
 
-            <label>Registration Limit:</label>
-            <input type="number" name="registration_limit" value="<?php echo isset($event['registration_limit']) ? $event['registration_limit'] : ''; ?>" min="1">
+            <div id="registration-options" style="display: <?php echo $event['registration'] ? 'block' : 'none'; ?>;">
+                <label>Registration Limit:</label>
+                <input type="number" name="registration_limit" value="<?php echo isset($event['registration_limit']) ? $event['registration_limit'] : ''; ?>" min="1">
 
+                <label>Registration Type:</label>
+                <select name="registration_type" id="registration_type">
+                    <option value="free" <?php echo (!$is_paid) ? 'selected' : ''; ?>>Free</option>
+                    <option value="paid" <?php echo ($is_paid) ? 'selected' : ''; ?>>Paid</option>
+                </select>
+
+                <div id="fee-container" style="display: <?php echo ($is_paid) ? 'block' : 'none'; ?>; margin-top: 10px;">
+                    <label>Registration Fee (PHP):</label>
+                    <input type="number" name="registration_fee" id="registration_fee" min="1" step="0.01" value="<?php echo $event['registration_fee']; ?>">
+                </div>
+            </div>
 
             <h3>Schedules:</h3>
             <div id="schedule-container">
@@ -107,20 +121,38 @@ $sponsors = $conn->query("SELECT * FROM sponsor_logos WHERE event_id = $event_id
     </div>
     <script>
         document.getElementById('add-schedule').addEventListener('click', function () {
-    const container = document.getElementById('schedule-container');
-    const scheduleDiv = document.createElement('div');
-    scheduleDiv.innerHTML = `
-        <label>Date:</label>
-        <input type="date" name="event_date[]" required>
-        <label>Start Time:</label>
-        <input type="time" name="start_time[]" required>
-        <label>End Time:</label>
-        <input type="time" name="end_time[]" required>
-        <button type="button" onclick="this.parentElement.remove()">Remove</button>
+            const container = document.getElementById('schedule-container');
+            const scheduleDiv = document.createElement('div');
+            scheduleDiv.innerHTML = `
+                <label>Date:</label>
+                <input type="date" name="event_date[]" required>
+                <label>Start Time:</label>
+                <input type="time" name="start_time[]" required>
+                <label>End Time:</label>
+                <input type="time" name="end_time[]" required>
+                <button type="button" onclick="this.parentElement.remove()">Remove</button>
             `;
             container.appendChild(scheduleDiv);
         });
 
+        document.getElementById("registration").addEventListener("change", function () {
+            var registrationOptions = document.getElementById("registration-options");
+            registrationOptions.style.display = this.checked ? "block" : "none";
+        });
+
+        document.getElementById("registration_type").addEventListener("change", function () {
+            var feeContainer = document.getElementById("fee-container");
+            var feeInput = document.getElementById("registration_fee");
+            
+            if (this.value === "paid") {
+                feeContainer.style.display = "block";
+                feeInput.required = true;
+            } else {
+                feeContainer.style.display = "none";
+                feeInput.required = false;
+                feeInput.value = "";
+            }
+        });
     </script>
     <script>
         function removeElement(button) {
@@ -132,15 +164,13 @@ $sponsors = $conn->query("SELECT * FROM sponsor_logos WHERE event_id = $event_id
         ClassicEditor
         .create(document.querySelector('#description'))
         .then(editor => {
-            // Show the textarea once CKEditor is fully initialized
             editor.ui.view.editable.element.parentElement.style.display = 'block';
+            editorInstance = editor;
         })
         .catch(error => {
             console.error(error);
         });
 
-
-        // Listen for form submission and sync the editor content
         document.querySelector('form').addEventListener('submit', function (e) {
             try {
                 if (editorInstance) {

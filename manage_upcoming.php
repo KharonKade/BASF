@@ -2,20 +2,15 @@
 session_start();
 
 if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
-    // Not logged in as admin, redirect to admin login page
     header("Location: admin_login.php");
     exit();
 }
-?>
 
-<?php
-// Database connection
 $conn = new mysqli("localhost", "root", "", "basf_events");
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Handle Archive Action
 if (isset($_GET['archive_id'])) {
     $archive_id = intval($_GET['archive_id']);
     $archive_sql = "UPDATE upcoming_events SET status = 'archived' WHERE id = $archive_id";
@@ -41,7 +36,7 @@ if (!empty($filter_category) && $filter_category !== 'All') {
     $filter_category = $conn->real_escape_string($filter_category);
     $sql .= " AND category = '$filter_category'";
 }
-$sql . "ORDER BY id DESC";
+$sql .= " ORDER BY id DESC";
 
 $result = $conn->query($sql);
 ?>
@@ -55,6 +50,7 @@ $result = $conn->query($sql);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="Css/manage_event.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="admin-container">
@@ -62,32 +58,36 @@ $result = $conn->query($sql);
             <h2>Admin Dashboard</h2>
             <ul>
                 <li><a href="admin.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="create_event.php"><i class="fas fa-calendar-plus"></i> Create Event</a></li>
-                <li><a href="manage_upcoming.php"><i class="fas fa-calendar-check"></i> Manage Events</a></li>
-                <li><a href="archived_events.php"><i class="fas fa-archive"></i> Archived Events</a></li>
-                <li><a href="create_news.php"><i class="fas fa-newspaper"></i> Create News & Announcements</a></li>
-                <li><a href="manage_news.php"><i class="fas fa-edit"></i> Manage News & Announcements</a></li>
-                <li><a href="archived_news.php"><i class="fas fa-history"></i> Archived News</a></li>
-                <li><a href="admin_gallery.php"><i class="fas fa-images"></i> Manage Gallery Page</a></li>
-                <li><a href="editInlinePage.php"><i class="fas fa-skating"></i> Manage Inline Page</a></li>
-                <li><a href="editBmxPage.php"><i class="fas fa-bicycle"></i> Manage BMX Page</a></li>
-                <li><a href="editSkateboardPage.php"><i class="fas fa-snowboarding"></i> Manage Skateboard Page</a></li>
+                <li><a href="manage_upcoming.php"><i class="fas fa-calendar-check"></i>Events</a></li>
+                <li><a href="manage_news.php"><i class="fas fa-edit"></i>News & Announcements</a></li>
+                <li><a href="admin_gallery.php"><i class="fas fa-images"></i>Gallery Page</a></li>
+                <li><a href="editInlinePage.php"><i class="fas fa-skating"></i>Inline Page</a></li>
+                <li><a href="editBmxPage.php"><i class="fas fa-bicycle"></i>BMX Page</a></li>
+                <li><a href="editSkateboardPage.php"><i class="fas fa-snowboarding"></i>Skateboard Page</a></li>
                 <li><a href="view_inquiries.php"><i class="fas fa-question-circle"></i> Inquiries</a></li>
-                <li><a href="archived_inquiries.php"><i class="fas fa-archive"></i> Archived Inquiries</a></li>
                 <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </nav>
         <main class="content">
-            <h2>Manage Upcoming Events</h2>
-            <form method="GET" style="margin-bottom: 20px;">
-                <label for="category">Filter by Category:</label>
-                <select name="category" onchange="this.form.submit()">
-                    <option value="All" <?php if ($filter_category === 'All' || empty($filter_category)) echo 'selected'; ?>>All</option>
-                    <option value="Skateboard" <?php if ($filter_category === 'Skateboard') echo 'selected'; ?>>Skateboard</option>
-                    <option value="BMX" <?php if ($filter_category === 'BMX') echo 'selected'; ?>>BMX</option>
-                    <option value="In-Line" <?php if ($filter_category === 'In-Line') echo 'selected'; ?>>In-Line</option>
-                </select>
-            </form>
+            <h2>Manage Events</h2>
+            
+            <div class="filter-action-container">
+                <form method="GET">
+                    <label for="category">Filter by Category:</label>
+                    <select name="category" onchange="this.form.submit()">
+                        <option value="All" <?php if ($filter_category === 'All' || empty($filter_category)) echo 'selected'; ?>>All</option>
+                        <option value="Skateboard" <?php if ($filter_category === 'Skateboard') echo 'selected'; ?>>Skateboard</option>
+                        <option value="BMX" <?php if ($filter_category === 'BMX') echo 'selected'; ?>>BMX</option>
+                        <option value="In-Line" <?php if ($filter_category === 'In-Line') echo 'selected'; ?>>In-Line</option>
+                    </select>
+                </form>
+                
+                <div class="action-buttons">
+                    <a href="create_event.php" class="btn btn-primary"><i class="fas fa-plus"></i> Create Event</a>
+                    <a href="archived_events.php" class="btn btn-secondary"><i class="fas fa-archive"></i> Archived Events</a>
+                </div>
+            </div>
+
             <?php if ($result->num_rows > 0): ?>
             <table>
                 <thead>
@@ -104,11 +104,10 @@ $result = $conn->query($sql);
                 </thead>
                 <tbody>
                     <?php 
-                    // Initialize a counter for row numbers
                     $row_num = 1;
                     while ($row = $result->fetch_assoc()): ?>
                     <tr>
-                        <td><?php echo $row_num++; ?></td> <!-- Display the row number -->
+                        <td><?php echo $row_num++; ?></td> 
                         <td><?php echo $row['event_name']; ?></td>
                         <td><?php echo $row['location']; ?></td>
                         <td><?php echo ucfirst($row['category']); ?></td>
@@ -116,7 +115,6 @@ $result = $conn->query($sql);
                         <td><?php echo $row['registration_limit'] ?? 'Unlimited'; ?></td>
                         <td>
                             <?php
-                            // Fetch schedules for the event
                             $schedule_sql = "SELECT * FROM event_schedules WHERE event_id = " . $row['id'];
                             $schedule_result = $conn->query($schedule_sql);
                             if ($schedule_result->num_rows > 0) {
@@ -155,5 +153,4 @@ $result = $conn->query($sql);
     </div>
 </body>
 </html>
-
 <?php $conn->close(); ?>

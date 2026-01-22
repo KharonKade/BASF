@@ -81,7 +81,7 @@ if ($stmt->execute()) {
     // Display success message in JavaScript
     echo "<script type='text/javascript'>
             alert('News and Announcement created successfully!');
-            window.location.href = 'create_news.html'; // Redirect to admin dashboard after creation
+            window.location.href = 'manage_news.php'; // Redirect to admin dashboard after creation
           </script>";
 } else {
     echo "Error: " . $stmt->error;

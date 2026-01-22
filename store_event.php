@@ -4,30 +4,31 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Get form data
 $event_name = $_POST['event_name'] ?? '';
 $location = $_POST['location'] ?? '';
 $description = $_POST['description'] ?? '';
-$category = $_POST['category'] ?? 'all'; // Default to "All" category
-$registration = isset($_POST['registration']) ? 1 : 0; // 1 for enabled, 0 for disabled
+$category = $_POST['category'] ?? 'all'; 
+$registration = isset($_POST['registration']) ? 1 : 0; 
 $registration_limit = isset($_POST['registration_limit']) ? (int)$_POST['registration_limit'] : NULL;
 
-// Validate form inputs
+$registration_fee = 0.00;
+if ($registration == 1 && isset($_POST['registration_type']) && $_POST['registration_type'] === 'paid') {
+    $registration_fee = isset($_POST['registration_fee']) ? (float)$_POST['registration_fee'] : 0.00;
+}
+
 if (empty($event_name) || empty($location) || empty($description)) {
     die("Error: Please fill all the required fields.");
 }
 
-// Insert main event data
-$sql = "INSERT INTO upcoming_events (event_name, location, description, category, registration, registration_limit) 
-        VALUES (?, ?, ?, ?, ?, ?)";
+$sql = "INSERT INTO upcoming_events (event_name, location, description, category, registration, registration_limit, registration_fee) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("ssssis", $event_name, $location, $description, $category, $registration, $registration_limit);
+$stmt->bind_param("ssssisd", $event_name, $location, $description, $category, $registration, $registration_limit, $registration_fee);
 $stmt->execute();
 $event_id = $stmt->insert_id;
 $stmt->close();
 
-// Insert schedules
 if (!empty($_POST['event_date'])) {
     $schedule_sql = "INSERT INTO event_schedules (event_id, event_date, start_time, end_time) VALUES (?, ?, ?, ?)";
     $stmt = $conn->prepare($schedule_sql);
@@ -42,7 +43,6 @@ if (!empty($_POST['event_date'])) {
     $stmt->close();
 }
 
-// Upload posters
 if (!empty($_FILES['posters']['tmp_name'][0])) {
     $image_sql = "INSERT INTO event_images (event_id, image_path) VALUES (?, ?)";
     $stmt = $conn->prepare($image_sql);
@@ -56,7 +56,6 @@ if (!empty($_FILES['posters']['tmp_name'][0])) {
     $stmt->close();
 }
 
-// Upload sponsor logos
 if (!empty($_FILES['sponsors']['tmp_name'][0])) {
     $sponsor_sql = "INSERT INTO sponsor_logos (event_id, logo_path) VALUES (?, ?)";
     $stmt = $conn->prepare($sponsor_sql);
@@ -70,10 +69,9 @@ if (!empty($_FILES['sponsors']['tmp_name'][0])) {
     $stmt->close();
 }
 
-// Display success message in JavaScript
 echo "<script type='text/javascript'>
         alert('Event created successfully!');
-        window.location.href = 'create_event.html'; // Redirect to admin dashboard after event is created
+        window.location.href = 'create_event.php'; 
       </script>";
 
 $conn->close();
