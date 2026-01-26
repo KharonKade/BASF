@@ -25,59 +25,78 @@
     
     <section class="event-hero">
         <div class="event-hero-content">
-            <h1>Contact Us</h1>
             <h2>Questions & Inqueries</h2>
         </div>
     </section>
 
     <section class="contact-section">
         <div class="contact-container animate-on-scroll">
-            <!-- Left Side: Contact Form -->
             <div class="contact-form">
                 <h3>Get in Touch</h3>
                 <form action="sendEmail.php" method="post">
-                    <label for="fullName">Full Name</label>
-                    <input type="text" id="fullName" name="fullName" required>
-                
-                    <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" required>
-                
-                    <label for="contactNumber">Contact Number</label>
-                    <input type="tel" id="contactNumber" name="contactNumber" required>
-                
-                    <label for="concerns">Concerns</label>
-                    <select id="concerns" name="concerns" required>
-                        <option value="General Inquiry">General Inquiry</option>
-                        <option value="Event Inquiry">Event Inquiry</option>
-                        <option value="Sponsorship Inquiry">Sponsorship Inquiry</option>
-                        <option value="Feedback">Feedback</option>
-                    </select>
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" name="fullName" placeholder="Juan Dela Cruz" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" placeholder="example@mail.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contactNumber">Contact Number</label>
+                        <input type="tel" id="contactNumber" name="contactNumber" placeholder="09XX XXX XXXX" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="concerns">Reason for Inquiry</label>
+                        <select id="concerns" name="concerns" required onchange="toggleCompanyField()">
+                            <option value="General Inquiry">General Inquiry</option>
+                            <option value="Event Inquiry">Event Inquiry</option>
+                            <option value="Sponsorship Inquiry">Sponsorship Inquiry</option>
+                            <option value="Feedback">Feedback</option>
+                        </select>
+                    </div>
 
-                    <div id="companyNameContainer" style="display: none;">
+                    <div id="companyNameContainer" class="form-group" style="display: none;">
                         <label for="companyName">Company Name</label>
-                        <input type="text" id="companyName" name="companyName">
+                        <input type="text" id="companyName" name="companyName" placeholder="Your Organization">
                     </div>                
                 
-                    <label for="message">Message</label>
-                    <textarea id="message" name="message" rows="5" required></textarea>
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" name="message" rows="5" placeholder="How can we help you?" required></textarea>
+                    </div>
                 
-                    <button type="submit" class="send-email-button">Send Email</button>
+                    <button type="submit" class="send-email-button">Send Message</button>
                 </form>
             </div>
 
-            <!-- Right Side: Contact Details -->
             <div class="contact-details animate-on-scroll">
-                <h3>Contact Informations</h3>
-                <p><strong> Baguio Action Sports Federation</strong></p>
-                <br>
-                <p><strong>Contact Nos:</strong></p>
-                <ul>
-                    <li>09094431201</li>
-                    <li>09348913502</li>
-                    <li>09761816282</li>
-                </ul>
-                <br>
-                <p><strong>Email:</strong> basf@gmail.com</p>
+                <div class="details-content">
+                    <h3>Contact Information</h3>
+                    <p class="org-name">Baguio Action Sports Federation</p>
+                    
+                    <div class="contact-item">
+                        <span class="icon">📍</span>
+                        <p>Baguio City, Philippines</p>
+                    </div>
+
+                    <div class="contact-item">
+                        <span class="icon">📞</span>
+                        <ul>
+                            <li>09094431201</li>
+                            <li>09348913502</li>
+                            <li>09761816282</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <span class="icon">✉️</span>
+                        <p>basf@gmail.com</p>
+                    </div>
+                </div>
             </div>
         </div>
     </section>

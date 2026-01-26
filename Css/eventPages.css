@@ -7,54 +7,54 @@
 
 /* Header Styling */
 header {
-  background-color: rgba(255, 255, 255, 0.6); /* White with low transparency */
-  padding: 10px 20px;
-  position: absolute;
-  top: 0;
-  width: 100%;
-  z-index: 1000;
+    background-color: rgba(255, 255, 255, 0.6); /* White with low transparency */
+    padding: 10px 20px;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
 }
 
 /* Navbar */
 .navbar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Logo */
 .logo {
-  height: 80px;
-  width: 200px;
-  margin-right: auto; /* Adjust the size based on your logo */
+    height: 80px;
+    width: 200px;
+    margin-right: auto; /* Adjust the size based on your logo */
 }
 
 /* Navigation Links */
 .nav-links {
-  list-style: none;
-  display: flex;
-  gap: 80px;
-  margin-top: 40px;
-  padding: 0;
-  margin-right: 140px;
+    list-style: none;
+    display: flex;
+    gap: 60px;
+    margin-top: 40px;
+    padding: 0;
+    margin-right: 140px;
 }
 
 .nav-links a {
-  text-decoration: none;
-  color: #000;
-  font-weight: bold;
-  font-size: larger; /* increased from 'larger' to a more consistent size */
-  transition: color 0.3s ease;
+    text-decoration: none;
+    color: #000;
+    font-weight: bold;
+    font-size: larger; /* increased from 'larger' to a more consistent size */
+    transition: color 0.3s ease;
 }
 
 .nav-center {
-  display: flex;
-  justify-content: center;
-  flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    flex-grow: 1;
 }
 
 .nav-links a:hover {
-  color: #0073e6; /* Highlight color on hover */
+    color: #0073e6; /* Highlight color on hover */
 }
 
 .event-hero {
@@ -108,7 +108,7 @@ header {
   width: 100%;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(to bottom, #e0f7fa, #fff);
+  background: linear-gradient(185deg, #f0f4f8 0%, white 100%);
 }
 
 /* Left Section */

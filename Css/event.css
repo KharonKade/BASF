@@ -6,7 +6,7 @@
 }
 
 header {
-    background-color: rgba(255, 255, 255, 0.6);
+    background-color: rgba(255, 255, 255, 0.6); /* White with low transparency */
     padding: 10px 20px;
     position: fixed;
     top: 0;
@@ -14,18 +14,21 @@ header {
     z-index: 1000;
 }
 
+/* Navbar */
 .navbar {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
+/* Logo */
 .logo {
     height: 80px;
     width: 200px;
-    margin-right: auto;
+    margin-right: auto; /* Adjust the size based on your logo */
 }
 
+/* Navigation Links */
 .nav-links {
     list-style: none;
     display: flex;
@@ -39,7 +42,7 @@ header {
     text-decoration: none;
     color: #000;
     font-weight: bold;
-    font-size: larger;
+    font-size: larger; /* increased from 'larger' to a more consistent size */
     transition: color 0.3s ease;
 }
 
@@ -50,7 +53,7 @@ header {
 }
 
 .nav-links a:hover {
-    color: #0073e6;
+    color: #0073e6; /* Highlight color on hover */
 }
 
 .hero {
@@ -92,15 +95,16 @@ header {
 }
 
 .hero h2 {
-    font-size: 3rem;
-    font-weight: 300;
+    font-size: 5rem;
+    font-weight: 700;
+    margin-top: 100px;
 }
 
 .event-navigation {
     display: flex;
     padding: 20px;
     gap: 20px;
-    background: linear-gradient(to bottom, #e0f7fa, #fff);;
+    background: linear-gradient(to bottom, #f0f4f8, #fff);
 }
 
 .advertisement {
@@ -441,8 +445,11 @@ a {
     font-size: 1.2rem;
     font-weight: bold;
     margin-bottom: 20px;
-    text-align: center;
+    text-align: start;
     font-family: 'Poppins', sans-serif;
+    width: 80%;
+    justify-self: center;
+    margin-left: 50px;
 }
 
 .pagination-container {
@@ -461,6 +468,7 @@ a {
     border-radius: 5px;
     transition: background-color 0.3s;
     font-family: 'Poppins', sans-serif;
+    font-weight: bold;
 }
 
 .pagination-container button:hover {

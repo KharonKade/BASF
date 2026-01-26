@@ -35,67 +35,100 @@ $gallery_result = $conn->query($gallery_query);
 <body>
     <header class="player-header animate-on-scroll">
         <div class="overlay"></div>
-        <div class="player-info">
+        <div class="header-content">
             <?php if ($athlete): ?>
-                <img src="<?php echo $athlete['image']; ?>" alt="<?php echo $athlete['name']; ?>" class="player-img">
-                <h1 class="player-name"><?php echo $athlete['name']; ?></h1>
-                <p class="player-role"><?php echo $athlete['specialty']; ?></p>
+                <div class="img-container">
+                    <img src="<?php echo $athlete['image']; ?>" alt="<?php echo $athlete['name']; ?>" class="player-img">
+                </div>
+                <div class="text-container">
+                    <h1 class="player-name"><?php echo $athlete['name']; ?></h1>
+                    <span class="player-badge"><?php echo $athlete['specialty']; ?></span>
+                </div>
             <?php else: ?>
                 <p>Athlete not found.</p>
             <?php endif; ?>
         </div>
     </header>
     
-    <section class="player-details animate-on-scroll">
-        <div class="bio">
-            <h2>About the Player</h2>
+    <div class="main-container">
+        
+        <section class="stats-bar animate-on-scroll">
             <?php if ($athlete): ?>
-                <p><?php echo $athlete['bio']; ?></p>
+                <div class="stat-card">
+                    <span class="stat-value"><?php echo $athlete['wins']; ?></span>
+                    <span class="stat-label">Wins</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value"><?php echo $athlete['podium_finishes']; ?></span>
+                    <span class="stat-label">Podiums</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value"><?php echo $athlete['years_active']; ?></span>
+                    <span class="stat-label">Years Active</span>
+                </div>
             <?php else: ?>
-                <p>No bio available.</p>
+                <p>Data not available</p>
             <?php endif; ?>
+        </section>
+
+        <div class="content-grid">
+            <section class="bio-section animate-on-scroll">
+                <div class="section-header">
+                    <h2>Athlete Biography</h2>
+                    <div class="underline"></div>
+                </div>
+                <div class="bio-content">
+                    <?php if ($athlete): ?>
+                        <p><?php echo $athlete['bio']; ?></p>
+                    <?php else: ?>
+                        <p>No bio available.</p>
+                    <?php endif; ?>
+                </div>
+            </section>
+            
+            <section class="achievements-section animate-on-scroll">
+                <div class="section-header">
+                    <h2>Achievements</h2>
+                    <div class="underline"></div>
+                </div>
+                <div class="achievement-list">
+                    <?php while ($ach = $achievements_result->fetch_assoc()): ?>
+                        <div class="achievement-card">
+                            <div class="icon-box">🏆</div>
+                            <div class="ach-text">
+                                <h3><?php echo $ach['title']; ?></h3>
+                                <p><?php echo $ach['description']; ?></p>
+                            </div>
+                        </div>
+                    <?php endwhile; ?>
+                </div>
+            </section>
         </div>
         
-        <div class="stats">
-            <h2>Player Statistics</h2>
-            <ul>
-                <?php if ($athlete): ?>
-                    <li><strong>Wins:</strong> <?php echo $athlete['wins']; ?></li>
-                    <li><strong>Podium Finishes:</strong> <?php echo $athlete['podium_finishes']; ?></li>
-                    <li><strong>Years Active:</strong> <?php echo $athlete['years_active']; ?></li>
-                    <li><strong>Specialty:</strong> <?php echo $athlete['specialty']; ?></li>
-                <?php else: ?>
-                    <li><strong>Data not available</strong></li>
-                <?php endif; ?>
-            </ul>
+        <section class="gallery-section animate-on-scroll">
+            <div class="section-header center-header">
+                <h2>Media Gallery</h2>
+                <div class="underline"></div>
+            </div>
+            <div class="gallery-grid">
+                <?php while ($img = $gallery_result->fetch_assoc()): ?>
+                    <div class="gallery-card">
+                        <div class="img-wrapper">
+                            <img src="<?php echo $img['image']; ?>" alt="Gallery Image">
+                        </div>
+                        <div class="gallery-info">
+                            <p><?php echo $img['description']; ?></p>
+                        </div>
+                    </div>
+                <?php endwhile; ?>
+            </div>
+        </section>
+
+        <div class="action-area animate-on-scroll">
+            <button onclick="history.back()" class="return-btn">
+                <span>&larr; Return to Roster</span>
+            </button>
         </div>
-    </section>
-    
-    <section class="achievements animate-on-scroll">
-        <h2 style="color: white";>Achievements</h2>
-        <div class="achievement-list">
-            <?php while ($ach = $achievements_result->fetch_assoc()): ?>
-                <div class="achievement">
-                    <h3><?php echo $ach['title']; ?></h3>
-                    <p><?php echo $ach['description']; ?></p>
-                </div>
-            <?php endwhile; ?>
-        </div>
-    </section>
-    
-    <section class="gallery animate-on-scroll">
-        <h2>Gallery</h2>
-        <div class="gallery-container">
-            <?php while ($img = $gallery_result->fetch_assoc()): ?>
-                <div class="gallery-item">
-                    <img src="<?php echo $img['image']; ?>" alt="Gallery Image">
-                    <p class="gallery-description"><?php echo $img['description']; ?></p> <!-- Display description here -->
-                </div>
-            <?php endwhile; ?>
-        </div>
-    </section>
-    <div class="return-container animate-on-scroll">
-        <button onclick="history.back()" class="return-btn">Go Back</button>
     </div>
 
     <div class="footer-ramp-icons animate-on-scroll">

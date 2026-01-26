@@ -218,16 +218,20 @@
     <div class="video-modal" id="videoModal">
         <div class="video-modal-content">
             <button class="close-btn" id="closeModalBtn">&times;</button>
+            
             <div class="video-container">
                 <video id="modalVideo" controls autoplay></video>
             </div>
+            
             <div class="video-details">
                 <div class="video-info-left">
-                    <h3 id="videoTitle"></h3>
-                    <p id="videoDescription"></p>
+                    <h3 id="videoTitle">Video Title</h3>
+                    <p id="videoDescription">Video description goes here...</p>
                 </div>
                 <div class="video-views-right">
-                    <p id="videoViews">Views: 0</p>
+                    <span class="view-badge">
+                        <p id="videoViews">0 Views</p>
+                    </span>
                 </div>
             </div>
         </div>

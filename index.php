@@ -8,12 +8,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home Page</title>
     <link rel="stylesheet" href="Css/index.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -42,86 +39,60 @@
         </div>
     </section>
 
-        <section id="news" class="news-container animate-on-scroll">
-            <h2>News & Announcements</h2>
-            <div class="news-grid-wrapper">
-                <div class="news-grid">
-                <?php
-                    $conn = new mysqli("localhost", "root", "", "basf_news");
+        <section id="news" class="news-container animate-on-scroll" style="font-family: 'Poppins', sans-serif;">
+    <h2>News & Announcements</h2>
+    <div class="news-grid-wrapper">
+        <div class="news-grid" id="newsGrid">
+            <?php
+            $conn = new mysqli("localhost", "root", "", "basf_news");
 
-                    if ($conn->connect_error) {
-                        die("Connection failed: " . $conn->connect_error);
+            if ($conn->connect_error) {
+                die("Connection failed: " . $conn->connect_error);
+            }
+
+            $sql = "SELECT * FROM news_announcements WHERE status = 'active' ORDER BY publish_date DESC";
+            $result = $conn->query($sql);
+
+            if ($result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                    $news_title = $row['news_title'];
+                    $news_content = $row['news_content'];
+                    $publish_date = $row['publish_date'];
+                    $image_path = '';
+
+                    $publish_date_obj = new DateTime($publish_date);
+                    $formatted_publish_date = $publish_date_obj->format('l, F j, Y');
+
+                    $news_id = $row['news_id'];
+                    $image_sql = "SELECT * FROM news_images WHERE news_id = '$news_id' LIMIT 1";
+                    $image_result = $conn->query($image_sql);
+                    if ($image_result->num_rows > 0) {
+                        $image_row = $image_result->fetch_assoc();
+                        $image_path = $image_row['image_path'];
                     }
 
-                    $items_per_page = 8;
-                    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-                    $offset = ($page - 1) * $items_per_page;
+                    echo '
+                        <div class="news-item">
+                            <img src="' . $image_path . '" alt="' . $news_title . '">
+                            <div class="news-item-content">
+                                <h3>' . $news_title . '</h3>
+                                    <p class="news-desc">' . substr(strip_tags($news_content), 0, 50) . '...</p>
+                                    <p class="publish-date">' . $formatted_publish_date . '</p>
+                                    <a class="read-more" href="newsPages.php?id=' . $news_id . '">Read More</a>
+                            </div>
+                        </div>';
+                }
+            } else {
+                echo '<p>No news available at the moment.</p>';
+            }
+            $conn->close();
+            ?>
+        </div>
 
-                    $total_sql = "SELECT COUNT(*) FROM news_announcements WHERE status = 'active'";
-                    $total_result = $conn->query($total_sql);
-                    $total_row = $total_result->fetch_row();
-                    $total_items = $total_row[0];
-                    $total_pages = ceil($total_items / $items_per_page);
-
-                    $sql = "SELECT * FROM news_announcements WHERE status = 'active' ORDER BY publish_date DESC LIMIT $offset, $items_per_page";
-                    $result = $conn->query($sql);
-
-                    if ($result->num_rows > 0) {
-                        while ($row = $result->fetch_assoc()) {
-                            $news_title = $row['news_title'];
-                            $news_content = $row['news_content'];
-                            $publish_date = $row['publish_date'];
-                            $image_path = '';
-
-                            $publish_date_obj = new DateTime($publish_date);
-                            $formatted_publish_date = $publish_date_obj->format('l, F j, Y');
-
-                            $news_id = $row['news_id'];
-                            $image_sql = "SELECT * FROM news_images WHERE news_id = '$news_id' LIMIT 1";
-                            $image_result = $conn->query($image_sql);
-                            if ($image_result->num_rows > 0) {
-                                $image_row = $image_result->fetch_assoc();
-                                $image_path = $image_row['image_path'];
-                            }
-
-                            echo '
-                                <div class="news-item">
-                                    <img src="' . $image_path . '" alt="' . $news_title . '">
-                                    <div class="news-item-content">
-                                        <h3>' . $news_title . '</h3>
-                                            <p class="news-desc">' . substr(strip_tags($news_content), 0, 50) . '...</p>
-                                            <p class="publish-date">' . $formatted_publish_date . '</p>
-                                            <a class="read-more" href="newsPages.php?id=' . $news_id . '">Read More</a>
-                                    </div>
-                                </div>';
-                        }
-                    } else {
-                        echo '<p>No news available at the moment.</p>';
-                    }
-                    ?>
-                </div>
-
-                <?php if ($total_pages > 1): ?>
-                <div class="pagination">
-                    <?php if ($page > 1): ?>
-                        <a href="?page=<?php echo $page - 1; ?>#news" class="page-link">&laquo; Prev</a>
-                    <?php endif; ?>
-
-                    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                        <a href="?page=<?php echo $i; ?>#news" class="page-link <?php if ($page == $i) echo 'active'; ?>">
-                            <?php echo $i; ?>
-                        </a>
-                    <?php endfor; ?>
-
-                    <?php if ($page < $total_pages): ?>
-                        <a href="?page=<?php echo $page + 1; ?>#news" class="page-link">Next &raquo;</a>
-                    <?php endif; ?>
-                </div>
-                <?php endif; ?>
-                
-                <?php $conn->close(); ?>
-            </div>
-        </section>
+        <div class="pagination-container" id="paginationControls">
+        </div>
+    </div>
+</section>
 
 
         <div class="advertisement animate-on-scroll">
@@ -267,5 +238,100 @@
             window.location.href = "admin.php";
         });
         </script>
+
+        <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const grid = document.getElementById('newsGrid');
+        const items = Array.from(grid.getElementsByClassName('news-item'));
+        const paginationContainer = document.getElementById('paginationControls');
+        let currentPage = 1;
+
+        function getItemsPerPage() {
+            const gridStyle = window.getComputedStyle(grid);
+            const gridColumns = gridStyle.getPropertyValue('grid-template-columns').split(' ').length;
+            return gridColumns * 2; 
+        }
+
+        function showPage(page) {
+            const itemsPerPage = getItemsPerPage();
+            const totalItems = items.length;
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+            if (page < 1) page = 1;
+            if (page > totalPages) page = totalPages;
+            currentPage = page;
+
+            const start = (page - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+
+            items.forEach((item, index) => {
+                if (index >= start && index < end) {
+                    item.classList.remove('hidden');
+                    item.style.display = 'flex'; 
+                } else {
+                    item.classList.add('hidden');
+                    item.style.display = 'none';
+                }
+            });
+
+            renderPaginationControls(totalPages);
+        }
+
+        function renderPaginationControls(totalPages) {
+            paginationContainer.innerHTML = '';
+
+            if (totalPages <= 1) return;
+
+            const prevBtnLink = document.createElement('a');
+            prevBtnLink.href = 'javascript:void(0)';
+            const prevBtn = document.createElement('button');
+            prevBtn.innerText = 'Prev';
+            if (currentPage === 1) {
+                prevBtn.disabled = true;
+            } else {
+                prevBtn.onclick = () => showPage(currentPage - 1);
+            }
+            prevBtnLink.appendChild(prevBtn);
+            paginationContainer.appendChild(prevBtnLink);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pageLink = document.createElement('a');
+                pageLink.href = 'javascript:void(0)';
+                
+                const pageBtn = document.createElement('button');
+                pageBtn.innerText = i;
+                if (i === currentPage) {
+                    pageBtn.classList.add('active');
+                }
+                pageBtn.onclick = () => showPage(i);
+                
+                pageLink.appendChild(pageBtn);
+                paginationContainer.appendChild(pageLink);
+            }
+
+            const nextBtnLink = document.createElement('a');
+            nextBtnLink.href = 'javascript:void(0)';
+            const nextBtn = document.createElement('button');
+            nextBtn.innerText = 'Next';
+            if (currentPage === totalPages) {
+                nextBtn.disabled = true;
+            } else {
+                nextBtn.onclick = () => showPage(currentPage + 1);
+            }
+            nextBtnLink.appendChild(nextBtn);
+            paginationContainer.appendChild(nextBtnLink);
+        }
+
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                showPage(1); 
+            }, 100);
+        });
+
+        showPage(1);
+    });
+</script>
 </body>
 </html>

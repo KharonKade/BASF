@@ -1,24 +1,20 @@
 <?php
-// Database Connection
 $host = "localhost";
-$username = "root"; // Change if necessary
-$password = ""; // Change if necessary
-$database = "basf_gallery"; // Your database name
+$username = "root";
+$password = "";
+$database = "basf_gallery";
 
 $conn = new mysqli($host, $username, $password, $database);
 
-// Check Connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Fetch Gallery Items
 $galleryItems = [];
 $sql = "SELECT * FROM gallery";
 $result = $conn->query($sql);
 
 while ($row = $result->fetch_assoc()) {
-    // Fetch additional images for each gallery item
     $gallery_id = $row['id'];
     $images = [];
     $imgQuery = "SELECT image_path FROM gallery_images WHERE gallery_id = $gallery_id";
@@ -68,7 +64,6 @@ $conn->close();
 
     <section class="event-hero">
         <div class="event-hero-content">
-            <h1>Gallery</h1>
             <h2>Projects & Programs</h2>
         </div>
     </section>
@@ -85,17 +80,28 @@ $conn->close();
                 </div>
             <?php endforeach; ?>
         </div>
+        <div id="pagination-controls" class="pagination-container animate-on-scroll"></div>
     </div>
 
-    <!-- Details Section -->
-    <div id="galleryDetails" class="gallery-details" style="display: none;">
-    <button class="close-gallery-details" onclick="closeGalleryDetails()">X</button>
-        <div class="details-text">
-            <h2 id="details-title"></h2>
-            <p id="details-description"></p>
-        </div>
-        <div id="details-images" class="details-images">
-            <img id="details-thumbnail" class="details-thumbnail" alt="Thumbnail">
+    <div id="galleryOverlay" class="modal-gallery-overlay" onclick="closeGalleryDetails()"></div>
+
+    <div id="galleryDetails" class="gallery-details">
+        <button class="close-gallery-details" onclick="closeGalleryDetails()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+        
+        <div class="details-content">
+            <div class="details-header">
+                <h2 id="details-title"></h2>
+                <p id="details-description"></p>
+            </div>
+            
+            <div id="details-images" class="details-images">
+                
+            </div>
         </div>
     </div>
     
@@ -147,37 +153,106 @@ $conn->close();
 
     <script>
         function showDetails(item) {
-            document.getElementById("details-title").innerText = item.title;
-            document.getElementById("details-description").innerHTML = item.description;
+        document.getElementById("details-title").innerText = item.title;
+        document.getElementById("details-description").innerHTML = item.description;
 
-            let imageContainer = document.getElementById("details-images");
-            imageContainer.innerHTML = ""; // Clear previous images
+        let imageContainer = document.getElementById("details-images");
+        imageContainer.innerHTML = "";
 
-            // Add Thumbnail as the First Image
+        if (item.thumbnail) {
             let thumbnailImg = document.createElement("img");
             thumbnailImg.src = item.thumbnail;
-            thumbnailImg.className = "details-img"; // Ensure it follows the same class as other images
+            thumbnailImg.className = "details-img";
             imageContainer.appendChild(thumbnailImg);
+        }
 
-            // Add Remaining Images
+        if (item.images && Array.isArray(item.images)) {
             item.images.forEach(img => {
                 let imgTag = document.createElement("img");
                 imgTag.src = img;
                 imgTag.className = "details-img";
                 imageContainer.appendChild(imgTag);
             });
-
-            document.getElementById("galleryDetails").style.display = "block";
         }
-        function closeGalleryDetails() {
-            document.getElementById('galleryDetails').style.display = 'none';
+
+        document.getElementById("galleryOverlay").style.display = "block";
+        document.getElementById("galleryDetails").style.display = "flex";
+    }
+
+    function closeGalleryDetails() {
+        document.getElementById('galleryOverlay').style.display = 'none';
+        document.getElementById('galleryDetails').style.display = 'none';
+    }
+
+        let currentPage = 1;
+        const itemsPerPage = 8;
+        let filteredItems = [];
+
+        function renderPage() {
+            const allItems = document.querySelectorAll('.gallery-item');
+            allItems.forEach(item => item.style.display = 'none');
+
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageItems = filteredItems.slice(start, end);
+
+            pageItems.forEach(item => {
+                item.style.display = 'block';
+            });
+
+            renderPaginationControls();
+        }
+
+        function renderPaginationControls() {
+            const container = document.getElementById('pagination-controls');
+            container.innerHTML = '';
+
+            const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+
+            if (totalPages <= 1) return;
+
+            const prevBtn = document.createElement('button');
+            prevBtn.innerText = 'Prev';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.onclick = () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderPage();
+                }
+            };
+            container.appendChild(prevBtn);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.innerText = i;
+                if (i === currentPage) btn.classList.add('active');
+                btn.onclick = () => {
+                    currentPage = i;
+                    renderPage();
+                };
+                container.appendChild(btn);
+            }
+
+            const nextBtn = document.createElement('button');
+            nextBtn.innerText = 'Next';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.onclick = () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderPage();
+                }
+            };
+            container.appendChild(nextBtn);
         }
 
         document.addEventListener("DOMContentLoaded", function () {
+            filteredItems = Array.from(document.querySelectorAll('.gallery-item'));
+            renderPage();
+
             const elements = document.querySelectorAll('.animate-on-scroll');
 
             elements.forEach(el => {
-                el._fadeTimeout = null; // custom property for tracking timeout
+                el._fadeTimeout = null;
             });
 
             function toggleVisibility() {
@@ -186,18 +261,16 @@ $conn->close();
                     const inView = rect.top <= window.innerHeight * 0.85 && rect.bottom >= 0;
 
                     if (inView) {
-                        clearTimeout(el._fadeTimeout); // cancel any pending hide
+                        clearTimeout(el._fadeTimeout);
                         el.classList.add('visible');
                     } else {
-                        // fade out first, then hide after transition
                         el.classList.remove('visible');
                         clearTimeout(el._fadeTimeout);
                         el._fadeTimeout = setTimeout(() => {
                             el.style.visibility = 'hidden';
-                        }, 600); // must match transition duration
+                        }, 600);
                     }
 
-                    // Always reset visibility to visible if showing
                     if (inView) {
                         el.style.visibility = 'visible';
                     }
@@ -206,7 +279,7 @@ $conn->close();
 
             window.addEventListener('scroll', toggleVisibility);
             window.addEventListener('resize', toggleVisibility);
-            toggleVisibility(); // Run on load
+            toggleVisibility();
         });
         
     </script>

@@ -30,7 +30,6 @@
 
     <section class="hero">
         <div class="hero-content">
-            <h1>Events</h1>
             <h2>Event Lists</h2>
         </div>
     </section>
@@ -60,12 +59,11 @@
             <option value="this-week">This Week</option>
             <option value="this-month">This Month</option>
         </select>
-
-        <div id="event-count" class="event-count">Total Events: 0</div>
     </div>
 
     <section class="container event-container animate-on-scroll" id="upcoming">
         <h2>Events & Activities</h2>
+        <div id="event-count" class="event-count">Total Events: 0</div>
         
         <div class="event-grid" id="eventGrid">
             <?php

@@ -60,6 +60,7 @@ if ($news_id > 0) {
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
     <!-- Swiper JS -->
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -85,51 +86,56 @@ if ($news_id > 0) {
         </div>
     </section>
 
-    <div class="news-page animate-on-scroll">
-        <!-- Left Section (Image Carousel) -->
-        <div class="left-section animate-on-scroll">
-            <div class="swiper-container">
-                <div class="swiper-wrapper">
-                    <?php
-                    // Display news images
-                    if (!empty($images)) {
-                        foreach ($images as $image) {
-                            echo '<div class="swiper-slide">
-                                    <img src="' . $image['image_path'] . '" alt="News Image" class="news-image" onclick="openModal(\'' . $image['image_path'] . '\')">
-                                  </div>';
+   <div class="news-page-container animate-on-scroll">
+    <div class="content-wrapper">
+        <button onclick="history.back()" class="return-btn">
+            <i class="fas fa-arrow-left"></i> &larr; Return
+        </button>
+
+        <div class="news-card">
+            <div class="left-section">
+                <div class="swiper-container">
+                    <div class="swiper-wrapper">
+                        <?php
+                        if (!empty($images)) {
+                            foreach ($images as $image) {
+                                echo '<div class="swiper-slide">
+                                        <img src="' . $image['image_path'] . '" alt="News Image" onclick="openModal(\'' . $image['image_path'] . '\')">
+                                      </div>';
+                            }
+                        } else {
+                            echo '<div class="no-image-placeholder"><span>No images available</span></div>';
                         }
+                        ?>
+                    </div>
+                    <div class="swiper-pagination"></div>
+                </div>
+            </div>
+
+            <div class="right-section">
+                <div class="news-header">
+                    <span class="category-badge">
+                        <?php echo isset($news['category']) ? htmlspecialchars($news['category']) : 'General'; ?>
+                    </span>
+                    
+                    <?php 
+                    if (isset($news['publish_date']) && !empty($news['publish_date'])) {
+                        $publish_date_obj = new DateTime($news['publish_date']);
+                        $formatted_publish_date = $publish_date_obj->format('F j, Y'); 
                     } else {
-                        echo "<p>No images available for this news.</p>";
+                        $formatted_publish_date = 'Date not available';
                     }
                     ?>
+                    <span class="publish-date"><?php echo $formatted_publish_date; ?></span>
                 </div>
-                <!-- Pagination dots (optional) -->
-                <div class="swiper-pagination"></div>
+
+                <div class="news-content">
+                    <?php echo isset($news['news_content']) ? nl2br($news['news_content']) : 'Content not available.'; ?>
+                </div>
             </div>
         </div>
-
-        <!-- Right Section (News Details) -->
-        <div class="right-section animate-on-scroll">
-            <div class="news-details">
-                <p><strong>Category:</strong> <?php echo isset($news['category']) ? $news['category'] : 'General'; ?></p>
-                
-                <?php 
-                // Format publish date if it exists
-                if (isset($news['publish_date']) && !empty($news['publish_date'])) {
-                    $publish_date_obj = new DateTime($news['publish_date']);
-                    $formatted_publish_date = $publish_date_obj->format('l, F j, Y'); // E.g., "Monday, May 1, 2025"
-                } else {
-                    $formatted_publish_date = 'Not available';
-                }
-                ?>
-                <p><strong>Published on:</strong> <?php echo $formatted_publish_date; ?></p>
-                
-                <p><strong>Content:</strong> <?php echo isset($news['news_content']) ? $news['news_content'] : 'Not available'; ?></p>
-            </div>
-        </div>
-
     </div>
-    <button onclick="history.back()" class="return-btn animate-on-scroll">Return</button>
+</div>
 
     <!-- Modal for Image Preview -->
     <div id="imageModal" class="image-modal" onclick="closeModal()">
