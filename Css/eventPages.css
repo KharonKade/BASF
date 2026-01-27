@@ -127,7 +127,6 @@ header {
   background: var(--white);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  overflow: hidden;
   max-width: 1200px;
   width: 100%;
   position: relative;
@@ -139,10 +138,22 @@ header {
   padding: 40px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   min-width: 350px;
   position: relative;
+  border-top-left-radius: var(--radius);
+  border-bottom-left-radius: var(--radius);
+}
+
+.sticky-wrapper {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 40px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .swiper-container {
@@ -165,6 +176,7 @@ header {
   display: block;
   cursor: zoom-in;
   transition: transform 0.3s ease;
+  margin-top: 80px;
 }
 
 .event-poster:hover {
@@ -173,26 +185,31 @@ header {
 
 .swiper-pagination {
   position: relative;
-  margin-top: 500px;
-  bottom: auto !important;
-  left: auto !important;
-  width: 100%;
+  margin-top: 20px;
+  width: auto; /* Changed from 100% so background wraps content */
   display: flex;
   justify-content: center;
   align-items: center;
+  
+  /* New Background Styles */
+  background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white */
+  backdrop-filter: blur(4px); /* Frosted glass effect */
+  padding: 10px 20px;
+  border-radius: 30px; /* Pill shape */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* Subtle lift */
 }
 
 .swiper-pagination-bullet {
-  background: var(--text-light);
-  opacity: 0.4;
+  background: var(--text-dark); /* Made inactive bullets slightly darker for better contrast on white */
+  opacity: 0.3;
   width: 10px;
   height: 10px;
-  margin: 0 5px;
+  margin: 0 6px; /* Increased spacing slightly */
   transition: all 0.3s ease;
 }
 
 .swiper-pagination-bullet-active {
-  background: var(--primary-color);
+  background: #358856;
   opacity: 1;
   width: 25px;
   border-radius: 5px;
@@ -203,6 +220,8 @@ header {
   padding: 50px;
   display: flex;
   flex-direction: column;
+  border-top-right-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
 }
 
 .header-actions {
@@ -251,6 +270,8 @@ header {
 
 .schedule-list {
   list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .schedule-list li {
@@ -378,16 +399,26 @@ header {
 
 @media (max-width: 900px) {
   .event-container {
-      flex-direction: column;
+    flex-direction: column;
   }
   
   .left-section, .right-section {
-      width: 100%;
-      padding: 30px;
+    width: 100%;
+    padding: 30px;
+    border-radius: 0;
+  }
+
+  .event-container {
+      overflow: hidden; 
+      border-radius: var(--radius);
   }
   
   .left-section {
-      padding-bottom: 30px;
+    padding-bottom: 30px;
+  }
+
+  .sticky-wrapper {
+      position: static; 
   }
 }
 

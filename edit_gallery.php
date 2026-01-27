@@ -14,7 +14,6 @@ $sql = "SELECT * FROM gallery WHERE id = $id";
 $result = $conn->query($sql);
 $row = $result->fetch_assoc();
 
-// Fetch gallery images
 $images_sql = "SELECT * FROM gallery_images WHERE gallery_id = $id";
 $images_result = $conn->query($images_sql);
 $gallery_images = [];
@@ -22,22 +21,25 @@ while ($image = $images_result->fetch_assoc()) {
     $gallery_images[] = $image;
 }
 
-// Handle Form Submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $title = $_POST['title'];
     $description = $_POST['description'];
 
-    // Update Title & Description
     $conn->query("UPDATE gallery SET title='$title', description='$description' WHERE id=$id");
 
-    // Update Thumbnail if new file is uploaded
+    if (!empty($_POST['delete_ids'])) {
+        foreach ($_POST['delete_ids'] as $delete_id) {
+            $delete_id = intval($delete_id); 
+            $conn->query("DELETE FROM gallery_images WHERE id=$delete_id");
+        }
+    }
+
     if (!empty($_FILES["thumbnail"]["name"])) {
         $thumbnail = "images/uploads/" . basename($_FILES["thumbnail"]["name"]);
         move_uploaded_file($_FILES["thumbnail"]["tmp_name"], $thumbnail);
         $conn->query("UPDATE gallery SET thumbnail='$thumbnail' WHERE id=$id");
     }
 
-    // Handle New Gallery Images Upload
     if (!empty($_FILES["gallery_images"]["name"][0])) {
         foreach ($_FILES["gallery_images"]["tmp_name"] as $key => $tmp_name) {
             $image_path = "images/uploads/" . basename($_FILES["gallery_images"]["name"][$key]);
@@ -46,14 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    echo "<script>alert('Gallery item updated successfully!'); window.location='admin_gallery.php';</script>";
-}
-
-// Handle Deleting Individual Gallery Images
-if (isset($_GET['delete_image'])) {
-    $delete_id = $_GET['delete_image'];
-    $conn->query("DELETE FROM gallery_images WHERE id=$delete_id");
-    echo "<script>window.location='edit_gallery.php?id=$id';</script>";
+    echo "<script>alert('Gallery item updated successfully!'); window.location='admin_gallery.php?id=$id';</script>";
 }
 
 $conn->close();
@@ -65,8 +60,14 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="Css/edit_gallery.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
     <title>Edit Gallery Item</title>
+    <style>
+        body, html, input, textarea, button, h2, h3, h4, p, label {
+            font-family: 'Poppins', sans-serif !important;
+        }
+    </style>
 </head>
 <body>
     <div class="admin-wrapper">
@@ -117,9 +118,8 @@ $conn->close();
                     <?php if (!empty($gallery_images)): ?>
                     <div class="image-grid">
                         <?php foreach ($gallery_images as $image) { ?>
-                        <div class="media-item">
+                        <div class="media-item" id="image-row-<?php echo $image['id']; ?>">
                             <img src="<?php echo $image['image_path']; ?>" alt="Gallery Image">
-                            <input type="hidden" name="existing_ids[]" value="<?php echo $image['id']; ?>">
                             <button type="button" class="btn-overlay-remove" onclick="removeGalleryImage(this, '<?php echo $image['id']; ?>')">REMOVE</button>
                         </div>
                         <?php } ?>
@@ -165,7 +165,7 @@ $conn->close();
     });
 
     function removeGalleryImage(button, imageId) {
-        if(confirm("Are you sure you want to remove this image?")) {
+        if(confirm("Are you sure you want to remove this image? (Changes will apply after clicking Update)")) {
             const form = document.querySelector('form');
             const input = document.createElement('input');
             input.type = 'hidden';
@@ -173,7 +173,7 @@ $conn->close();
             input.value = imageId;
             form.appendChild(input);
             
-            button.closest('.media-item').remove();
+            button.closest('.media-item').style.display = 'none';
         }
     }
 </script>

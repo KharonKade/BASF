@@ -89,6 +89,8 @@ if ($event_id > 0) {
     <title>Event Page</title>
     <link rel="stylesheet" href="Css/eventPages.css">
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
     <style>
@@ -183,24 +185,26 @@ if ($event_id > 0) {
     <div class="event-container">
         
         <div class="left-section">
-            <div class="swiper-wrapper-container">
-                <div class="swiper-container">
-                    <div class="swiper-wrapper">
-                        <?php
-                        if (!empty($images)) {
-                            foreach ($images as $image) {
-                                echo '<div class="swiper-slide">';
-                                echo '<img src="' . $image['image_path'] . '" alt="Event Poster" class="event-poster" onclick="openModal(\'' . $image['image_path'] . '\')">';
-                                echo '</div>';
+            <div class="sticky-wrapper">
+                <div class="swiper-wrapper-container">
+                    <div class="swiper-container">
+                        <div class="swiper-wrapper">
+                            <?php
+                            if (!empty($images)) {
+                                foreach ($images as $image) {
+                                    echo '<div class="swiper-slide">';
+                                    echo '<img src="' . $image['image_path'] . '" alt="Event Poster" class="event-poster" onclick="openModal(\'' . $image['image_path'] . '\')">';
+                                    echo '</div>';
+                                }
+                            } else {
+                                echo '<div class="swiper-slide"><p>No images available.</p></div>';
                             }
-                        } else {
-                            echo '<div class="swiper-slide"><p>No images available.</p></div>';
-                        }
-                        ?>
+                            ?>
+                        </div>
                     </div>
                 </div>
+                <div class="swiper-pagination"></div>
             </div>
-            <div class="swiper-pagination"></div>
         </div>
 
         <div class="right-section">

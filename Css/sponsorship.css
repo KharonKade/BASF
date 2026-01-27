@@ -160,11 +160,11 @@ header {
 }
 
 .subheading {
-    font-size: 0.9rem;
+    font-size: 1rem;
     letter-spacing: 4px;
-    font-weight: 400;
+    font-weight: 700;
     margin-bottom: 15px;
-    color: #358856;
+    color: #185330;
     text-transform: uppercase;
 }
 
@@ -191,7 +191,7 @@ header {
     font-weight: 600;
     display: inline-block;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 10px 20px rgba(0, 159, 227, 0.3);
+    box-shadow: 0 10px 20px rgba(23, 206, 32, 0.3);
 }
 
 .sponsor-button.primary:hover {

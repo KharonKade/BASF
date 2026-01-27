@@ -1,22 +1,18 @@
 <?php
-// Establish a connection to the database
-$servername = "localhost"; // Your database host
-$username = "root";        // Your database username
-$password = "";            // Your database password
-$dbname = "basf_news";     // Your database name
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "basf_news";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Check the connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Get the news ID from the URL
 $news_id = isset($_GET['id']) && is_numeric($_GET['id']) ? (int)$_GET['id'] : 0;
 
 if ($news_id > 0) {
-    // Fetch news details based on the news ID
     $news_sql = "
         SELECT n.news_title, n.news_content, n.category, n.publish_date
         FROM news_announcements n
@@ -24,7 +20,6 @@ if ($news_id > 0) {
 
     $news_result = $conn->query($news_sql);
 
-    // Check if the news result is valid and contains data
     if ($news_result && $news_result->num_rows > 0) {
         $news = $news_result->fetch_assoc();
     } else {
@@ -32,11 +27,9 @@ if ($news_id > 0) {
         exit;
     }
 
-    // Fetch news images based on the news ID
     $image_sql = "SELECT image_path FROM news_images WHERE news_id = $news_id";
     $image_result = $conn->query($image_sql);
 
-    // Check if the image result is valid and contains data
     if ($image_result && $image_result->num_rows > 0) {
         $images = $image_result->fetch_all(MYSQLI_ASSOC);
     } else {
@@ -56,9 +49,7 @@ if ($news_id > 0) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>News Page</title>
     <link rel="stylesheet" href="Css/newsPages.css">
-    <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
-    <!-- Swiper JS -->
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -94,7 +85,7 @@ if ($news_id > 0) {
 
         <div class="news-card">
             <div class="left-section">
-                <div class="swiper-container">
+                <div class="swiper swiper-container">
                     <div class="swiper-wrapper">
                         <?php
                         if (!empty($images)) {
@@ -137,7 +128,6 @@ if ($news_id > 0) {
     </div>
 </div>
 
-    <!-- Modal for Image Preview -->
     <div id="imageModal" class="image-modal" onclick="closeModal()">
         <span class="close" onclick="closeModal()">&times;</span>
         <div class="modal-content">
@@ -192,28 +182,22 @@ if ($news_id > 0) {
     </footer>
 
     <script>
-        const swiper = new Swiper('.swiper-container', {
-            loop: true, // Enables infinite scrolling
+        const swiper = new Swiper('.swiper', {
+            loop: true,
             pagination: {
                 el: '.swiper-pagination',
-                clickable: true, // Enables clickable pagination dots
+                clickable: true,
             },
-            autoplay: false, // Autoplay off
+            autoplay: false,
         });
 
-        // Open Modal Function
         function openModal(src) {
             const modal = document.getElementById('imageModal');
             const modalImage = document.getElementById('modalImage');
             modal.style.display = 'block';
             modalImage.src = src;
-
-            // Store the image array and current index in global variables
-            window.currentImages = images;
-            window.currentIndex = images.indexOf(src);
         }
 
-        // Close Modal Function
         function closeModal() {
             const modal = document.getElementById('imageModal');
             modal.style.display = 'none';
@@ -238,7 +222,6 @@ if ($news_id > 0) {
         };
     }
 
-    // If the user clicks anywhere outside the modal, close it
     window.onclick = function(event) {
         if (event.target === registrationModal) {
             registrationModal.style.display = 'none';
@@ -252,7 +235,7 @@ if ($news_id > 0) {
         const elements = document.querySelectorAll('.animate-on-scroll');
 
         elements.forEach(el => {
-            el._fadeTimeout = null; // custom property for tracking timeout
+            el._fadeTimeout = null;
         });
 
         function toggleVisibility() {
@@ -261,27 +244,22 @@ if ($news_id > 0) {
                 const inView = rect.top <= window.innerHeight * 0.85 && rect.bottom >= 0;
 
                 if (inView) {
-                    clearTimeout(el._fadeTimeout); // cancel any pending hide
+                    clearTimeout(el._fadeTimeout);
                     el.classList.add('visible');
+                    el.style.visibility = 'visible';
                 } else {
-                    // fade out first, then hide after transition
                     el.classList.remove('visible');
                     clearTimeout(el._fadeTimeout);
                     el._fadeTimeout = setTimeout(() => {
                         el.style.visibility = 'hidden';
-                    }, 600); // must match transition duration
-                }
-
-                // Always reset visibility to visible if showing
-                if (inView) {
-                    el.style.visibility = 'visible';
+                    }, 600);
                 }
             });
         }
 
         window.addEventListener('scroll', toggleVisibility);
         window.addEventListener('resize', toggleVisibility);
-        toggleVisibility(); // Run on load
+        toggleVisibility();
     });
 </script>
 </body>
