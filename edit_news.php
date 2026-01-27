@@ -128,63 +128,103 @@ $conn->close();
     <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
 </head>
 <body>
-    <div class="admin-container">
-        <main class="content">
-            <h2>Edit News & Announcements</h2>
-            <form action="edit_news.php?id=<?php echo $news_id; ?>" method="POST" enctype="multipart/form-data">
-                <label for="news_title">News Title:</label>
-                <input type="text" id="news_title" name="news_title" value="<?php echo $news['news_title']; ?>" required>
-
-                <label for="description">News Content:</label>
-                <textarea id="description" name="description" ><?php echo $news['news_content']; ?></textarea>
-
-                <label for="category">Category:</label>
-                <select id="category" name="category">
-                    <option value="All" <?php echo ($news['category'] == 'All') ? 'selected' : ''; ?>>All</option>
-                    <option value="Skateboard" <?php echo ($news['category'] == 'Skateboard') ? 'selected' : ''; ?>>Skateboard</option>
-                    <option value="Inline" <?php echo ($news['category'] == 'Inline') ? 'selected' : ''; ?>>Inline</option>
-                    <option value="BMX" <?php echo ($news['category'] == 'BMX') ? 'selected' : ''; ?>>BMX</option>
-                </select>
-
-                <label for="news_date">Publish Date:</label>
-                <input type="date" id="news_date" name="news_date" value="<?php echo $news['publish_date']; ?>" required>
-
-                <label for="image">Upload New Images:</label>
-                <input type="file" id="image" name="image[]" multiple>
-
-                <?php if (!empty($images)): ?>
-                    <p>Existing Images:</p>
-                    <ul>
-                        <?php foreach ($images as $image): ?>
-                            <li class="image-item">
-                                <img src="<?php echo $image['image_path']; ?>" alt="News Image" width="100">
-                                <input type="hidden" name="existing_images[]" value="<?php echo $image['image_id']; ?>">
-                                <button type="button" onclick="removeElement(this)">Remove</button>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
-                <?php endif; ?>
-
-                <button type="submit">Update News</button>
-            </form>
-        </main>
+    <div class="admin-wrapper">
+    <div class="page-header">
+        <h2>Edit News & Announcements</h2>
+        <p>Update news content, categorize entries, and manage media.</p>
     </div>
-    <script>
 
+    <form action="edit_news.php?id=<?php echo $news_id; ?>" method="POST" enctype="multipart/form-data" class="main-form">
+        
+        <div class="form-card">
+            <div class="card-header">
+                <h3>News Details</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="news_title">News Title</label>
+                    <input type="text" id="news_title" name="news_title" value="<?php echo $news['news_title']; ?>" placeholder="Enter headline" required>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <div class="select-wrapper">
+                            <select id="category" name="category">
+                                <option value="All" <?php echo ($news['category'] == 'All') ? 'selected' : ''; ?>>All</option>
+                                <option value="Skateboard" <?php echo ($news['category'] == 'Skateboard') ? 'selected' : ''; ?>>Skateboard</option>
+                                <option value="Inline" <?php echo ($news['category'] == 'Inline') ? 'selected' : ''; ?>>Inline</option>
+                                <option value="BMX" <?php echo ($news['category'] == 'BMX') ? 'selected' : ''; ?>>BMX</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="news_date">Publish Date</label>
+                        <input type="date" id="news_date" name="news_date" value="<?php echo $news['publish_date']; ?>" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-card">
+            <div class="card-header">
+                <h3>Content</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <textarea id="description" name="description"><?php echo $news['news_content']; ?></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-card">
+            <div class="card-header">
+                <h3>Media Gallery</h3>
+            </div>
+            <div class="card-body">
+                <div class="media-section">
+                    <h4>Existing Images</h4>
+                    <?php if (!empty($images)): ?>
+                    <div class="image-grid">
+                        <?php foreach ($images as $image): ?>
+                        <div class="media-item">
+                            <img src="<?php echo $image['image_path']; ?>" alt="News Image">
+                            <input type="hidden" name="existing_images[]" value="<?php echo $image['image_id']; ?>">
+                            <button type="button" class="btn-overlay-remove" onclick="removeElement(this)">REMOVE</button>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php else: ?>
+                        <p class="no-data">No images uploaded yet.</p>
+                    <?php endif; ?>
+                    
+                    <div class="upload-box">
+                        <label for="image">Upload New Images</label>
+                        <input type="file" id="image" name="image[]" multiple class="file-input">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary-large">Update News</button>
+        </div>
+    </form>
+</div>
+
+<script>
     let editorInstance;
 
     ClassicEditor
     .create(document.querySelector('#description'))
     .then(editor => {
-        // Show the textarea once CKEditor is fully initialized
-        editor.ui.view.editable.element.parentElement.style.display = 'block';
+        editorInstance = editor;
     })
     .catch(error => {
         console.error(error);
     });
 
-
-    // Listen for form submission and sync the editor content
     document.querySelector('form').addEventListener('submit', function (e) {
         try {
             if (editorInstance) {
@@ -196,24 +236,21 @@ $conn->close();
     });
     
     function removeElement(button) {
-        button.parentElement.remove();
+        let mediaItem = button.closest(".media-item");
+        let idInput = mediaItem.querySelector("input[name='existing_images[]']");
+        
+        if (idInput) {
+            let imageId = idInput.value;
+            let removeInput = document.createElement("input");
+            removeInput.type = "hidden";
+            removeInput.name = "delete_images[]"; 
+            removeInput.value = imageId;
+            document.querySelector("form").appendChild(removeInput);
+        }
+
+        mediaItem.remove();
     }
-
-    function removeElement(button) {
-    let listItem = button.closest(".image-item");
-    let imageId = listItem.querySelector("input[name='existing_images[]']").value;
-
-    // Add a hidden input to track deleted images
-    let removeInput = document.createElement("input");
-    removeInput.type = "hidden";
-    removeInput.name = "delete_images[]"; // This must match PHP
-    removeInput.value = imageId;
-    document.querySelector("form").appendChild(removeInput);
-
-    // Remove the image from the UI
-    listItem.remove();
-    }
-    </script>
+</script>
     
 </body>
 </html>

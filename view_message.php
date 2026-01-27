@@ -36,53 +36,74 @@ $row = $result->fetch_assoc();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Inquiry Message</title>
     <link rel="stylesheet" href="Css/view_message.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="admin-container">
-        <div class="main-content">
-            <h2>Inquiry Details</h2>
-            <table>
-                <tr>
-                    <th>ID</th>
-                    <td><?php echo $inquiry_position; ?></td>
-                </tr>
-                <tr>
-                    <th>Full Name</th>
-                    <td><?php echo htmlspecialchars($row['full_name']); ?></td>
-                </tr>
-                <tr>
-                    <th>Email</th>
-                    <td><?php echo htmlspecialchars($row['email']); ?></td>
-                </tr>
-                <tr>
-                    <th>Contact Number</th>
-                    <td><?php echo htmlspecialchars($row['contact_number']); ?></td>
-                </tr>
-                <tr>
-                    <th>Concerns</th>
-                    <td><?php echo htmlspecialchars($row['concerns']); ?></td>
-                </tr>
+    <div class="admin-wrapper">
+    <div class="page-header">
+        <div class="header-content">
+            <div class="inquiry-id">Inquiry #<?php echo $inquiry_position; ?></div>
+            <h1>Message Details</h1>
+        </div>
+        <button onclick="history.back()" class="btn-secondary">Return</button>
+    </div>
 
-                <?php if (strtolower(trim($row['concerns'])) === 'sponsorship inquiry'): ?>
-                <tr>
-                    <th>Company Name</th>
-                    <td><?php echo htmlspecialchars($row['company_name']); ?></td>
-                </tr>
-                <?php endif; ?>
-                <tr>
-                    <th>Message</th>
-                    <td class="message-content"><?php echo nl2br(htmlspecialchars($row['message'])); ?></td>
-                </tr>
-                <tr>
-                    <th>Submitted At</th>
-                    <td><?php echo $row['submitted_at']; ?></td>
-                </tr>
-            </table>
+    <div class="message-grid">
+        <div class="sidebar-details">
+            <div class="card sender-card">
+                <h3>Sender Information</h3>
+                <div class="detail-item">
+                    <label>Full Name</label>
+                    <p class="sender-name"><?php echo htmlspecialchars($row['full_name']); ?></p>
+                </div>
+                <div class="detail-item">
+                    <label>Email Address</label>
+                    <p><a href="mailto:<?php echo htmlspecialchars($row['email']); ?>" class="email-link"><?php echo htmlspecialchars($row['email']); ?></a></p>
+                </div>
+                <div class="detail-item">
+                    <label>Phone Number</label>
+                    <p><?php echo htmlspecialchars($row['contact_number']); ?></p>
+                </div>
+            </div>
+
+            <div class="card meta-card">
+                <div class="detail-item">
+                    <label>Submitted On</label>
+                    <p><?php echo date('F j, Y, g:i a', strtotime($row['submitted_at'])); ?></p>
+                </div>
+                <div class="detail-item">
+                    <label>Concern Category</label>
+                    <span class="badge-pill"><?php echo htmlspecialchars($row['concerns']); ?></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-message">
+            <?php if (strtolower(trim($row['concerns'])) === 'sponsorship inquiry'): ?>
+            <div class="card sponsorship-alert">
+                <div class="alert-icon">🏢</div>
+                <div>
+                    <label>Company Represented</label>
+                    <p><strong><?php echo htmlspecialchars($row['company_name']); ?></strong></p>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <div class="card message-body-card">
+                <h3>Message Content</h3>
+                <div class="message-text">
+                    <?php echo nl2br(htmlspecialchars($row['message'])); ?>
+                </div>
+            </div>
+            
+            <div class="action-footer">
+                <a href="mailto:<?php echo htmlspecialchars($row['email']); ?>?subject=Re: <?php echo htmlspecialchars($row['concerns']); ?>" class="btn-primary">
+                    Reply via Email
+                </a>
+            </div>
         </div>
     </div>
-    <form method="post" action="javascript:history.back()">
-        <button type="submit">Return</button>
-    </form>
+</div>
 </body>
 </html>
 

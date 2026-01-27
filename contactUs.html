@@ -51,14 +51,18 @@
                     
                     <div class="form-group">
                         <label for="concerns">Reason for Inquiry</label>
-                        <select id="concerns" name="concerns" required onchange="toggleCompanyField()">
+                        <div class="custom-select-wrapper">
+                            <select id="concerns" name="concerns" required onchange="toggleCompanyField()" style="display: none;">
                             <option value="General Inquiry">General Inquiry</option>
                             <option value="Event Inquiry">Event Inquiry</option>
                             <option value="Sponsorship Inquiry">Sponsorship Inquiry</option>
                             <option value="Feedback">Feedback</option>
-                        </select>
-                    </div>
-
+                            </select>
+                            <div class="select-selected">General Inquiry</div>
+                            <div class="select-items select-hide">
+                            </div>
+                        </div>
+                        </div>
                     <div id="companyNameContainer" class="form-group" style="display: none;">
                         <label for="companyName">Company Name</label>
                         <input type="text" id="companyName" name="companyName" placeholder="Your Organization">
@@ -293,5 +297,71 @@
         rotateAd(); // Initial
         setInterval(rotateAd, 3000); // Change every 8 seconds
     </script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+  const customSelectWrapper = document.querySelector('.custom-select-wrapper');
+  const originalSelect = customSelectWrapper.querySelector('select');
+  const selectedDisplay = customSelectWrapper.querySelector('.select-selected');
+  const selectItemsContainer = customSelectWrapper.querySelector('.select-items');
+  
+  // Set initial selected value
+  selectedDisplay.innerHTML = originalSelect.options[originalSelect.selectedIndex].innerHTML;
+  
+  // Create custom option divs based on the original select options
+  Array.from(originalSelect.options).forEach((option, index) => {
+    const itemDiv = document.createElement('div');
+    itemDiv.innerHTML = option.innerHTML;
+    
+    if (index === originalSelect.selectedIndex) {
+      itemDiv.classList.add('same-as-selected');
+    }
+    
+    // Add click event to each custom option
+    itemDiv.addEventListener('click', function() {
+      // Update the original hidden select
+      originalSelect.selectedIndex = index;
+      // Trigger the 'change' event for onchange="toggleCompanyField()"
+      originalSelect.dispatchEvent(new Event('change'));
+      
+      // Update the display box
+      selectedDisplay.innerHTML = this.innerHTML;
+      
+      // Manage active state classes
+      const sameAsSelected = selectItemsContainer.querySelectorAll('.same-as-selected');
+      sameAsSelected.forEach(el => el.classList.remove('same-as-selected'));
+      this.classList.add('same-as-selected');
+      
+      // Close the dropdown
+      closeAllSelect(this);
+    });
+    
+    selectItemsContainer.appendChild(itemDiv);
+  });
+  
+  // Toggle the dropdown when the display box is clicked
+  selectedDisplay.addEventListener('click', function(e) {
+    e.stopPropagation();
+    closeAllSelect(this);
+    this.classList.toggle('select-arrow-active');
+    selectItemsContainer.classList.toggle('select-hide');
+  });
+  
+  // Function to close the dropdown
+  function closeAllSelect(elmnt) {
+    const items = document.querySelectorAll('.select-items');
+    const selected = document.querySelectorAll('.select-selected');
+    
+    items.forEach((item, index) => {
+      if (elmnt !== item && elmnt !== selected[index]) {
+        item.classList.add('select-hide');
+        selected[index].classList.remove('select-arrow-active');
+      }
+    });
+  }
+  
+  // Close dropdown if clicked outside
+  document.addEventListener('click', closeAllSelect);
+});
+</script>
 </body>
 </html>

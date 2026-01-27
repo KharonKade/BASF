@@ -49,7 +49,7 @@ if ($event_id > 0) {
     }
 
     $popularity_status = 'Available';
-    $popularity_color = 'green';
+    $popularity_color = '#25523B';
     $slots_left = 0;
 
     if ($registration_limit > 0) {
@@ -122,7 +122,7 @@ if ($event_id > 0) {
         }
 
         .next-btn {
-            background-color: #3498db;
+            background: linear-gradient(90deg, #25523B, #358856);
             color: white;
             padding: 10px 20px;
             border: none;
@@ -180,17 +180,21 @@ if ($event_id > 0) {
     </section>
 
     <div class="event-page animate-on-scroll">
-        <div class="left-section animate-on-scroll">
+    <div class="event-container">
+        
+        <div class="left-section">
             <div class="swiper-wrapper-container">
                 <div class="swiper-container">
                     <div class="swiper-wrapper">
                         <?php
                         if (!empty($images)) {
                             foreach ($images as $image) {
-                                echo '<div class="swiper-slide"><img src="' . $image['image_path'] . '" alt="Event Poster" class="event-poster" onclick="openModal(\'' . $image['image_path'] . '\')"></div>';
+                                echo '<div class="swiper-slide">';
+                                echo '<img src="' . $image['image_path'] . '" alt="Event Poster" class="event-poster" onclick="openModal(\'' . $image['image_path'] . '\')">';
+                                echo '</div>';
                             }
                         } else {
-                            echo "<p>No images available.</p>";
+                            echo '<div class="swiper-slide"><p>No images available.</p></div>';
                         }
                         ?>
                     </div>
@@ -199,75 +203,96 @@ if ($event_id > 0) {
             <div class="swiper-pagination"></div>
         </div>
 
-        <div class="right-section animate-on-scroll">
-            <div class="event-details">
-                <strong>Dates & Times:</strong>
-                <?php
-                if (!empty($schedules)) {
-                    foreach ($schedules as $schedule) {
-                        $event_date = new DateTime($schedule['event_date']);
-                        $start_time = new DateTime($schedule['start_time']);
-                        $end_time = new DateTime($schedule['end_time']);
-                        echo '<li>' . $event_date->format('l, F j, Y') . ' at ' . $start_time->format('g:i A') . ' to ' . $end_time->format('g:i A') . '</li>';
-                    }
-                } else {
-                    echo "<li>No schedule available.</li>";
-                }
-                ?>
-                <p><strong>Location:</strong> <?php echo isset($event['location']) ? $event['location'] : 'Not available'; ?></p>
-                <p><strong>Description:</strong> <?php echo isset($event['description']) ? $event['description'] : 'Not available'; ?></p>
-
-                <?php if ($event['registration'] == 1): ?>
-                    <div class="fee-display">
-                        <?php 
-                        if ($event['registration_fee'] > 0) {
-                            echo "Registration Fee: ₱" . number_format($event['registration_fee'], 2); 
-                        } else {
-                            echo "Registration: FREE";
-                        }
-                        ?>
-                    </div>
-
-                    <?php if ($registration_limit == 0 || $registration_count < $registration_limit): ?>
-                        <button id="registerBtn" class="register-btn">
-                            <?php echo ($event['registration_fee'] > 0) ? "Register & Pay" : "Register Now"; ?>
-                        </button>
-                    <?php endif; ?>
-                    <br><br>
-                    <a href="#" class="token-link" onclick="showTokenModal()">Already Registered? Click Here!</a>
-                    <br><br>
-                    <?php if ($registration_limit > 0 && $registration_count >= $registration_limit): ?>
-                        <div class="event-popularity">
-                            <span class="popularity-badge" style="background-color: <?php echo $popularity_color; ?>;">
-                                <strong>Registration Closed - Event is Full</strong>
-                            </span>
-                        </div>
-                    <?php else: ?>
-                        <div class="event-popularity">
-                            <span class="popularity-badge" style="background-color: <?php echo $popularity_color; ?>;">
-                                <strong><?php echo ($registration_limit > 0) ? "$popularity_status - $slots_left Slots Left" : "$popularity_status - $registration_count Participants Registered"; ?></strong>
-                            </span>
-                        </div>
-                    <?php endif; ?>
-                <?php endif; ?>
+        <div class="right-section">
+            <div class="header-actions">
+                <button onclick="goBack()" class="return-link">
+                    <span>&#8592;</span> Return to Events
+                </button>
             </div>
 
-            <h2>Partners & Sponsors</h2>
-            <div class="sponsors">
-                <?php
-                if (!empty($sponsors)) {
-                    foreach ($sponsors as $sponsor) {
-                        echo '<div class="sponsor-logo-container"><img src="' . $sponsor['logo_path'] . '" alt="Sponsor Logo" class="sponsor-logo"></div>';
+            <div class="event-content">
+                <h3 class="section-title">Schedule</h3>
+                <div class="info-card">
+                    <ul class="schedule-list">
+                    <?php
+                    if (!empty($schedules)) {
+                        foreach ($schedules as $schedule) {
+                            $event_date = new DateTime($schedule['event_date']);
+                            $start_time = new DateTime($schedule['start_time']);
+                            $end_time = new DateTime($schedule['end_time']);
+                            echo '<li>' . $event_date->format('l, F j, Y') . ' — ' . $start_time->format('g:i A') . ' to ' . $end_time->format('g:i A') . '</li>';
+                        }
+                    } else {
+                        echo "<li>No schedule available.</li>";
                     }
-                } else {
-                    echo "<p>No sponsor logos available.</p>";
-                }
-                ?>
+                    ?>
+                    </ul>
+                </div>
+
+                <div class="location-box">
+                    <span style="font-size: 1.2rem;">📍</span>
+                    <span><?php echo isset($event['location']) ? $event['location'] : 'Location not available'; ?></span>
+                </div>
+
+                <h3 class="section-title">About This Event</h3>
+                <div class="description-text">
+                    <?php echo isset($event['description']) ? $event['description'] : 'No description provided.'; ?>
+                </div>
+
+                <?php if ($event['registration'] == 1): ?>
+                    <div class="registration-area">
+                        <div class="fee-display">
+                            <?php 
+                            if ($event['registration_fee'] > 0) {
+                                echo "₱" . number_format($event['registration_fee'], 2); 
+                            } else {
+                                echo "Free Registration";
+                            }
+                            ?>
+                        </div>
+
+                        <?php if ($registration_limit == 0 || $registration_count < $registration_limit): ?>
+                            <button id="registerBtn" class="register-btn">
+                                <?php echo ($event['registration_fee'] > 0) ? "Register & Pay Now" : "Secure Your Spot"; ?>
+                            </button>
+                        <?php endif; ?>
+
+                        <?php if ($registration_limit > 0 && $registration_count >= $registration_limit): ?>
+                            <div class="event-popularity">
+                                <span class="popularity-badge" style="background-color: #ef4444;">
+                                    Registration Closed - Full
+                                </span>
+                            </div>
+                        <?php else: ?>
+                            <div class="event-popularity">
+                                <span class="popularity-badge">
+                                    <?php echo ($registration_limit > 0) ? "$slots_left Slots Remaining" : "$registration_count Joined"; ?>
+                                </span>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <a href="#" class="token-link" onclick="showTokenModal()">Already registered? Edit registration here</a>
+                    </div>
+                <?php endif; ?>
+
+                <h3 class="section-title">Partners & Sponsors</h3>
+                <div class="sponsors-grid">
+                    <?php
+                    if (!empty($sponsors)) {
+                        foreach ($sponsors as $sponsor) {
+                            echo '<div class="sponsor-logo-container">';
+                            echo '<img src="' . $sponsor['logo_path'] . '" alt="Sponsor Logo" class="sponsor-logo">';
+                            echo '</div>';
+                        }
+                    } else {
+                        echo "<p class='text-muted'>No sponsors listed.</p>";
+                    }
+                    ?>
+                </div>
             </div>
         </div>
     </div>
-
-    <button onclick="goBack()" class="return-btn animate-on-scroll">Return</button>
+</div>
 
     <div id="registrationModal" class="registration-modal" style="display:none;">
         <div class="modal-content">
@@ -296,7 +321,7 @@ if ($event_id > 0) {
 
             <div id="step2-form" class="step-container">
                 <h2>Register for the Event</h2>
-                <div style="text-align:center; margin-bottom:15px; color:#3498db; font-weight:bold;">
+                <div style="text-align:center; margin-bottom:15px; color:#358856; font-weight:bold;">
                     <?php 
                         if ($event['registration_fee'] > 0) {
                             echo "Total to Pay: ₱" . number_format($event['registration_fee'], 2); 

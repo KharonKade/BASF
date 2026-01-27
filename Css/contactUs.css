@@ -56,7 +56,7 @@ header {
 }
 
 .nav-links a:hover {
-    color: #0073e6; /* Highlight color on hover */
+    color: #358856; /* Highlight color on hover */
 }
 
 .event-hero {
@@ -122,7 +122,7 @@ header {
 .contact-form h3 {
     font-size: 2rem;
     font-weight: 700;
-    color: #1a202c;
+    color: #358856;
     margin-bottom: 30px;
 }
 
@@ -154,10 +154,93 @@ header {
 .contact-form input:focus,
 .contact-form select:focus,
 .contact-form textarea:focus {
-    border-color: #0073e6;
+    border-color: #358856;
     background-color: #fff;
-    box-shadow: 0 0 0 4px rgba(0, 115, 230, 0.1);
+    box-shadow: 0 10px 15px rgba(0, 230, 96, 0.2);
     outline: none;
+}
+
+/* Main wrapper for the custom select */
+.custom-select-wrapper {
+  position: relative;
+  font-family: 'Poppins', sans-serif;
+  width: 100%;
+}
+
+/* The box that shows the currently selected value */
+.select-selected {
+    background-color: #f8fafc;
+    border-radius: 10px;
+    border: 2px solid #e2e8f0;
+    padding: 14px;
+    padding-right: 40px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.select-selected::after {
+    position: absolute;
+    content: "";
+    top: 50%;
+    right: 15px;
+    width: 0;
+    height: 0;
+    border: 6px solid transparent;
+    border-color: #358856 transparent transparent transparent;
+    transform: translateY(-25%);
+    transition: all 0.3s ease;
+}
+
+.select-selected.select-arrow-active::after {
+    transform: translateY(-75%) rotate(180deg);
+}
+
+.select-selected.select-arrow-active {
+    border-color: #358856;
+    background-color: #fff;
+    box-shadow: 0 10px 15px rgba(0, 230, 96, 0.2);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+/* The dropdown list container */
+.select-items {
+  position: absolute;
+  background-color: #fff;
+  border: 2px solid #358856;
+  border-top: none;
+  z-index: 99;
+  top: 100%;
+  left: 0;
+  right: 0;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 10px 15px rgba(0, 230, 96, 0.2);
+}
+
+/* Hide the items when the select box is closed */
+.select-hide {
+  display: none;
+}
+
+/* Style for each individual option in the list */
+.select-items div {
+  color: #000;
+  padding: 14px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background-color 0.2s ease;
+}
+
+/* --- THIS IS THE PART THAT CREATES THE GREEN HOVER --- */
+.select-items div:hover,
+.same-as-selected {
+  background-color: #358856;
+  color: black;
 }
 
 .send-email-button {
@@ -167,7 +250,7 @@ header {
     font-size: 1rem;
     font-weight: 600;
     color: #fff;
-    background-color: #0073e6;
+    background: linear-gradient(90deg, #25523B, #358856);
     border: none;
     border-radius: 10px;
     cursor: pointer;
@@ -175,14 +258,14 @@ header {
 }
 
 .send-email-button:hover {
-    background-color: #005bb5;
+    background-color: #62BD69;
     transform: translateY(-2px);
-    box-shadow: 0 10px 15px rgba(0, 115, 230, 0.2);
+    box-shadow: 0 10px 15px rgba(0, 230, 96, 0.2);
 }
 
 .contact-details {
     flex: 1;
-    background-color: #0073e6;
+    background-color: #25523B;
     color: #ffffff;
     padding: 50px;
     display: flex;

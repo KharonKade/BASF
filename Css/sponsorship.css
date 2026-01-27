@@ -55,7 +55,7 @@ header {
 }
 
 .nav-links a:hover {
-    color: #0073e6; /* Highlight color on hover */
+    color: #358856; /* Highlight color on hover */
 }
 
 .event-hero {
@@ -164,7 +164,7 @@ header {
     letter-spacing: 4px;
     font-weight: 400;
     margin-bottom: 15px;
-    color: #009fe3;
+    color: #358856;
     text-transform: uppercase;
 }
 
@@ -184,7 +184,7 @@ header {
 
 .sponsor-button.primary {
     padding: 16px 40px;
-    background-color: #009fe3;
+    background: linear-gradient(90deg, #25523B, #358856);
     color: white;
     border-radius: 50px;
     text-decoration: none;
@@ -196,7 +196,7 @@ header {
 
 .sponsor-button.primary:hover {
     background-color: #f0f4f8;
-    color: #009fe3;
+    color: #0C3823;
     transform: scale(1.05);
 }
 
@@ -207,8 +207,8 @@ header {
 }
 
 .section-badge {
-    background: #e0f2fe;
-    color: #009fe3;
+    background: #25523B;
+    color: white;
     padding: 5px 15px;
     border-radius: 20px;
     font-size: 0.8rem;
@@ -253,7 +253,7 @@ header {
 }
 
 .highlight-card {
-    background: #0f172a;
+    background: #25523B;
     color: white;
     border: none;
 }

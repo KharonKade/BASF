@@ -53,7 +53,7 @@ header {
 }
 
 .nav-links a:hover {
-    color: #0073e6;
+    color: #358856;
 }
 
 .sports-container {
@@ -96,7 +96,7 @@ header {
         -2px -2px 5px rgba(255,255,255,0.1);
     padding: 40px 70px;
     background: linear-gradient(145deg, #3a3a3a, #2b2b2b);
-    border: 2px solid #ff4500;
+    border: 2px solid #358856;
     border-radius: 20px;
     color: white;
     cursor: pointer;
@@ -232,7 +232,6 @@ header {
     position: relative;
     cursor: pointer;
     animation: bounceIn 0.8s ease forwards;
-    border-image: linear-gradient(45deg, #26a69a, #81c784) 1;
     overflow: hidden;
     height: 100%;
 }
@@ -287,7 +286,7 @@ header {
 .news-item-content a.read-more {
     align-self: flex-start;
     margin-top: auto;
-    background: linear-gradient(90deg, #26a69a, #00796b);
+    background: linear-gradient(90deg, #25523B, #358856);
     color: white;
     padding: 8px 16px;
     border-radius: 8px;
@@ -300,7 +299,7 @@ header {
 }
 
 .news-item-content a.read-more:hover {
-    background: #004d40;
+    background: #358856;
     transform: scale(1.05);
 }
 
@@ -346,9 +345,9 @@ header {
 }
 
 .pagination-container button.active {
-    background-color: #0073e6;
+    background-color: #358856;
     color: white;
-    border-color: #0073e6;
+    border-color: #25523B;
     cursor: default;
 }
 

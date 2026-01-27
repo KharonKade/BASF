@@ -64,69 +64,119 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="Css/admin_gallery.css">
+    <link rel="stylesheet" href="Css/edit_gallery.css">
     <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
     <title>Edit Gallery Item</title>
 </head>
 <body>
-    <div class="editheader">
-    <h2>Edit Gallery Item</h2>
+    <div class="admin-wrapper">
+    <div class="page-header">
+        <h2>Edit Gallery Album</h2>
+        <p>Update album details, change the thumbnail, or manage gallery images.</p>
     </div>
-    <form action="" method="POST" enctype="multipart/form-data">
-        <label>Title:</label>
-        <input type="text" name="title" value="<?php echo htmlspecialchars($row['title']); ?>" required><br>
+
+    <form action="" method="POST" enctype="multipart/form-data" class="main-form">
         
-        <label>Description:</label>
-        <textarea id="description" name="description"><?php echo htmlspecialchars($row['description']); ?></textarea><br>
-        
-        <label>Thumbnail Image:</label>
-        <input type="file" name="thumbnail"><br>
-        
-        <h3>Current Gallery Images:</h3>
-        <div class="gallery-container">
-            <?php foreach ($gallery_images as $image) { ?>
-                <div class="gallery-item">
-                    <img src="<?php echo $image['image_path']; ?>" alt="Gallery Image" width="100">
-                    <a href="admin_gallery.php" onclick="removeElement(this)" class="buttonRemove">Remove</a>
+        <div class="form-card">
+            <div class="card-header">
+                <h3>Album Details</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>Album Title</label>
+                    <input type="text" name="title" value="<?php echo htmlspecialchars($row['title']); ?>" placeholder="Enter album title" required>
                 </div>
-            <?php } ?>
+                
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="description" name="description"><?php echo htmlspecialchars($row['description']); ?></textarea>
+                </div>
+            </div>
         </div>
 
-        <label>Add New Gallery Images:</label>
-        <input type="file" name="gallery_images[]" multiple><br>
-        
-        <button type="submit">Update Gallery Item</button>
+        <div class="form-card">
+            <div class="card-header">
+                <h3>Thumbnail Settings</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>Update Thumbnail Image</label>
+                    <input type="file" name="thumbnail" class="file-input-bordered">
+                    <p class="help-text">Leave empty to keep the current thumbnail.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-card">
+            <div class="card-header">
+                <h3>Gallery Images</h3>
+            </div>
+            <div class="card-body">
+                <div class="media-section">
+                    <h4>Current Images</h4>
+                    <?php if (!empty($gallery_images)): ?>
+                    <div class="image-grid">
+                        <?php foreach ($gallery_images as $image) { ?>
+                        <div class="media-item">
+                            <img src="<?php echo $image['image_path']; ?>" alt="Gallery Image">
+                            <input type="hidden" name="existing_ids[]" value="<?php echo $image['id']; ?>">
+                            <button type="button" class="btn-overlay-remove" onclick="removeGalleryImage(this, '<?php echo $image['id']; ?>')">REMOVE</button>
+                        </div>
+                        <?php } ?>
+                    </div>
+                    <?php else: ?>
+                        <p class="no-data">No images in this album yet.</p>
+                    <?php endif; ?>
+
+                    <div class="upload-box">
+                        <label>Add New Images</label>
+                        <input type="file" name="gallery_images[]" multiple class="file-input">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary-large">Update Gallery Item</button>
+        </div>
     </form>
-    
-    <script>
-        let editorInstance;
+</div>
 
-        ClassicEditor
-        .create(document.querySelector('#description'))
-        .then(editor => {
-            // Show the textarea once CKEditor is fully initialized
-            editor.ui.view.editable.element.parentElement.style.display = 'block';
-        })
-        .catch(error => {
-            console.error(error);
-        });
+<script>
+    let editorInstance;
 
+    ClassicEditor
+    .create(document.querySelector('#description'))
+    .then(editor => {
+        editorInstance = editor;
+    })
+    .catch(error => {
+        console.error(error);
+    });
 
-        // Listen for form submission and sync the editor content
-        document.querySelector('form').addEventListener('submit', function (e) {
-            try {
-                if (editorInstance) {
-                    document.querySelector('#description').value = editorInstance.getData();
-                }
-            } catch (error) {
-                console.error("CKEditor content sync failed:", error);
+    document.querySelector('form').addEventListener('submit', function (e) {
+        try {
+            if (editorInstance) {
+                document.querySelector('#description').value = editorInstance.getData();
             }
-        });
-
-        function removeElement(button) {
-            button.parentElement.remove();
+        } catch (error) {
+            console.error("CKEditor content sync failed:", error);
         }
-    </script>
+    });
+
+    function removeGalleryImage(button, imageId) {
+        if(confirm("Are you sure you want to remove this image?")) {
+            const form = document.querySelector('form');
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'delete_ids[]'; 
+            input.value = imageId;
+            form.appendChild(input);
+            
+            button.closest('.media-item').remove();
+        }
+    }
+</script>
 
 </body>
 </html>

@@ -37,39 +37,47 @@ if (!$images) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View News & Announcement</title>
     <link rel="stylesheet" href="Css/view_news.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-<div class="admin-container">
-    <!-- Left Side -->
-    <div class="left-side">
-        <p><strong>News Title:</strong> <?php echo htmlspecialchars($news['news_title']); ?></p>
-        <p><strong>Category:</strong> <?php echo ucfirst(htmlspecialchars($news['category'])); ?></p>
-        <p><strong>Published On:</strong> <?php echo htmlspecialchars($news['publish_date']); ?></p>
-        <p><strong>Description:</strong> <?php echo nl2br(htmlspecialchars($news['news_content'])); ?></p>
+<div class="admin-wrapper">
+    <div class="page-header">
+        <div class="header-content">
+            <span class="category-badge"><?php echo ucfirst(htmlspecialchars($news['category'])); ?></span>
+            <h1><?php echo htmlspecialchars($news['news_title']); ?></h1>
+            <div class="meta-info">
+                <span class="publish-date">Published on: <?php echo htmlspecialchars($news['publish_date']); ?></span>
+            </div>
+        </div>
+        <button onclick="history.back()" class="btn-secondary">Return</button>
     </div>
 
-    <!-- Right Side (Posters and Images) -->
-    <div class="right-side">
-        <div class="media-container">
-            <div class="image-container">
-                <h3>Posters</h3>
+    <div class="news-grid">
+        <div class="card news-main-content">
+            <h3>Content</h3>
+            <div class="article-body">
+                <?php echo nl2br(htmlspecialchars($news['news_content'])); ?>
+            </div>
+        </div>
+
+        <div class="card news-media">
+            <h3>Associated Posters</h3>
+            <div class="poster-gallery">
                 <?php if ($images->num_rows > 0): ?>
                     <?php while ($image = $images->fetch_assoc()): ?>
-                        <img src="<?php echo htmlspecialchars($image['image_path']); ?>" 
-                             alt="Poster" 
-                             style="width: 100%; height: auto; margin-bottom: 10px;">
+                        <div class="poster-item">
+                            <img src="<?php echo htmlspecialchars($image['image_path']); ?>" alt="News Poster">
+                        </div>
                     <?php endwhile; ?>
                 <?php else: ?>
-                    <p>No poster images uploaded for this news announcement.</p>
+                    <div class="empty-state">
+                        <p>No poster images uploaded for this news announcement.</p>
+                    </div>
                 <?php endif; ?>
             </div>
         </div>
     </div>
 </div>
-
-<form method="post" action="javascript:history.back()">
-    <button type="submit">Return</button>
-</form>
 </body>
 </html>
 

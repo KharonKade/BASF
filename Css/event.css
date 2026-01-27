@@ -53,7 +53,7 @@ header {
 }
 
 .nav-links a:hover {
-    color: #0073e6; /* Highlight color on hover */
+    color: #358856; /* Highlight color on hover */
 }
 
 .hero {
@@ -476,9 +476,10 @@ a {
 }
 
 .pagination-container button.active {
-    background-color: #0073e6;
+    background-color: #358856;
     color: white;
-    border-color: #0073e6;
+    border-color: #25523B;
+    cursor: default;
 }
 
 .pagination-container button:disabled {

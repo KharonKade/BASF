@@ -55,7 +55,7 @@
   }
   
   .nav-links a:hover {
-    color: #0073e6; /* Highlight color on hover */
+    color: #358856; /* Highlight color on hover */
   }
   
   /* Hero Section */
@@ -221,11 +221,11 @@
 
 .category-badge {
     background-color: #e3f2fd;
-    color: #1565c0;
+    color: #358856;
     padding: 6px 12px;
     border-radius: 50px;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }

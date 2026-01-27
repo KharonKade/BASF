@@ -50,7 +50,7 @@ header {
 }
 
 .nav-links a:hover {
-    color: #0073e6; 
+    color: #358856; 
 }
 
 .hero {
@@ -331,7 +331,7 @@ a {
 .flip-card-back .back-content p:first-child {
     font-size: 1.5rem;
     font-weight: bold;
-    color: #ffcc00;
+    color: #358856;
     word-wrap: break-word;
     overflow-wrap: break-word;
     max-width: 90%;
@@ -393,9 +393,10 @@ a {
 }
 
 .pagination-container button.active {
-    background-color: #0073e6;
+    background-color: #358856;
     color: white;
-    border-color: #0073e6;
+    border-color: #25523B;
+    cursor: default;
 }
 
 .pagination-container button:disabled {
@@ -795,7 +796,7 @@ a {
 }
 
 .buttons span:hover {
-    background: linear-gradient(145deg, #006400, #008000);
+    background: linear-gradient(90deg, #25523B, #358856);
     transform: scale(1.1);
     box-shadow: 0 10px 20px rgba(0, 255, 127, 0.4);
 }
@@ -881,7 +882,7 @@ a {
 }
 
 .explore-btn:hover {
-    background: linear-gradient(135deg, #00b09b, #006400);
+    background: linear-gradient(90deg, #25523B, #358856);
     transform: scale(1.1);
     box-shadow: 0 12px 25px rgba(0, 255, 127, 0.5);
 }

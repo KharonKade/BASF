@@ -46,121 +46,145 @@ $registrations = $conn->query($registrations_query);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Event</title>
     <link rel="stylesheet" href="Css/view_event.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<div class="admin-container">
-    <!-- Top Section: Event Details -->
-    <div class="top-section">
-        <div class="left-side">
-            <h2><?php echo htmlspecialchars($event['event_name']); ?></h2>
-            <p><strong>Location:</strong> <?php echo htmlspecialchars($event['location']); ?></p>
-            <p><strong>Description:</strong> <?php echo nl2br(htmlspecialchars($event['description'])); ?></p>
-            <p><strong>Category:</strong> <?php echo ucfirst(htmlspecialchars($event['category'])); ?></p>
-            <p><strong>Registration:</strong> <?php echo $event['registration'] == 1 ? 'Enabled' : 'Disabled'; ?></p>
-            <p><strong>Registration Limit:</strong> <?php echo isset($event['registration_limit']) ? $event['registration_limit'] : 'No limit'; ?></p>
+<div class="admin-wrapper">
+    <div class="page-header">
+        <div class="header-content">
+            <h1><?php echo htmlspecialchars($event['event_name']); ?></h1>
+            <span class="category-badge"><?php echo ucfirst(htmlspecialchars($event['category'])); ?></span>
+        </div>
+        <button onclick="window.location.href='manage_upcoming.php';" class="btn-secondary">Return</button>
+    </div>
 
-            <h3>Schedules</h3>
-            <ul>
-                <?php if ($schedules->num_rows > 0): ?>
-                    <?php while ($schedule = $schedules->fetch_assoc()): ?>
-                        <li>
-                            <strong>Date:</strong> <?php echo htmlspecialchars($schedule['event_date']); ?> | 
-                            <strong>Start:</strong> <?php echo htmlspecialchars($schedule['start_time']); ?> | 
-                            <strong>End:</strong> <?php echo htmlspecialchars($schedule['end_time']); ?>
-                        </li>
-                    <?php endwhile; ?>
-                <?php else: ?>
-                    <p>No schedules available for this event.</p>
-                <?php endif; ?>
-            </ul>
+    <div class="dashboard-grid">
+        <div class="card event-details">
+            <h3>General Information</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>Location</label>
+                    <p><?php echo htmlspecialchars($event['location']); ?></p>
+                </div>
+                <div class="info-item">
+                    <label>Registration Status</label>
+                    <p>
+                        <span class="status-pill <?php echo $event['registration'] == 1 ? 'enabled' : 'disabled'; ?>">
+                            <?php echo $event['registration'] == 1 ? 'Active' : 'Closed'; ?>
+                        </span>
+                    </p>
+                </div>
+                <div class="info-item">
+                    <label>Registration Limit</label>
+                    <p><?php echo isset($event['registration_limit']) ? $event['registration_limit'] : 'No limit'; ?></p>
+                </div>
+            </div>
+            <div class="description-box">
+                <label>Description</label>
+                <p><?php echo nl2br(htmlspecialchars($event['description'])); ?></p>
+            </div>
         </div>
 
-        <div class="right-side">
-            <div class="media-container">
-                <div class="image-container">
-                    <h3>Posters</h3>
-                    <div class="poster-images">
-                        <?php if ($images->num_rows > 0): ?>
-                            <?php while ($image = $images->fetch_assoc()): ?>
-                                <img src="<?php echo htmlspecialchars($image['image_path']); ?>" 
-                                    alt="Poster" 
-                                    class="poster-img">
-                            <?php endwhile; ?>
-                        <?php else: ?>
-                            <p>No poster images uploaded for this event.</p>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <div class="sponsor-container">
-                    <h3>Sponsor Logos</h3>
-                    <div class="sponsor-logos">
-                        <?php if ($sponsors->num_rows > 0): ?>
-                            <?php while ($sponsor = $sponsors->fetch_assoc()): ?>
-                                <img src="<?php echo htmlspecialchars($sponsor['logo_path']); ?>" 
-                                    alt="Sponsor Logo" 
-                                    class="sponsor-img">
-                            <?php endwhile; ?>
-                        <?php else: ?>
-                            <p>No sponsor logos available for this event.</p>
-                        <?php endif; ?>
-                    </div>
-                </div>
+        <div class="card event-schedules">
+            <h3>Schedules</h3>
+            <div class="schedule-list">
+                <?php if ($schedules->num_rows > 0): ?>
+                    <?php while ($schedule = $schedules->fetch_assoc()): ?>
+                        <div class="schedule-card">
+                            <div class="sch-date"><?php echo htmlspecialchars($schedule['event_date']); ?></div>
+                            <div class="sch-time">
+                                <span><?php echo htmlspecialchars($schedule['start_time']); ?></span> — 
+                                <span><?php echo htmlspecialchars($schedule['end_time']); ?></span>
+                            </div>
+                        </div>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <p class="empty-state">No schedules available.</p>
+                <?php endif; ?>
             </div>
         </div>
     </div>
 
-    <!-- Bottom Section: Registered Users -->
-    <div class="bottom-section">
-        <h3>Registered</h3>
-
-        <!-- Category Filter Dropdown -->
-        <label for="categoryFilter">Filter by Category:</label>
-        <select id="categoryFilter" onchange="filterTable()">
-            <option value="all">All</option>
-            <option value="Skateboard">Skateboard</option>
-            <option value="Inline">Inline</option>
-            <option value="BMX">BMX</option>
-        </select>
-
-        <?php if ($registrations->num_rows > 0): ?>
-            <table border="1" cellspacing="0" cellpadding="8">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Phone Number</th>
-                        <th>Age</th>
-                        <th>Gender</th>
-                        <th>Category</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php 
-                    $counter = 1; 
-                    while ($registration = $registrations->fetch_assoc()): ?>
-                        <tr class="registration-row" data-category="<?php echo htmlspecialchars($registration['category']); ?>">
-                            <td><?php echo $counter++; ?></td>
-                            <td><?php echo htmlspecialchars($registration['name']); ?></td>
-                            <td><?php echo htmlspecialchars($registration['email']); ?></td>
-                            <td><?php echo htmlspecialchars($registration['phone']); ?></td>
-                            <td><?php echo htmlspecialchars($registration['age']); ?></td>
-                            <td><?php echo htmlspecialchars($registration['gender']); ?></td>
-                            <td><?php echo htmlspecialchars($registration['category']); ?></td>
-                        </tr>
+    <div class="media-grid">
+        <div class="card">
+            <h3>Event Posters</h3>
+            <div class="poster-gallery">
+                <?php if ($images->num_rows > 0): ?>
+                    <?php while ($image = $images->fetch_assoc()): ?>
+                        <img src="<?php echo htmlspecialchars($image['image_path']); ?>" alt="Poster" class="gallery-img">
                     <?php endwhile; ?>
-                </tbody>
-            </table>
-        <?php else: ?>
-            <p>No users have registered for this event yet.</p>
-        <?php endif; ?>
+                <?php else: ?>
+                    <p class="empty-state">No posters uploaded.</p>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Sponsors</h3>
+            <div class="sponsor-flex">
+                <?php if ($sponsors->num_rows > 0): ?>
+                    <?php while ($sponsor = $sponsors->fetch_assoc()): ?>
+                        <div class="sponsor-item">
+                            <img src="<?php echo htmlspecialchars($sponsor['logo_path']); ?>" alt="Sponsor Logo">
+                        </div>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <p class="empty-state">No sponsors added.</p>
+                <?php endif; ?>
+            </div>
+        </div>
     </div>
 
-    <form method="post" onsubmit="window.location.href='manage_upcoming.php'; return false;">
-        <button type="submit">Return</button>
-    </form>
+    <div class="card registration-section">
+        <div class="table-header">
+            <h3>Registered Participants</h3>
+            <div class="filter-controls">
+                <label for="categoryFilter">Filter:</label>
+                <select id="categoryFilter" onchange="filterTable()">
+                    <option value="all">All Categories</option>
+                    <option value="Skateboard">Skateboard</option>
+                    <option value="Inline">Inline</option>
+                    <option value="BMX">BMX</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <?php if ($registrations->num_rows > 0): ?>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Age</th>
+                            <th>Gender</th>
+                            <th>Category</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        $counter = 1; 
+                        while ($registration = $registrations->fetch_assoc()): ?>
+                            <tr class="registration-row" data-category="<?php echo htmlspecialchars($registration['category']); ?>">
+                                <td><?php echo $counter++; ?></td>
+                                <td class="bold-text"><?php echo htmlspecialchars($registration['name']); ?></td>
+                                <td><?php echo htmlspecialchars($registration['email']); ?></td>
+                                <td><?php echo htmlspecialchars($registration['phone']); ?></td>
+                                <td><?php echo htmlspecialchars($registration['age']); ?></td>
+                                <td><?php echo htmlspecialchars($registration['gender']); ?></td>
+                                <td><span class="cat-pill"><?php echo htmlspecialchars($registration['category']); ?></span></td>
+                            </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+            <?php else: ?>
+                <div class="empty-table-state">No users have registered for this event yet.</div>
+            <?php endif; ?>
+        </div>
+    </div>
 </div>
 
 <script>
