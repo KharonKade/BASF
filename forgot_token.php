@@ -1,71 +1,85 @@
 <?php
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = $_POST['email'];
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
-    // Database connection
-    $servername = "localhost";
-    $username = "root";
-    $password = "";
-    $dbname = "basf_events";
-    $conn = new mysqli($servername, $username, $password, $dbname);
+require 'PHPMailer/Exception.php';
+require 'PHPMailer/PHPMailer.php';
+require 'PHPMailer/SMTP.php';
 
-    // Check connection
-    if ($conn->connect_error) {
-        die("Connection failed: " . $conn->connect_error);
+header('Content-Type: application/json');
+
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "basf_events";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+    echo json_encode(['success' => false, 'message' => 'Database connection failed.']);
+    exit;
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $email = isset($_POST['email']) ? $conn->real_escape_string($_POST['email']) : '';
+    $event_id = isset($_POST['event_id']) ? (int)$_POST['event_id'] : 0;
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid email format.']);
+        exit;
     }
 
-    // Search for registration by email
-    $sql = "SELECT token FROM event_registrations WHERE email = '$email' LIMIT 1";
-    $result = $conn->query($sql);
+    if ($event_id <= 0) {
+        echo json_encode(['success' => false, 'message' => 'Invalid event context.']);
+        exit;
+    }
+
+    $stmt = $conn->prepare("SELECT name, token FROM event_registrations WHERE email = ? AND event_id = ? LIMIT 1");
+    $stmt->bind_param("si", $email, $event_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
-        $token = $row['token'];
+        $user_name = $row['name'];
+        $user_token = $row['token'];
 
-        echo json_encode([
-            "success" => true,
-            "token" => $token
-        ]);
+        $mail = new PHPMailer(true);
+
+        try {
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com'; 
+            $mail->SMTPAuth   = true;
+            $mail->Username   = 'kharontogana371@gmail.com'; 
+            $mail->Password   = 'mdub rwug jftk eqah'; 
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = 587;
+
+            $mail->setFrom('your_email_here@gmail.com', 'BASF Events');
+            $mail->addAddress($email, $user_name);
+
+            $mail->isHTML(true);
+            $mail->Subject = 'Your Event Registration Token';
+            $mail->Body    = "<div style='font-family: Poppins, sans-serif; color: #333;'>
+                                <h3>Hello, {$user_name}</h3>
+                                <p>You requested to retrieve your registration token for this event.</p>
+                                <p><strong>Your Token:</strong> <span style='color: #25523B; font-size: 1.2em; font-weight: 600;'>{$user_token}</span></p>
+                                <p>Use this token to manage your registration details.</p>
+                                <br>
+                                <small>If you did not request this, please ignore this email.</small>
+                              </div>";
+            $mail->AltBody = "Hello {$user_name}, Your registration token is: {$user_token}";
+
+            $mail->send();
+            echo json_encode(['success' => true, 'message' => 'Token has been sent to your email.']);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Mailer Error: ' . $mail->ErrorInfo]);
+        }
     } else {
-        echo json_encode([
-            "success" => false,
-            "message" => "No registration found for that email address."
-        ]);
+        echo json_encode(['success' => false, 'message' => 'This email is not registered for this specific event.']);
     }
 
-    $conn->close();
-    exit;
+    $stmt->close();
 }
+$conn->close();
 ?>
-
-<!-- HTML form for retrieving token -->
-<form id="forgotTokenForm">
-    <label for="email">Enter your email to retrieve your token:</label>
-    <input type="email" id="email" name="email" required>
-    <button type="submit">Retrieve Token</button>
-</form>
-
-<script>
-    document.getElementById('forgotTokenForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-
-        const form = event.target;
-        const formData = new FormData(form);
-
-        fetch('forgot_token.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(async response => {
-            const data = await response.json();
-            if (data.success) {
-                alert('Your token is: ' + data.token);
-            } else {
-                alert(data.message);
-            }
-        })
-        .catch(error => {
-            alert('Something went wrong. Please try again.');
-        });
-    });
-</script>

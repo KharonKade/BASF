@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact Us Page</title>
     <link rel="stylesheet" href="Css/contactUs.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
@@ -28,6 +31,8 @@
             <h2>Questions & Inqueries</h2>
         </div>
     </section>
+
+    <div id="toast" class="notification-toast"></div>
 
     <section class="contact-section">
         <div class="contact-container animate-on-scroll">
@@ -121,12 +126,10 @@
     </div>
 
     <footer class="footer animate-on-scroll">
-        <!-- BASF Logo Section -->
         <div class="footer-section logo-section">
             <img src="images/whitelogo.png" alt="BASF Logo" class="footer-logo">
         </div>
     
-        <!-- Explore Us Section -->
         <div class="footer-section explore-section">
             <h3>Explore Us</h3>
             <ul>
@@ -142,7 +145,6 @@
             </ul>
         </div>
     
-        <!-- Contact Us Section -->
         <div class="footer-section contactus-section">
             <h3>Contact Us</h3>
             <ul>
@@ -153,7 +155,6 @@
             </ul>
         </div>
     
-        <!-- Connect with Us Section -->
         <div class="footer-section social-section">
             <h3>Connect with us</h3>
             <div class="social-icons">
@@ -162,7 +163,6 @@
             </div>
         </div>
     
-        <!-- Supported by Section -->
         <div class="footer-section supported-section">
             <h3>Supported by</h3>
             <img src="images/vanswhite.png" alt="Sponsor Logo" class="sponsor-logo">
@@ -170,12 +170,34 @@
     </footer>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            // Select form elements
+            const urlParams = new URLSearchParams(window.location.search);
+            const status = urlParams.get('status');
+            const toast = document.getElementById("toast");
+
+            if (status) {
+                if (status === 'success') {
+                    toast.innerText = "Your message has been submitted successfully!";
+                    toast.className = "notification-toast show success";
+                } else if (status === 'error') {
+                    toast.innerText = "There was an error submitting your message.";
+                    toast.className = "notification-toast show error";
+                }
+
+                setTimeout(function(){ 
+                    toast.className = toast.className.replace("show", ""); 
+                }, 4000);
+
+                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                window.history.replaceState({path: newUrl}, '', newUrl);
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
             const fullNameField = document.getElementById("fullName");
             const emailField = document.getElementById("email");
             const contactNumberField = document.getElementById("contactNumber");
     
-            // Retrieve stored data when the page loads
             if (localStorage.getItem("fullName")) {
                 fullNameField.value = localStorage.getItem("fullName");
             }
@@ -186,7 +208,6 @@
                 contactNumberField.value = localStorage.getItem("contactNumber");
             }
     
-            // Save input data to local storage when users type
             fullNameField.addEventListener("input", function () {
                 localStorage.setItem("fullName", this.value);
             });
@@ -199,12 +220,10 @@
                 localStorage.setItem("contactNumber", this.value);
             });
     
-            // Optional: Button to clear saved data
-
             const clearButton = document.createElement("button");
             clearButton.innerText = "Clear Saved Info";
             clearButton.style.marginTop = "10px";
-            clearButton.type = "button"; // Prevent form submission
+            clearButton.type = "button"; 
             clearButton.classList.add("clear-button")
             document.querySelector(".contact-form").appendChild(clearButton);
     
@@ -222,7 +241,7 @@
             const elements = document.querySelectorAll('.animate-on-scroll');
 
             elements.forEach(el => {
-                el._fadeTimeout = null; // custom property for tracking timeout
+                el._fadeTimeout = null; 
             });
 
             function toggleVisibility() {
@@ -231,18 +250,16 @@
                     const inView = rect.top <= window.innerHeight * 0.85 && rect.bottom >= 0;
 
                     if (inView) {
-                        clearTimeout(el._fadeTimeout); // cancel any pending hide
+                        clearTimeout(el._fadeTimeout); 
                         el.classList.add('visible');
                     } else {
-                        // fade out first, then hide after transition
                         el.classList.remove('visible');
                         clearTimeout(el._fadeTimeout);
                         el._fadeTimeout = setTimeout(() => {
                             el.style.visibility = 'hidden';
-                        }, 600); // must match transition duration
+                        }, 600); 
                     }
 
-                    // Always reset visibility to visible if showing
                     if (inView) {
                         el.style.visibility = 'visible';
                     }
@@ -251,7 +268,7 @@
 
             window.addEventListener('scroll', toggleVisibility);
             window.addEventListener('resize', toggleVisibility);
-            toggleVisibility(); // Run on load
+            toggleVisibility(); 
         });
 
         document.addEventListener("DOMContentLoaded", function () {
@@ -294,8 +311,8 @@
             currentAd = (currentAd + 1) % ads.length;
         }
 
-        rotateAd(); // Initial
-        setInterval(rotateAd, 3000); // Change every 8 seconds
+        rotateAd(); 
+        setInterval(rotateAd, 3000); 
     </script>
     <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -304,10 +321,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const selectedDisplay = customSelectWrapper.querySelector('.select-selected');
   const selectItemsContainer = customSelectWrapper.querySelector('.select-items');
   
-  // Set initial selected value
   selectedDisplay.innerHTML = originalSelect.options[originalSelect.selectedIndex].innerHTML;
   
-  // Create custom option divs based on the original select options
   Array.from(originalSelect.options).forEach((option, index) => {
     const itemDiv = document.createElement('div');
     itemDiv.innerHTML = option.innerHTML;
@@ -316,29 +331,22 @@ document.addEventListener('DOMContentLoaded', function() {
       itemDiv.classList.add('same-as-selected');
     }
     
-    // Add click event to each custom option
     itemDiv.addEventListener('click', function() {
-      // Update the original hidden select
       originalSelect.selectedIndex = index;
-      // Trigger the 'change' event for onchange="toggleCompanyField()"
       originalSelect.dispatchEvent(new Event('change'));
       
-      // Update the display box
       selectedDisplay.innerHTML = this.innerHTML;
       
-      // Manage active state classes
       const sameAsSelected = selectItemsContainer.querySelectorAll('.same-as-selected');
       sameAsSelected.forEach(el => el.classList.remove('same-as-selected'));
       this.classList.add('same-as-selected');
       
-      // Close the dropdown
       closeAllSelect(this);
     });
     
     selectItemsContainer.appendChild(itemDiv);
   });
   
-  // Toggle the dropdown when the display box is clicked
   selectedDisplay.addEventListener('click', function(e) {
     e.stopPropagation();
     closeAllSelect(this);
@@ -346,7 +354,6 @@ document.addEventListener('DOMContentLoaded', function() {
     selectItemsContainer.classList.toggle('select-hide');
   });
   
-  // Function to close the dropdown
   function closeAllSelect(elmnt) {
     const items = document.querySelectorAll('.select-items');
     const selected = document.querySelectorAll('.select-selected');
@@ -359,7 +366,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Close dropdown if clicked outside
   document.addEventListener('click', closeAllSelect);
 });
 </script>

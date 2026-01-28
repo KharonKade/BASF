@@ -25,25 +25,25 @@ if (!$captcha_data['success']) {
     exit;
 }
 
-$name = $_POST['name'] ?? '';
-$email = $_POST['email'] ?? '';
-$phone = $_POST['phone'] ?? '';
-$age = $_POST['age'] ?? '';
+$name = trim($_POST['name'] ?? '');
+$email = trim($_POST['email'] ?? '');
+$phone = trim($_POST['phone'] ?? '');
+$age = (int)($_POST['age'] ?? 0);
 $gender = $_POST['gender'] ?? '';
-$category = $_POST['category'] ?? '';
-$event_id = $_POST['event_id'] ?? 0;
+$submitted_category = $_POST['category'] ?? '';
+$event_id = (int)($_POST['event_id'] ?? 0);
 
-if (empty($name) || empty($email) || empty($phone) || empty($age) || empty($gender) || empty($category) || empty($event_id)) {
-    echo json_encode(["success" => false, "message" => "Please fill all required fields."]);
+if (empty($name) || empty($email) || empty($phone) || $age <= 0 || empty($gender) || empty($submitted_category) || $event_id <= 0) {
+    echo json_encode(["success" => false, "message" => "Please fill all required fields correctly."]);
     exit;
 }
 
-$fee_stmt = $conn->prepare("SELECT registration_fee FROM upcoming_events WHERE id = ?");
-$fee_stmt->bind_param("i", $event_id);
-$fee_stmt->execute();
-$fee_result = $fee_stmt->get_result();
-$event_data = $fee_result->fetch_assoc();
-$fee_stmt->close();
+$event_stmt = $conn->prepare("SELECT registration_fee, category FROM upcoming_events WHERE id = ?");
+$event_stmt->bind_param("i", $event_id);
+$event_stmt->execute();
+$event_result = $event_stmt->get_result();
+$event_data = $event_result->fetch_assoc();
+$event_stmt->close();
 
 if (!$event_data) {
     echo json_encode(["success" => false, "message" => "Event not found."]);
@@ -51,6 +51,18 @@ if (!$event_data) {
 }
 
 $registration_fee = (float)$event_data['registration_fee'];
+$db_category = $event_data['category'];
+
+if ($db_category === 'all') {
+    $valid_categories = ['Skateboard', 'Inline', 'BMX'];
+    if (!in_array($submitted_category, $valid_categories)) {
+        echo json_encode(["success" => false, "message" => "Invalid category selected."]);
+        exit;
+    }
+    $final_category = $submitted_category;
+} else {
+    $final_category = $db_category;
+}
 
 function generateToken($length = 6) {
     $characters = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz';
@@ -65,7 +77,7 @@ $token = generateToken();
 $status = ($registration_fee > 0) ? 'pending' : 'paid';
 
 $stmt = $conn->prepare("INSERT INTO event_registrations (event_id, name, email, phone, age, gender, category, token, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-$stmt->bind_param("isssissss", $event_id, $name, $email, $phone, $age, $gender, $category, $token, $status);
+$stmt->bind_param("isssissss", $event_id, $name, $email, $phone, $age, $gender, $final_category, $token, $status);
 
 if ($stmt->execute()) {
     $db_id = $stmt->insert_id;

@@ -11,6 +11,7 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+// Fixed: The link in the table now points here, so this logic will run
 if (isset($_GET['archive_id'])) {
     $archive_id = intval($_GET['archive_id']);
     $archive_sql = "UPDATE upcoming_events SET status = 'archived' WHERE id = $archive_id";
@@ -25,10 +26,11 @@ if (isset($_GET['archive_id'])) {
 
 $filter_category = isset($_GET['category']) ? $conn->real_escape_string($_GET['category']) : '';
 
+// Added registration_fee to the query so we can show it in the table
 $sql = "
     SELECT 
         @rownum := @rownum + 1 AS row_num, 
-        id, event_name, location, category, registration, registration_limit
+        id, event_name, location, category, registration, registration_limit, registration_fee
     FROM upcoming_events, (SELECT @rownum := 0) r 
     WHERE status = 'active'
 ";
@@ -51,6 +53,10 @@ $result = $conn->query($sql);
     <link rel="stylesheet" href="Css/manage_event.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Force Poppins font */
+        * { font-family: 'Poppins', sans-serif; }
+    </style>
 </head>
 <body>
     <div class="admin-container">
@@ -71,6 +77,12 @@ $result = $conn->query($sql);
         <main class="content">
             <h2>Manage Events</h2>
             
+            <?php if(isset($_GET['message'])): ?>
+                <div style="padding: 10px; background: #d4edda; color: #155724; margin-bottom: 20px; border-radius: 5px;">
+                    <?php echo htmlspecialchars($_GET['message']); ?>
+                </div>
+            <?php endif; ?>
+
             <div class="filter-action-container">
                 <form method="GET">
                     <label for="category">Filter by Category:</label>
@@ -108,20 +120,30 @@ $result = $conn->query($sql);
                     while ($row = $result->fetch_assoc()): ?>
                     <tr>
                         <td><?php echo $row_num++; ?></td> 
-                        <td><?php echo $row['event_name']; ?></td>
-                        <td><?php echo $row['location']; ?></td>
+                        <td><?php echo htmlspecialchars($row['event_name']); ?></td>
+                        <td><?php echo htmlspecialchars($row['location']); ?></td>
                         <td><?php echo ucfirst($row['category']); ?></td>
-                        <td><?php echo $row['registration'] == 1 ? 'Enabled' : 'Disabled'; ?></td>
-                        <td><?php echo $row['registration_limit'] ?? 'Unlimited'; ?></td>
+                        <td>
+                            <?php 
+                                if ($row['registration'] == 1) {
+                                    if ($row['registration_fee'] > 0) {
+                                        echo "<span style='color:green; font-weight:600;'>Paid</span><br><small>₱" . number_format($row['registration_fee'], 2) . "</small>";
+                                    } else {
+                                        echo "<span style='color:blue; font-weight:600;'>Free</span>";
+                                    }
+                                } else {
+                                    echo "<span style='color:gray;'>Disabled</span>";
+                                }
+                            ?>
+                        </td>
+                        <td><?php echo $row['registration_limit'] ? $row['registration_limit'] : 'Unlimited'; ?></td>
                         <td>
                             <?php
                             $schedule_sql = "SELECT * FROM event_schedules WHERE event_id = " . $row['id'];
                             $schedule_result = $conn->query($schedule_sql);
                             if ($schedule_result->num_rows > 0) {
                                 while ($schedule = $schedule_result->fetch_assoc()) {
-                                    echo "Date: " . $schedule['event_date'] . "<br>";
-                                    echo "Start: " . $schedule['start_time'] . "<br>";
-                                    echo "End: " . $schedule['end_time'] . "<br><hr>";
+                                    echo "<div><small><strong>" . $schedule['event_date'] . "</strong> (" . date('h:i A', strtotime($schedule['start_time'])) . " - " . date('h:i A', strtotime($schedule['end_time'])) . ")</small></div>";
                                 }
                             } else {
                                 echo "No schedules found.";
@@ -138,7 +160,7 @@ $result = $conn->query($sql);
                             <a href="delete_event.php?id=<?php echo $row['id']; ?>" onclick="return confirm('Are you sure you want to delete this event?');" title="Delete">
                                 <i class="fas fa-trash"></i>
                             </a> |
-                            <a href="archive_event.php?id=<?php echo $row['id']; ?>" onclick="return confirm('Archive this event?');" title="Archive">
+                            <a href="manage_upcoming.php?archive_id=<?php echo $row['id']; ?>" onclick="return confirm('Archive this event?');" title="Archive">
                                 <i class="fas fa-archive"></i>
                             </a>
                         </td>

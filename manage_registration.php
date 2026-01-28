@@ -10,34 +10,32 @@ if ($conn->connect_error) {
 }
 
 $token = $_POST['token'] ?? null;
+$posted_event_id = $_POST['event_id'] ?? null;
 $registration_id = $_GET['id'] ?? null;
 
+$registration = null;
 
-if ($token) {
-    // Search using token
-    $registration_sql = "SELECT * FROM event_registrations WHERE token = ?";
+if ($token && $posted_event_id) {
+    $registration_sql = "SELECT * FROM event_registrations WHERE token = ? AND event_id = ?";
     $stmt = $conn->prepare($registration_sql);
-    $stmt->bind_param("s", $token);
+    $stmt->bind_param("si", $token, $posted_event_id);
     $stmt->execute();
     $registration_result = $stmt->get_result();
     $registration = $registration_result->fetch_assoc();
 } elseif ($registration_id) {
-    // Search using ID
     $registration_sql = "SELECT * FROM event_registrations WHERE id = ?";
     $stmt = $conn->prepare($registration_sql);
     $stmt->bind_param("i", $registration_id);
     $stmt->execute();
     $registration_result = $stmt->get_result();
     $registration = $registration_result->fetch_assoc();
-} else {
-    $registration = null;
 }
 
-// Fetch event_id if registration is found
 if ($registration) {
     $event_id = $registration['event_id'];
+} elseif ($posted_event_id) {
+    $event_id = $posted_event_id;
 }
-
 
 $conn->close();
 ?>
@@ -49,6 +47,10 @@ $conn->close();
     <title>Your Registration</title>
     <link rel="stylesheet" href="Css/manage_registration.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Poppins', sans-serif; }
+    </style>
 </head>
 <body>
     <div class="registration-container">
@@ -84,8 +86,9 @@ $conn->close();
                 </tbody>
             </table>
         <?php else: ?>
-            <p style="color: red;">Invalid token or no registration found.</p>
+            <p style="color: red; text-align: center;">Invalid token or no registration found for this specific event.</p>
         <?php endif; ?>
+        
         <?php if (isset($event_id)): ?>
             <div class="return-btn">
                 <a href="eventPages.php?id=<?= $event_id; ?>">

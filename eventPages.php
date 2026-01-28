@@ -23,7 +23,7 @@ $event_id = isset($_GET['id']) && is_numeric($_GET['id']) ? (int)$_GET['id'] : 0
 $success_token = isset($_GET['success_token']) ? htmlspecialchars($_GET['success_token']) : '';
 
 if ($event_id > 0) {
-    $event_sql = "SELECT e.event_name, e.description, e.location, e.registration, e.registration_fee FROM upcoming_events e WHERE e.id = $event_id AND e.status = 'active'";
+    $event_sql = "SELECT e.event_name, e.description, e.location, e.registration, e.category, e.registration_fee FROM upcoming_events e WHERE e.id = $event_id AND e.status = 'active'";
     $event_result = $conn->query($event_sql);
 
     if ($event_result && $event_result->num_rows > 0) {
@@ -349,17 +349,22 @@ if ($event_id > 0) {
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
                     </select>
-                    <label for="category">Category:</label>
-                    <select name="category" id="category" required>
-                        <option value="Skateboard">Skateboard</option>
-                        <option value="Inline">Inline</option>
-                        <option value="BMX">BMX</option>
-                    </select>
+                    <?php if (isset($event['category']) && $event['category'] === 'all'): ?>
+                        <label for="category">Category:</label>
+                        <select name="category" id="category" required>
+                            <option value="Skateboard">Skateboard</option>
+                            <option value="Inline">Inline</option>
+                            <option value="BMX">BMX</option>
+                        </select>
+                    <?php else: ?>
+                        <input type="hidden" name="category" value="<?php echo isset($event['category']) ? $event['category'] : ''; ?>">
+                    <?php endif; ?>
                     <div class="g-recaptcha" data-sitekey="6LezuAorAAAAAN_jcei_sHBW0gNq_im-TA4oZ8wI"></div>
                     <button type="submit" id="submitBtn">
                         <?php echo ($event['registration_fee'] > 0) ? "Proceed to Payment" : "Submit Registration"; ?>
                     </button>
                     <div id="loader" style="display:none; text-align:center; margin-top:10px;">Processing...</div>
+                    <div id="registrationStatus" class="status-msg"></div>
                 </form>
             </div>
         </div>
@@ -375,6 +380,7 @@ if ($event_id > 0) {
                 <button onclick="copyGeneratedToken()" style="background: #3498db; color: white; padding: 8px 12px; border: none; border-radius: 5px;">Copy</button>
                 <div id="flashMessage" style="display: none; color: green; font-weight: bold;"></div>
                 <button onclick="closeTokenSuccessModal()" style="background: #2ecc71; color: white; padding: 8px 12px; border: none; border-radius: 5px;">Okay</button>
+                <p>**Use token to manage your Registration**</p>
             </div>
         </div>
     </div>
@@ -384,6 +390,7 @@ if ($event_id > 0) {
             <span class="close" onclick="closeTokenModal()">&times;</span>
             <h2>Enter Your Token</h2>
             <form id="tokenForm" action="manage_registration.php" method="POST">
+                <input type="hidden" name="event_id" value="<?php echo $event_id; ?>">
                 <input type="text" id="token" name="token" required placeholder="Enter your token here">
                 <button type="submit">Submit</button>
                 <a href="javascript:void(0);" id="forgotTokenLink" onclick="showForgotTokenForm()">Forgot your token?</a>
@@ -391,11 +398,12 @@ if ($event_id > 0) {
             <div id="forgotTokenForm" style="display:none;">
                 <h3>Retrieve Your Token</h3>
                 <form id="retrieveTokenForm">
+                    <input type="hidden" name="event_id" value="<?php echo $event_id; ?>">
                     <label for="email">Enter your email:</label>
                     <input type="email" id="email" name="email" required placeholder="Enter your email">
                     <button type="submit">Retrieve Token</button>
                 </form>
-                <p id="retrieveTokenMessage" style="color:red; display:none;"></p>
+                <div id="retrieveTokenMessage" class="status-msg"></div>
             </div>
         </div>
     </div>
@@ -544,72 +552,108 @@ if ($event_id > 0) {
         toggleVisibility();
 
         const registrationForm = document.getElementById("registrationForm");
-        if (registrationForm) {
-            registrationForm.addEventListener("submit", function (event) {
-                event.preventDefault();
-                document.getElementById('submitBtn').style.display = 'none';
-                document.getElementById('loader').style.display = 'block';
+            const statusDiv = document.getElementById('registrationStatus');
 
-                const formData = new FormData(this);
-                fetch("submit_registration.php", {
-                    method: "POST",
-                    body: formData
-                })
-                .then(async response => {
-                    const text = await response.text();
-                    try {
-                        const data = JSON.parse(text);
-                        if (data.success) {
-                            if (data.is_paid_event && data.checkout_url) {
-                                window.location.href = data.checkout_url;
-                            } else if (!data.is_paid_event && data.token) {
-                                document.getElementById('loader').style.display = 'none';
-                                document.getElementById('submitBtn').style.display = 'block';
-                                showTokenSuccessModal(data.token);
+            if (registrationForm) {
+                registrationForm.addEventListener("submit", function (event) {
+                    event.preventDefault();
+                    
+                    const submitBtn = document.getElementById('submitBtn');
+                    const loader = document.getElementById('loader');
+
+                    submitBtn.style.display = 'none';
+                    loader.style.display = 'block';
+                    statusDiv.style.display = 'none';
+                    statusDiv.className = 'status-msg'; 
+
+                    const formData = new FormData(this);
+
+                    fetch("submit_registration.php", {
+                        method: "POST",
+                        body: formData
+                    })
+                    .then(async response => {
+                        const text = await response.text();
+                        try {
+                            const data = JSON.parse(text);
+                            
+                            if (data.success) {
+                                if (data.is_paid_event && data.checkout_url) {
+                                    window.location.href = data.checkout_url;
+                                } else if (!data.is_paid_event && data.token) {
+                                    loader.style.display = 'none';
+                                    submitBtn.style.display = 'block';
+                                    showTokenSuccessModal(data.token);
+                                } else {
+                                    throw new Error("Unknown registration status.");
+                                }
                             } else {
-                                alert("Unknown registration status.");
-                                document.getElementById('submitBtn').style.display = 'block';
-                                document.getElementById('loader').style.display = 'none';
+                                throw new Error(data.message || "Registration initialization failed.");
                             }
-                        } else {
-                            alert(data.message || "Registration initialization failed.");
-                            document.getElementById('submitBtn').style.display = 'block';
-                            document.getElementById('loader').style.display = 'none';
+                        } catch (e) {
+                            console.error("Error:", e);
+                            loader.style.display = 'none';
+                            submitBtn.style.display = 'block';
+                            
+                            statusDiv.textContent = e.message || "Error processing request.";
+                            statusDiv.classList.add('error');
+                            statusDiv.style.display = 'block';
                         }
-                    } catch (e) {
-                        console.error("Parse error:", e, text);
-                        alert("Error processing request.");
-                        document.getElementById('submitBtn').style.display = 'block';
-                        document.getElementById('loader').style.display = 'none';
-                    }
-                })
-                .catch(error => {
-                    console.error("Fetch error:", error);
-                    alert("Connection error.");
-                    document.getElementById('submitBtn').style.display = 'block';
-                    document.getElementById('loader').style.display = 'none';
+                    })
+                    .catch(error => {
+                        console.error("Fetch error:", error);
+                        loader.style.display = 'none';
+                        submitBtn.style.display = 'block';
+                        
+                        statusDiv.textContent = "Connection error. Please check your internet.";
+                        statusDiv.classList.add('error');
+                        statusDiv.style.display = 'block';
+                    });
                 });
-            });
-        }
+            }
         
         const forgotForm = document.getElementById('retrieveTokenForm');
         if (forgotForm) {
             forgotForm.addEventListener('submit', function (event) {
                 event.preventDefault();
+                
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                const msgDisplay = document.getElementById('retrieveTokenMessage');
+                
+                submitBtn.textContent = "Sending Email...";
+                submitBtn.disabled = true;
+                
+                msgDisplay.style.display = 'none';
+                msgDisplay.className = 'status-msg';
+
                 const formData = new FormData(this);
+                
                 fetch('forgot_token.php', { method: 'POST', body: formData })
                 .then(async response => {
                     const data = await response.json();
+                    
+                    msgDisplay.textContent = data.message;
+                    msgDisplay.style.display = 'block';
+
                     if (data.success) {
-                        alert('Your token is: ' + data.token);
-                        closeTokenModal();
+                        msgDisplay.classList.add('success');
+                        setTimeout(() => {
+                            closeTokenModal(); 
+                        }, 3000);
                     } else {
-                        const msg = document.getElementById('retrieveTokenMessage');
-                        msg.textContent = data.message;
-                        msg.style.display = 'block';
+                        msgDisplay.classList.add('error');
                     }
                 })
-                .catch(() => alert('Something went wrong.'));
+                .catch(() => {
+                    msgDisplay.textContent = 'Something went wrong. Please try again.';
+                    msgDisplay.classList.add('error');
+                    msgDisplay.style.display = 'block';
+                })
+                .finally(() => {
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                });
             });
         }
     });

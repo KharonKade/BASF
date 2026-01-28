@@ -1,18 +1,55 @@
 <?php
-// Database connection
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require 'PHPMailer/Exception.php';
+require 'PHPMailer/PHPMailer.php';
+require 'PHPMailer/SMTP.php';
+
 $conn = new mysqli("localhost", "root", "", "contact_us");
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Fetch the inquiry by ID
 $id = $_GET['id'];
+$statusMsg = '';
 
-// Fetch all inquiries to calculate sequential numbering
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_reply'])) {
+    $recipient_email = $_POST['recipient_email'];
+    $subject_line = "Re: " . $_POST['original_subject'];
+    $reply_body = $_POST['reply_message'];
+
+    $mail = new PHPMailer(true);
+
+    try {
+        $mail->isSMTP();
+        $mail->Host       = 'smtp.gmail.com';
+        $mail->SMTPAuth   = true;
+        
+        $mail->Username   = 'kharontogana371@gmail.com'; 
+        $mail->Password   = 'mdub rwug jftk eqah'; 
+        
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = 587;
+
+        $mail->setFrom($mail->Username, 'BASF Team');
+        $mail->addAddress($recipient_email);
+
+        $mail->isHTML(true);
+        $mail->Subject = $subject_line;
+        $mail->Body    = nl2br($reply_body);
+        $mail->AltBody = $reply_body;
+
+        $mail->send();
+        $statusMsg = "<div class='alert success'>Reply sent successfully!</div>";
+    } catch (Exception $e) {
+        $statusMsg = "<div class='alert error'>Message could not be sent. Mailer Error: {$mail->ErrorInfo}</div>";
+    }
+}
+
 $sql_all_inquiries = "SELECT id FROM contact_inquiries ORDER BY id DESC";
 $result_all = $conn->query($sql_all_inquiries);
 
-// Find the position of the current inquiry
 $counter = 1;
 $inquiry_position = 0;
 while($row_all = $result_all->fetch_assoc()) {
@@ -23,7 +60,6 @@ while($row_all = $result_all->fetch_assoc()) {
     $counter++;
 }
 
-// Now fetch the detailed inquiry based on the ID
 $sql = "SELECT * FROM contact_inquiries WHERE id = $id";
 $result = $conn->query($sql);
 $row = $result->fetch_assoc();
@@ -37,6 +73,17 @@ $row = $result->fetch_assoc();
     <title>View Inquiry Message</title>
     <link rel="stylesheet" href="Css/view_message.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .reply-section { margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; }
+        .reply-form textarea { width: 95%; height: 150px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Poppins', sans-serif; resize: vertical; margin-bottom: 15px; }
+        .reply-form label { font-weight: 600; display: block; margin-bottom: 8px; color: #333; }
+        .btn-send { background-color: #28a745; color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 500; font-size: 16px; transition: 0.3s; }
+        .btn-send:hover { background-color: #218838; }
+        .alert { padding: 15px; margin-bottom: 20px; border-radius: 6px; font-size: 14px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
 </head>
 <body>
     <div class="admin-wrapper">
@@ -47,6 +94,8 @@ $row = $result->fetch_assoc();
         </div>
         <button onclick="history.back()" class="btn-secondary">Return</button>
     </div>
+
+    <?php echo $statusMsg; ?>
 
     <div class="message-grid">
         <div class="sidebar-details">
@@ -94,13 +143,21 @@ $row = $result->fetch_assoc();
                 <div class="message-text">
                     <?php echo nl2br(htmlspecialchars($row['message'])); ?>
                 </div>
+
+                <div class="reply-section">
+                    <h3>Reply to User</h3>
+                    <form method="POST" class="reply-form">
+                        <input type="hidden" name="recipient_email" value="<?php echo htmlspecialchars($row['email']); ?>">
+                        <input type="hidden" name="original_subject" value="<?php echo htmlspecialchars($row['concerns']); ?>">
+                        
+                        <label>Your Response</label>
+                        <textarea name="reply_message" placeholder="Type your reply here..." required></textarea>
+                        
+                        <button type="submit" name="send_reply" class="btn-send">Send Reply via Email</button>
+                    </form>
+                </div>
             </div>
             
-            <div class="action-footer">
-                <a href="mailto:<?php echo htmlspecialchars($row['email']); ?>?subject=Re: <?php echo htmlspecialchars($row['concerns']); ?>" class="btn-primary">
-                    Reply via Email
-                </a>
-            </div>
         </div>
     </div>
 </div>

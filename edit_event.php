@@ -111,7 +111,7 @@ $is_paid = ($event['registration_fee'] > 0);
                     <div id="fee-container" style="display: <?php echo ($is_paid) ? 'block' : 'none'; ?>;">
                         <div class="form-group">
                             <label>Registration Fee (PHP)</label>
-                            <input type="number" name="registration_fee" id="registration_fee" min="1" step="0.01" value="<?php echo $event['registration_fee']; ?>" placeholder="0.00">
+                            <input type="number" name="registration_fee" id="registration_fee" min="1" step="0.01" value="<?php echo ($event['registration_fee'] > 0) ? $event['registration_fee'] : ''; ?>" placeholder="0.00">
                         </div>
                     </div>
                 </div>
@@ -196,6 +196,25 @@ $is_paid = ($event['registration_fee'] > 0);
 </div>
 
 <script>
+    const regType = document.getElementById("registration_type");
+    const feeContainer = document.getElementById("fee-container");
+    const feeInput = document.getElementById("registration_fee");
+
+    function updateFeeStatus() {
+        if (regType.value === "paid") {
+            feeContainer.style.display = "block";
+            feeInput.required = true;
+        } else {
+            feeContainer.style.display = "none";
+            feeInput.required = false;
+            feeInput.value = "";
+        }
+    }
+
+    regType.addEventListener("change", updateFeeStatus);
+
+    updateFeeStatus();
+
     document.getElementById('add-schedule').addEventListener('click', function () {
         const container = document.getElementById('schedule-container');
         const scheduleDiv = document.createElement('div');
@@ -223,20 +242,6 @@ $is_paid = ($event['registration_fee'] > 0);
     document.getElementById("registration").addEventListener("change", function () {
         var registrationOptions = document.getElementById("registration-options");
         registrationOptions.style.display = this.checked ? "block" : "none";
-    });
-
-    document.getElementById("registration_type").addEventListener("change", function () {
-        var feeContainer = document.getElementById("fee-container");
-        var feeInput = document.getElementById("registration_fee");
-        
-        if (this.value === "paid") {
-            feeContainer.style.display = "block";
-            feeInput.required = true;
-        } else {
-            feeContainer.style.display = "none";
-            feeInput.required = false;
-            feeInput.value = "";
-        }
     });
 
     function removeElement(button) {

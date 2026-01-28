@@ -318,6 +318,37 @@ header {
     }
 }
 
+.notification-toast {
+visibility: hidden;
+min-width: 250px;
+background-color: #333;
+color: #fff;
+text-align: center;
+border-radius: 4px;
+padding: 16px;
+position: fixed;
+z-index: 1000;
+left: 50%;
+bottom: 30px;
+transform: translateX(-50%);
+box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+opacity: 0;
+transition: visibility 0s, opacity 0.5s linear, bottom 0.5s;
+        }
+
+        .notification-toast.show {
+visibility: visible;
+opacity: 1;
+bottom: 50px;
+        }
+
+        .notification-toast.success {
+background-color: #4CAF50;
+        }
+
+        .notification-toast.error {
+background-color: #f44336;
+        }
 /* Advertisement Section */
 .advertisement {
     text-align: center;
