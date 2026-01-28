@@ -5,6 +5,7 @@ use PHPMailer\PHPMailer\Exception;
 require 'PHPMailer/Exception.php';
 require 'PHPMailer/PHPMailer.php';
 require 'PHPMailer/SMTP.php';
+require 'secrets.php'; 
 
 $conn = new mysqli("localhost", "root", "", "contact_us");
 if ($conn->connect_error) {
@@ -23,14 +24,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_reply'])) {
 
     try {
         $mail->isSMTP();
-        $mail->Host       = 'smtp.gmail.com';
+        $mail->Host       = SMTP_HOST;
         $mail->SMTPAuth   = true;
         
-        $mail->Username   = 'kharontogana371@gmail.com'; 
-        $mail->Password   = 'mdub rwug jftk eqah'; 
+        $mail->Username   = SMTP_USER; 
+        $mail->Password   = SMTP_PASS; 
         
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port       = 587;
+        $mail->Port       = SMTP_PORT;
 
         $mail->setFrom($mail->Username, 'BASF Team');
         $mail->addAddress($recipient_email);
