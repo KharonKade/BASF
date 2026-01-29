@@ -434,13 +434,26 @@ a {
 }
 
 .event-filter select {
-    padding: 8px 15px;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 16px;
+    border: 2px solid #25523B;
+    border-radius: 20px;
     font-family: 'Poppins', sans-serif;
 }
+#searchFilter {
+    padding: 12px 20px;
+    font-size: 16px;
+    border: 2px solid #25523B;
+    border-radius: 20px;
+    font-family: 'Poppins', sans-serif;
+    width: 250px;
+    outline: none;
+    transition: border-color 0.3s;
+}
 
+#searchFilter:focus {
+    border-color: #25523B;
+}
 .event-count {
     font-size: 1.2rem;
     font-weight: bold;

@@ -11,7 +11,6 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Fixed: The link in the table now points here, so this logic will run
 if (isset($_GET['archive_id'])) {
     $archive_id = intval($_GET['archive_id']);
     $archive_sql = "UPDATE upcoming_events SET status = 'archived' WHERE id = $archive_id";
@@ -25,22 +24,71 @@ if (isset($_GET['archive_id'])) {
 }
 
 $filter_category = isset($_GET['category']) ? $conn->real_escape_string($_GET['category']) : '';
+$search_query = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
 
-// Added registration_fee to the query so we can show it in the table
 $sql = "
     SELECT 
-        @rownum := @rownum + 1 AS row_num, 
         id, event_name, location, category, registration, registration_limit, registration_fee
-    FROM upcoming_events, (SELECT @rownum := 0) r 
+    FROM upcoming_events 
     WHERE status = 'active'
 ";
+
 if (!empty($filter_category) && $filter_category !== 'All') {
-    $filter_category = $conn->real_escape_string($filter_category);
     $sql .= " AND category = '$filter_category'";
 }
-$sql .= " ORDER BY id DESC";
 
+if (!empty($search_query)) {
+    $sql .= " AND event_name LIKE '%$search_query%'";
+}
+
+$sql .= " ORDER BY id DESC";
 $result = $conn->query($sql);
+
+if (isset($_GET['ajax'])) {
+    if ($result->num_rows > 0) {
+        $row_num = 1;
+        while ($row = $result->fetch_assoc()) {
+            echo "<tr>";
+            echo "<td>" . $row_num++ . "</td>";
+            echo "<td>" . htmlspecialchars($row['event_name']) . "</td>";
+            echo "<td>" . htmlspecialchars($row['location']) . "</td>";
+            echo "<td>" . ucfirst($row['category']) . "</td>";
+            echo "<td>";
+            if ($row['registration'] == 1) {
+                if ($row['registration_fee'] > 0) {
+                    echo "<span style='color:green; font-weight:600;'>Paid</span><br><small>₱" . number_format($row['registration_fee'], 2) . "</small>";
+                } else {
+                    echo "<span style='color:blue; font-weight:600;'>Free</span>";
+                }
+            } else {
+                echo "<span style='color:gray;'>Disabled</span>";
+            }
+            echo "</td>";
+            echo "<td>" . ($row['registration_limit'] ? $row['registration_limit'] : 'Unlimited') . "</td>";
+            echo "<td>";
+            $schedule_sql = "SELECT * FROM event_schedules WHERE event_id = " . $row['id'];
+            $schedule_result = $conn->query($schedule_sql);
+            if ($schedule_result->num_rows > 0) {
+                while ($schedule = $schedule_result->fetch_assoc()) {
+                    echo "<div><small><strong>" . $schedule['event_date'] . "</strong> (" . date('h:i A', strtotime($schedule['start_time'])) . " - " . date('h:i A', strtotime($schedule['end_time'])) . ")</small></div>";
+                }
+            } else {
+                echo "No schedules found.";
+            }
+            echo "</td>";
+            echo "<td>
+                    <a href='view_event.php?id=" . $row['id'] . "' title='View'><i class='fas fa-eye'></i></a> |
+                    <a href='edit_event.php?id=" . $row['id'] . "' title='Edit'><i class='fas fa-edit'></i></a> |
+                    <a href='delete_event.php?id=" . $row['id'] . "' onclick=\"return confirm('Are you sure you want to delete this event?');\" title='Delete'><i class='fas fa-trash'></i></a> |
+                    <a href='manage_upcoming.php?archive_id=" . $row['id'] . "' onclick=\"return confirm('Archive this event?');\" title='Archive'><i class='fas fa-archive'></i></a>
+                  </td>";
+            echo "</tr>";
+        }
+    } else {
+        echo "<tr><td colspan='8'>No upcoming events found.</td></tr>";
+    }
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -51,11 +99,9 @@ $result = $conn->query($sql);
     <title>Manage Upcoming Events</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="Css/manage_event.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        /* Force Poppins font */
-        * { font-family: 'Poppins', sans-serif; }
+        body { font-family: 'Poppins', sans-serif; }
     </style>
 </head>
 <body>
@@ -64,12 +110,12 @@ $result = $conn->query($sql);
             <h2>Admin Dashboard</h2>
             <ul>
                 <li><a href="admin.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="manage_upcoming.php"><i class="fas fa-calendar-check"></i>Events</a></li>
-                <li><a href="manage_news.php"><i class="fas fa-edit"></i>News & Announcements</a></li>
-                <li><a href="admin_gallery.php"><i class="fas fa-images"></i>Gallery Page</a></li>
-                <li><a href="editInlinePage.php"><i class="fas fa-skating"></i>Inline Page</a></li>
-                <li><a href="editBmxPage.php"><i class="fas fa-bicycle"></i>BMX Page</a></li>
-                <li><a href="editSkateboardPage.php"><i class="fas fa-snowboarding"></i>Skateboard Page</a></li>
+                <li><a href="manage_upcoming.php"><i class="fas fa-calendar-check"></i> Events</a></li>
+                <li><a href="manage_news.php"><i class="fas fa-edit"></i> News & Announcements</a></li>
+                <li><a href="admin_gallery.php"><i class="fas fa-images"></i> Gallery Page</a></li>
+                <li><a href="editInlinePage.php"><i class="fas fa-skating"></i> Inline Page</a></li>
+                <li><a href="editBmxPage.php"><i class="fas fa-bicycle"></i> BMX Page</a></li>
+                <li><a href="editSkateboardPage.php"><i class="fas fa-snowboarding"></i> Skateboard Page</a></li>
                 <li><a href="view_inquiries.php"><i class="fas fa-question-circle"></i> Inquiries</a></li>
                 <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
@@ -84,23 +130,27 @@ $result = $conn->query($sql);
             <?php endif; ?>
 
             <div class="filter-action-container">
-                <form method="GET">
-                    <label for="category">Filter by Category:</label>
-                    <select name="category" onchange="this.form.submit()">
-                        <option value="All" <?php if ($filter_category === 'All' || empty($filter_category)) echo 'selected'; ?>>All</option>
+                <form id="filterForm" method="GET" class="search-filters">
+                    <label for="category">Filter:</label>
+                    <select name="category" id="categoryFilter">
+                        <option value="All" <?php if ($filter_category === 'All' || empty($filter_category)) echo 'selected'; ?>>All Categories</option>
                         <option value="Skateboard" <?php if ($filter_category === 'Skateboard') echo 'selected'; ?>>Skateboard</option>
                         <option value="BMX" <?php if ($filter_category === 'BMX') echo 'selected'; ?>>BMX</option>
                         <option value="Inline" <?php if ($filter_category === 'Inline') echo 'selected'; ?>>In-Line</option>
                     </select>
+                    
+                    <input type="text" name="search" id="searchInput" placeholder="Search event name..." value="<?php echo htmlspecialchars($search_query); ?>">
+                    <button type="button" class="btn-search"><i class="fas fa-search"></i></button>
+                    <a href="manage_upcoming.php" id="clearFilters" style="font-size: 12px; color: #666; display: <?php echo (!empty($search_query) || (!empty($filter_category) && $filter_category !== 'All')) ? 'inline' : 'none'; ?>;">Clear Filters</a>
                 </form>
                 
                 <div class="action-buttons">
+                    <a href="export_events.php" id="exportBtn" class="btn btn-export"><i class="fas fa-file-export"></i> Export CSV</a>
                     <a href="create_event.php" class="btn btn-primary"><i class="fas fa-plus"></i> Create Event</a>
                     <a href="archived_events.php" class="btn btn-secondary"><i class="fas fa-archive"></i> Archived Events</a>
                 </div>
             </div>
 
-            <?php if ($result->num_rows > 0): ?>
             <table>
                 <thead>
                     <tr>
@@ -114,10 +164,10 @@ $result = $conn->query($sql);
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <?php 
-                    $row_num = 1;
-                    while ($row = $result->fetch_assoc()): ?>
+                <tbody id="eventTableBody">
+                    <?php if ($result->num_rows > 0): 
+                        $row_num = 1;
+                        while ($row = $result->fetch_assoc()): ?>
                     <tr>
                         <td><?php echo $row_num++; ?></td> 
                         <td><?php echo htmlspecialchars($row['event_name']); ?></td>
@@ -151,28 +201,51 @@ $result = $conn->query($sql);
                             ?>
                         </td>
                         <td>
-                            <a href="view_event.php?id=<?php echo $row['id']; ?>" title="View">
-                                <i class="fas fa-eye"></i>
-                            </a> |
-                            <a href="edit_event.php?id=<?php echo $row['id']; ?>" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </a> |
-                            <a href="delete_event.php?id=<?php echo $row['id']; ?>" onclick="return confirm('Are you sure you want to delete this event?');" title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </a> |
-                            <a href="manage_upcoming.php?archive_id=<?php echo $row['id']; ?>" onclick="return confirm('Archive this event?');" title="Archive">
-                                <i class="fas fa-archive"></i>
-                            </a>
+                            <a href="view_event.php?id=<?php echo $row['id']; ?>" title="View"><i class="fas fa-eye"></i></a> |
+                            <a href="edit_event.php?id=<?php echo $row['id']; ?>" title="Edit"><i class="fas fa-edit"></i></a> |
+                            <a href="delete_event.php?id=<?php echo $row['id']; ?>" onclick="return confirm('Are you sure you want to delete this event?');" title="Delete"><i class="fas fa-trash"></i></a> |
+                            <a href="manage_upcoming.php?archive_id=<?php echo $row['id']; ?>" onclick="return confirm('Archive this event?');" title="Archive"><i class="fas fa-archive"></i></a>
                         </td>
                     </tr>
-                    <?php endwhile; ?>
+                    <?php endwhile; 
+                    else: ?>
+                    <tr><td colspan="8">No upcoming events found.</td></tr>
+                    <?php endif; ?>
                 </tbody>
             </table>
-            <?php else: ?>
-            <p>No upcoming events found.</p>
-            <?php endif; ?>
         </main>
     </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const eventTableBody = document.getElementById('eventTableBody');
+        const exportBtn = document.getElementById('exportBtn');
+        const clearFilters = document.getElementById('clearFilters');
+
+        function fetchEvents() {
+            const search = searchInput.value;
+            const category = categoryFilter.value;
+            
+            const params = new URLSearchParams({
+                ajax: 1,
+                search: search,
+                category: category
+            });
+
+            clearFilters.style.display = (search !== '' || category !== 'All') ? 'inline' : 'none';
+            exportBtn.href = `export_events.php?search=${encodeURIComponent(search)}&category=${encodeURIComponent(category)}`;
+
+            fetch(`manage_upcoming.php?${params.toString()}`)
+                .then(response => response.text())
+                .then(data => {
+                    eventTableBody.innerHTML = data;
+                });
+        }
+
+        searchInput.addEventListener('input', fetchEvents);
+        categoryFilter.addEventListener('change', fetchEvents);
+    </script>
 </body>
 </html>
 <?php $conn->close(); ?>

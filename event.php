@@ -46,6 +46,8 @@
     </section>
 
     <div class="event-filter">
+        <input type="text" id="searchFilter" placeholder="Search Event Name...">
+
         <select id="categoryFilter">
             <option value="all">All Categories</option>
             <option value="skateboard">Skateboard</option>
@@ -222,199 +224,190 @@
     <script src="jsScript/event.js"></script>
 
     <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const elements = document.querySelectorAll('.animate-on-scroll');
+document.addEventListener("DOMContentLoaded", function () {
+    
+    // --- 1. Animation Logic ---
+    const elements = document.querySelectorAll('.animate-on-scroll');
+    elements.forEach(el => { el._fadeTimeout = null; });
 
-        elements.forEach(el => {
-            el._fadeTimeout = null;
-        });
+    function toggleVisibility() {
+        const currentElements = document.querySelectorAll('.animate-on-scroll');
+        currentElements.forEach(el => {
+            const rect = el.getBoundingClientRect();
+            const inView = rect.top <= window.innerHeight * 0.85 && rect.bottom >= 0;
 
-        function toggleVisibility() {
-            elements.forEach(el => {
-                const rect = el.getBoundingClientRect();
-                const inView = rect.top <= window.innerHeight * 0.85 && rect.bottom >= 0;
-
-                if (inView) {
-                    clearTimeout(el._fadeTimeout);
-                    el.classList.add('visible');
-                    el.style.visibility = 'visible';
-                } else {
-                    el.classList.remove('visible');
-                    clearTimeout(el._fadeTimeout);
-                    el._fadeTimeout = setTimeout(() => {
-                        el.style.visibility = 'hidden';
-                    }, 600);
-                }
-            });
-        }
-
-        window.addEventListener('scroll', toggleVisibility);
-        window.addEventListener('resize', toggleVisibility);
-        toggleVisibility();
-    });
-
-    </script>
-    <script>
-        const ads = [
-            {
-                image: 'images/vansads.png',
-                link: 'https://www.vans.com/en-us/shoes-c00081/old-skool-shoe-pvn000d3hy28'
-            },
-            {
-                image: 'images/nikead.webp',
-                link: 'https://www.nike.com/ph/'
-            },
-            {
-                image: 'images/redbullad.png',
-                link: 'https://www.redbull.com/ph-en'
+            if (inView) {
+                clearTimeout(el._fadeTimeout);
+                el.classList.add('visible');
+                el.style.visibility = 'visible';
+            } else {
+                el.classList.remove('visible');
+                clearTimeout(el._fadeTimeout);
+                el._fadeTimeout = setTimeout(() => {
+                    el.style.visibility = 'hidden';
+                }, 600);
             }
-        ];
+        });
+    }
 
-        let currentAd = 0;
+    window.addEventListener('scroll', toggleVisibility);
+    window.addEventListener('resize', toggleVisibility);
+    toggleVisibility(); 
 
-        function rotateAd() {
-            const ad = ads[currentAd];
-            document.getElementById('ad-image').src = ad.image;
-            document.getElementById('ad-link').href = ad.link;
+    // --- 2. Ads Logic ---
+    const ads = [
+        { image: 'images/vansads.png', link: 'https://www.vans.com/en-us/shoes-c00081/old-skool-shoe-pvn000d3hy28' },
+        { image: 'images/nikead.webp', link: 'https://www.nike.com/ph/' },
+        { image: 'images/redbullad.png', link: 'https://www.redbull.com/ph-en' }
+    ];
+    let currentAd = 0;
+    function rotateAd() {
+        const ad = ads[currentAd];
+        const adImg = document.getElementById('ad-image');
+        const adLink = document.getElementById('ad-link');
+        if(adImg && adLink) {
+            adImg.src = ad.image;
+            adLink.href = ad.link;
             currentAd = (currentAd + 1) % ads.length;
         }
+    }
+    rotateAd();
+    setInterval(rotateAd, 3000);
 
-        rotateAd();
-        setInterval(rotateAd, 3000);
-    </script>
+    // --- 3. Search, Filter & Pagination Logic ---
+    let currentPage = 1;
+    let itemsPerPage = 8;
     
-    <script>
-        let currentPage = 1;
-        let itemsPerPage = 8;
-        let filteredItems = []; 
+    // Grab all items rendered by PHP immediately
+    let filteredItems = Array.from(document.querySelectorAll('.event-item')); 
 
-        document.getElementById('categoryFilter').addEventListener('change', () => { currentPage = 1; filterEvents(); });
-        document.getElementById('dateFilter').addEventListener('change', () => { currentPage = 1; filterEvents(); });
-        window.addEventListener('resize', () => { calculateItemsPerPage(); renderPage(); });
+    const searchInput = document.getElementById('searchFilter');
+    const categorySelect = document.getElementById('categoryFilter');
+    const dateSelect = document.getElementById('dateFilter');
+    const eventGrid = document.getElementById('eventGrid');
+    const eventCount = document.getElementById('event-count');
+    const paginationContainer = document.getElementById('pagination-controls');
 
-        function calculateItemsPerPage() {
-            const grid = document.getElementById('eventGrid');
-            if (!grid) return;
-            
-            const gridWidth = grid.offsetWidth;
-            const cardWidth = 270; 
-            
-            let columns = Math.floor(gridWidth / cardWidth);
-            if (columns < 1) columns = 1;
-            
-            itemsPerPage = columns * 2;
-        }
+    // FIX: Update the counter immediately on load
+    if(eventCount) {
+        eventCount.textContent = `Total Events: ${filteredItems.length}`;
+    }
 
-        function filterEvents() {
-            const category = document.getElementById('categoryFilter').value;
-            const date = document.getElementById('dateFilter').value;
-            const allItems = Array.from(document.querySelectorAll('.event-item'));
-            const today = new Date();
+    function calculateItemsPerPage() {
+        if (!eventGrid) return;
+        const gridWidth = eventGrid.offsetWidth;
+        const cardWidth = 270; 
+        let columns = Math.floor(gridWidth / cardWidth);
+        if (columns < 1) columns = 1;
+        itemsPerPage = columns * 2;
+        renderPage(); 
+    }
 
-            filteredItems = allItems.filter(item => {
-                const itemCategory = item.getAttribute('data-category');
-                const itemDate = new Date(item.getAttribute('data-date'));
-                let matchCategory = true;
-                let matchDate = true;
+    function renderPage() {
+        const allItems = document.querySelectorAll('.event-item');
+        allItems.forEach(item => item.style.display = 'none');
 
-                if (category !== 'all' && category !== itemCategory) {
-                    matchCategory = false;
-                }
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const pageItems = filteredItems.slice(start, end);
 
-                if (date === 'upcoming' && itemDate < today) {
-                    matchDate = false;
-                } else if (date === 'this-week') {
-                    const dayOfWeek = today.getDay();
-                    const startOfWeek = new Date(today);
-                    startOfWeek.setDate(today.getDate() - dayOfWeek);
-                    const endOfWeek = new Date(today);
-                    endOfWeek.setDate(today.getDate() + (6 - dayOfWeek));
+        pageItems.forEach(item => {
+            item.style.display = 'block';
+            item.classList.add('animate-on-scroll');
+        });
 
-                    startOfWeek.setHours(0, 0, 0, 0);
-                    endOfWeek.setHours(23, 59, 59, 999);
-                    itemDate.setHours(0, 0, 0, 0);
+        renderPaginationControls();
+        
+        // Retrigger animation check for new items
+        setTimeout(toggleVisibility, 100);
+    }
 
-                    if (itemDate < startOfWeek || itemDate > endOfWeek) {
-                        matchDate = false;
-                    }
-                } else if (date === 'this-month') {
-                    if (itemDate.getMonth() !== today.getMonth() || itemDate.getFullYear() !== today.getFullYear()) {
-                        matchDate = false;
-                    }
-                }
+    function renderPaginationControls() {
+        paginationContainer.innerHTML = '';
+        const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 
-                return matchCategory && matchDate;
-            });
+        if (totalPages <= 1) return;
 
-            updateEventCount(filteredItems.length);
-            calculateItemsPerPage();
-            renderPage();
-        }
-
-        function renderPage() {
-            const allItems = document.querySelectorAll('.event-item');
-            allItems.forEach(item => item.style.display = 'none');
-
-            const start = (currentPage - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
-            const pageItems = filteredItems.slice(start, end);
-
-            pageItems.forEach(item => {
-                item.style.display = 'block';
-            });
-
-            renderPaginationControls();
-        }
-
-        function renderPaginationControls() {
-            const container = document.getElementById('pagination-controls');
-            container.innerHTML = '';
-
-            const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-
-            if (totalPages <= 1) return;
-
-            const prevBtn = document.createElement('button');
-            prevBtn.innerText = 'Prev';
-            prevBtn.disabled = currentPage === 1;
-            prevBtn.onclick = () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    renderPage();
-                }
-            };
-            container.appendChild(prevBtn);
-
-            for (let i = 1; i <= totalPages; i++) {
-                const btn = document.createElement('button');
-                btn.innerText = i;
-                if (i === currentPage) btn.classList.add('active');
-                btn.onclick = () => {
-                    currentPage = i;
-                    renderPage();
-                };
-                container.appendChild(btn);
+        const prevBtn = document.createElement('button');
+        prevBtn.innerText = 'Prev';
+        prevBtn.style.fontFamily = 'Poppins, sans-serif';
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.onclick = () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderPage();
+                eventGrid.scrollIntoView({ behavior: 'smooth' });
             }
-
-            const nextBtn = document.createElement('button');
-            nextBtn.innerText = 'Next';
-            nextBtn.disabled = currentPage === totalPages;
-            nextBtn.onclick = () => {
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    renderPage();
-                }
-            };
-            container.appendChild(nextBtn);
-        }
-
-        function updateEventCount(count) {
-            document.getElementById('event-count').textContent = `Total Events: ${count}`;
-        }
-
-        window.onload = function() {
-            filterEvents();
         };
-    </script>
+        paginationContainer.appendChild(prevBtn);
+
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.innerText = i;
+            btn.style.fontFamily = 'Poppins, sans-serif';
+            if (i === currentPage) btn.classList.add('active');
+            btn.onclick = () => {
+                currentPage = i;
+                renderPage();
+                eventGrid.scrollIntoView({ behavior: 'smooth' });
+            };
+            paginationContainer.appendChild(btn);
+        }
+
+        const nextBtn = document.createElement('button');
+        nextBtn.innerText = 'Next';
+        nextBtn.style.fontFamily = 'Poppins, sans-serif';
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.onclick = () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderPage();
+                eventGrid.scrollIntoView({ behavior: 'smooth' });
+            }
+        };
+        paginationContainer.appendChild(nextBtn);
+    }
+
+    function fetchEvents() {
+        const searchTerm = searchInput.value;
+        const category = categorySelect.value;
+        const dateFilter = dateSelect.value;
+
+        const formData = new FormData();
+        formData.append('search', searchTerm);
+        formData.append('category', category);
+        formData.append('date', dateFilter);
+
+        fetch('fetch_events.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())
+        .then(data => {
+            eventGrid.innerHTML = data;
+            
+            // Update our list of items based on new results
+            filteredItems = Array.from(eventGrid.querySelectorAll('.event-item'));
+            
+            // Update the counter
+            eventCount.textContent = `Total Events: ${filteredItems.length}`;
+            
+            // Reset to page 1
+            currentPage = 1;
+            
+            calculateItemsPerPage();
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    searchInput.addEventListener('input', fetchEvents);
+    categorySelect.addEventListener('change', fetchEvents);
+    dateSelect.addEventListener('change', fetchEvents);
+    window.addEventListener('resize', calculateItemsPerPage);
+
+    // Initial calculation
+    calculateItemsPerPage();
+});
+</script>
 </body>
 </html>

@@ -72,6 +72,8 @@
 
     <section class="container event-container animate-on-scroll" id="events">
         <div class="event-filter animate-on-scroll">
+            <input type="text" id="searchInput" placeholder="Search events...">
+
             <select id="categoryFilter">
                 <option value="all">All Categories</option>
                 <option value="inline">Inline</option>
@@ -501,138 +503,152 @@
         setInterval(rotateAd, 3000); 
     </script>
     <script>
-        let currentPage = 1;
-        let itemsPerPage = 8;
-        let filteredItems = []; 
+    let currentPage = 1;
+    let itemsPerPage = 8;
+    let filteredItems = []; 
 
-        document.getElementById('categoryFilter').addEventListener('change', () => { currentPage = 1; filterEvents(); });
-        document.getElementById('dateFilter').addEventListener('change', () => { currentPage = 1; filterEvents(); });
-        window.addEventListener('resize', () => { calculateItemsPerPage(); renderPage(); });
+    document.getElementById('categoryFilter').addEventListener('change', () => { currentPage = 1; filterEvents(); });
+    document.getElementById('dateFilter').addEventListener('change', () => { currentPage = 1; filterEvents(); });
+    
+    document.getElementById('searchInput').addEventListener('input', () => { 
+        currentPage = 1; 
+        filterEvents(); 
+    });
 
-        function calculateItemsPerPage() {
-            const grid = document.getElementById('eventGrid');
-            if (!grid) return;
-            
-            const gridWidth = grid.offsetWidth;
-            const cardWidth = 270; 
-            
-            let columns = Math.floor(gridWidth / cardWidth);
-            if (columns < 1) columns = 1;
-            
-            itemsPerPage = columns * 2;
-        }
+    window.addEventListener('resize', () => { calculateItemsPerPage(); renderPage(); });
 
-        function filterEvents() {
-            const category = document.getElementById('categoryFilter').value;
-            const date = document.getElementById('dateFilter').value;
-            const allItems = Array.from(document.querySelectorAll('.event-item'));
-            const today = new Date();
+    function calculateItemsPerPage() {
+        const grid = document.getElementById('eventGrid');
+        if (!grid) return;
+        
+        const gridWidth = grid.offsetWidth;
+        const cardWidth = 270; 
+        
+        let columns = Math.floor(gridWidth / cardWidth);
+        if (columns < 1) columns = 1;
+        
+        itemsPerPage = columns * 2;
+    }
 
-            filteredItems = allItems.filter(item => {
-                const itemCategory = item.getAttribute('data-category');
-                const itemDate = new Date(item.getAttribute('data-date'));
-                let matchCategory = true;
-                let matchDate = true;
+    function filterEvents() {
+        const category = document.getElementById('categoryFilter').value;
+        const date = document.getElementById('dateFilter').value;
+        const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+        const allItems = Array.from(document.querySelectorAll('.event-item'));
+        const today = new Date();
 
-                if (category !== 'all' && category.toLowerCase() !== itemCategory.toLowerCase()) {
-                    matchCategory = false;
-                }
+        filteredItems = allItems.filter(item => {
+            const itemCategory = item.getAttribute('data-category');
+            const itemDate = new Date(item.getAttribute('data-date'));
+            const itemText = item.innerText.toLowerCase(); 
 
-                if (date === 'upcoming' && itemDate < today) {
-                    matchDate = false;
-                } else if (date === 'this-week') {
-                    const dayOfWeek = today.getDay();
-                    const startOfWeek = new Date(today);
-                    startOfWeek.setDate(today.getDate() - dayOfWeek);
-                    const endOfWeek = new Date(today);
-                    endOfWeek.setDate(today.getDate() + (6 - dayOfWeek));
+            let matchCategory = true;
+            let matchDate = true;
+            let matchSearch = true;
 
-                    startOfWeek.setHours(0, 0, 0, 0);
-                    endOfWeek.setHours(23, 59, 59, 999);
-                    itemDate.setHours(0, 0, 0, 0);
-
-                    if (itemDate < startOfWeek || itemDate > endOfWeek) {
-                        matchDate = false;
-                    }
-                } else if (date === 'this-month') {
-                    if (itemDate.getMonth() !== today.getMonth() || itemDate.getFullYear() !== today.getFullYear()) {
-                        matchDate = false;
-                    }
-                }
-
-                return matchCategory && matchDate;
-            });
-
-            updateEventCount(filteredItems.length);
-            calculateItemsPerPage();
-            renderPage();
-        }
-
-        function renderPage() {
-            const allItems = document.querySelectorAll('.event-item');
-            allItems.forEach(item => item.style.display = 'none');
-
-            const start = (currentPage - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
-            const pageItems = filteredItems.slice(start, end);
-
-            pageItems.forEach(item => {
-                item.style.display = 'block';
-            });
-
-            renderPaginationControls();
-        }
-
-        function renderPaginationControls() {
-            const container = document.getElementById('pagination-controls');
-            container.innerHTML = '';
-
-            const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-
-            if (totalPages <= 1) return;
-
-            const prevBtn = document.createElement('button');
-            prevBtn.innerText = 'Prev';
-            prevBtn.disabled = currentPage === 1;
-            prevBtn.onclick = () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    renderPage();
-                }
-            };
-            container.appendChild(prevBtn);
-
-            for (let i = 1; i <= totalPages; i++) {
-                const btn = document.createElement('button');
-                btn.innerText = i;
-                if (i === currentPage) btn.classList.add('active');
-                btn.onclick = () => {
-                    currentPage = i;
-                    renderPage();
-                };
-                container.appendChild(btn);
+            if (category !== 'all' && category.toLowerCase() !== itemCategory.toLowerCase()) {
+                matchCategory = false;
             }
 
-            const nextBtn = document.createElement('button');
-            nextBtn.innerText = 'Next';
-            nextBtn.disabled = currentPage === totalPages;
-            nextBtn.onclick = () => {
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    renderPage();
+            if (date === 'upcoming' && itemDate < today) {
+                matchDate = false;
+            } else if (date === 'this-week') {
+                const dayOfWeek = today.getDay();
+                const startOfWeek = new Date(today);
+                startOfWeek.setDate(today.getDate() - dayOfWeek);
+                const endOfWeek = new Date(today);
+                endOfWeek.setDate(today.getDate() + (6 - dayOfWeek));
+
+                startOfWeek.setHours(0, 0, 0, 0);
+                endOfWeek.setHours(23, 59, 59, 999);
+                itemDate.setHours(0, 0, 0, 0);
+
+                if (itemDate < startOfWeek || itemDate > endOfWeek) {
+                    matchDate = false;
                 }
-            };
-            container.appendChild(nextBtn);
-        }
+            } else if (date === 'this-month') {
+                if (itemDate.getMonth() !== today.getMonth() || itemDate.getFullYear() !== today.getFullYear()) {
+                    matchDate = false;
+                }
+            }
 
-        function updateEventCount(count) {
-            document.getElementById('event-count').textContent = `Total Events: ${count}`;
-        }
+            if (searchQuery !== '' && !itemText.includes(searchQuery)) {
+                matchSearch = false;
+            }
 
-        window.onload = function() {
-            filterEvents();
+            return matchCategory && matchDate && matchSearch;
+        });
+
+        updateEventCount(filteredItems.length);
+        calculateItemsPerPage();
+        renderPage();
+    }
+
+    function renderPage() {
+        const allItems = document.querySelectorAll('.event-item');
+        allItems.forEach(item => item.style.display = 'none');
+
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const pageItems = filteredItems.slice(start, end);
+
+        pageItems.forEach(item => {
+            item.style.display = 'block';
+        });
+
+        renderPaginationControls();
+    }
+
+    function renderPaginationControls() {
+        const container = document.getElementById('pagination-controls');
+        container.innerHTML = '';
+
+        const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+
+        if (totalPages <= 1) return;
+
+        const prevBtn = document.createElement('button');
+        prevBtn.innerText = 'Prev';
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.onclick = () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderPage();
+            }
         };
-    </script>
+        container.appendChild(prevBtn);
+
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.innerText = i;
+            if (i === currentPage) btn.classList.add('active');
+            btn.onclick = () => {
+                currentPage = i;
+                renderPage();
+            };
+            container.appendChild(btn);
+        }
+
+        const nextBtn = document.createElement('button');
+        nextBtn.innerText = 'Next';
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.onclick = () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderPage();
+            }
+        };
+        container.appendChild(nextBtn);
+    }
+
+    function updateEventCount(count) {
+        document.getElementById('event-count').textContent = `Total Events: ${count}`;
+    }
+
+    window.onload = function() {
+        filterEvents();
+    };
+</script>
     <script>
     document.addEventListener("DOMContentLoaded", function () {
         const highlightGrid = document.getElementById('highlightGrid');

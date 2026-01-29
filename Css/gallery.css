@@ -345,9 +345,9 @@ header {
 }
 
 .pagination-container button.active {
-    background-color: #0073e6;
+    background-color: #358856;
     color: white;
-    border-color: #0073e6;
+    border-color: #25523B;
 }
 
 .pagination-container button:disabled {

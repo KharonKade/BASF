@@ -47,100 +47,107 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
                 die("Connection failed: " . $conn->connect_error);
             }
 
-            $sql = "SELECT id, full_name, email, contact_number, concerns, message, submitted_at, archived FROM contact_inquiries ORDER BY id DESC";
-            $result = $conn->query($sql);
-
             echo "<div class='content-wrapper'>";
+            echo "<h2>Contact Inquiries</h2>";
 
-            if ($result->num_rows > 0) {
-                echo "<h2>Contact Inquiries</h2>";
-                $filter = isset($_GET['filter']) ? $_GET['filter'] : '';
+            $filter = isset($_GET['filter']) ? $_GET['filter'] : '';
+            $concernResult = $conn->query("SELECT DISTINCT concerns FROM contact_inquiries");
+            $concernOptions = '';
+            while ($cRow = $concernResult->fetch_assoc()) {
+                $selected = ($filter === $cRow['concerns']) ? 'selected' : '';
+                $concernOptions .= "<option value='" . htmlspecialchars($cRow['concerns']) . "' $selected>" . htmlspecialchars($cRow['concerns']) . "</option>";
+            }
 
-                $concernResult = $conn->query("SELECT DISTINCT concerns FROM contact_inquiries");
-                $concernOptions = '';
-                while ($cRow = $concernResult->fetch_assoc()) {
-                    $selected = ($filter === $cRow['concerns']) ? 'selected' : '';
-                    $concernOptions .= "<option value='" . htmlspecialchars($cRow['concerns']) . "' $selected>" . htmlspecialchars($cRow['concerns']) . "</option>";
-                }
+            echo "
+            <div class='filter-action-container'>
+                <div class='search-filters'>
+                    <form method='get' id='filterForm' style='margin:0;'>
+                        <select name='filter' id='filter' onchange='this.form.submit()'>
+                            <option value=''>All</option>
+                            $concernOptions
+                        </select>
+                    </form>
+                    
+                    <input type='text' id='live_search' placeholder='Search name, email, or message...'>
+                </div>
 
-                $sql = "SELECT id, full_name, email, contact_number, concerns, message, submitted_at, archived FROM contact_inquiries";
-                if (!empty($filter)) {
-                    $sql .= " WHERE concerns = '" . $conn->real_escape_string($filter) . "'";
-                }
-                $sql .= " ORDER BY id DESC";
-                $result = $conn->query($sql);
-
-                echo "<div class='filter-action-container'>";
-                echo "
-                <form method='get'>
-                    <label for='filter'><strong>Filter by Concern:</strong></label>
-                    <select name='filter' id='filter' onchange='this.form.submit()'>
-                        <option value=''>All</option>
-                        $concernOptions
-                    </select>
-                </form>
-                ";
-                
-                echo "
                 <div class='action-buttons'>
                     <a href='archived_inquiries.php' class='btn btn-secondary'><i class='fas fa-archive'></i> Archived Inquiries</a>
                 </div>
-                </div>";
+            </div>";
 
-                echo "<table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Full Name</th>
-                                <th>Email</th>
-                                <th>Contact Number</th>
-                                <th>Concerns</th>
-                                <th>Message</th>
-                                <th>Submitted At</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>";
+            echo "<table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Contact Number</th>
+                            <th>Concerns</th>
+                            <th>Message</th>
+                            <th>Submitted At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id='inquiries_table_body'>";
 
-                $counter = 1;
+            $sql = "SELECT id, full_name, email, contact_number, concerns, message, submitted_at, archived FROM contact_inquiries WHERE archived = 0";
+            if (!empty($filter)) {
+                $sql .= " AND concerns = '" . $conn->real_escape_string($filter) . "'";
+            }
+            $sql .= " ORDER BY id DESC";
+            
+            $result = $conn->query($sql);
+            $counter = 1;
 
+            if ($result->num_rows > 0) {
                 while($row = $result->fetch_assoc()) {
-                    if ($row["archived"] == 0) {
-                        $shortMessage = strlen($row["message"]) > 25 ? substr($row["message"], 0, 25) . '...' : $row["message"];
-                        echo "<tr>
-                                <td>" . $counter . "</td>
-                                <td>" . htmlspecialchars($row["full_name"]) . "</td>
-                                <td>" . htmlspecialchars($row["email"]) . "</td>
-                                <td>" . htmlspecialchars($row["contact_number"]) . "</td>
-                                <td>" . htmlspecialchars($row["concerns"]) . "</td>
-                                <td>" . htmlspecialchars($shortMessage) . "</td>
-                                <td>" . htmlspecialchars($row["submitted_at"]) . "</td>
-                                <td>
-                                    <a href='view_message.php?id=" . $row["id"] . "' title='View'>
-                                        <i class='fas fa-eye'></i>
-                                    </a> |
-                                    <a href='archive_inquiry.php?id=" . $row["id"] . "' onclick='return confirm(\"Are you sure you want to archive this inquiry?\");' title='Archive'>
-                                        <i class='fas fa-box-archive'></i>
-                                    </a> |
-                                    <a href='delete_inquiry.php?id=" . $row["id"] . "' onclick='return confirm(\"Are you sure you want to delete this inquiry?\");' title='Delete'>
-                                        <i class='fas fa-trash'></i>
-                                    </a>
-                                </td>
-                              </tr>";
-                        $counter++;
-                    }
+                    $shortMessage = strlen($row["message"]) > 25 ? substr($row["message"], 0, 25) . '...' : $row["message"];
+                    echo "<tr>
+                            <td>" . $counter . "</td>
+                            <td>" . htmlspecialchars($row["full_name"]) . "</td>
+                            <td>" . htmlspecialchars($row["email"]) . "</td>
+                            <td>" . htmlspecialchars($row["contact_number"]) . "</td>
+                            <td>" . htmlspecialchars($row["concerns"]) . "</td>
+                            <td>" . htmlspecialchars($shortMessage) . "</td>
+                            <td>" . htmlspecialchars($row["submitted_at"]) . "</td>
+                            <td>
+                                <a href='view_message.php?id=" . $row["id"] . "' title='View'><i class='fas fa-eye'></i></a> |
+                                <a href='archive_inquiry.php?id=" . $row["id"] . "' onclick='return confirm(\"Are you sure you want to archive this inquiry?\");' title='Archive'><i class='fas fa-box-archive'></i></a> |
+                                <a href='delete_inquiry.php?id=" . $row["id"] . "' onclick='return confirm(\"Are you sure you want to delete this inquiry?\");' title='Delete'><i class='fas fa-trash'></i></a>
+                            </td>
+                          </tr>";
+                    $counter++;
                 }
-
-                echo "</tbody></table>";
             } else {
-                echo "<p>No inquiries found.</p>";
+                echo "<tr><td colspan='8' style='text-align:center;'>No inquiries found.</td></tr>";
             }
 
+            echo "</tbody></table>";
             echo "</div>";
 
             $conn->close();
             ?>
         </div>
     </div>
+
+    <script>
+        document.getElementById('live_search').addEventListener('keyup', function() {
+            var searchTerm = this.value;
+            var filterValue = document.getElementById('filter').value;
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'search_inquiries.php', true);
+            xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    document.getElementById('inquiries_table_body').innerHTML = xhr.responseText;
+                }
+            };
+            
+            xhr.send('search=' + encodeURIComponent(searchTerm) + '&filter=' + encodeURIComponent(filterValue));
+        });
+    </script>
 </body>
 </html>

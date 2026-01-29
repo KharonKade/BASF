@@ -10,7 +10,33 @@
     <link rel="stylesheet" href="Css/index.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        
+        .search-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        #searchInput {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 20px;
+            border: 2px solid #25523B;
+            border-radius: 20px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        #searchInput:focus {
+            border-color: #333;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+        }
+    </style>
 </head>
 
 <body>
@@ -39,8 +65,13 @@
         </div>
     </section>
 
-        <section id="news" class="news-container animate-on-scroll" style="font-family: 'Poppins', sans-serif;">
+    <section id="news" class="news-container animate-on-scroll">
     <h2>News & Announcements</h2>
+    
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search news title...">
+    </div>
+
     <div class="news-grid-wrapper">
         <div class="news-grid" id="newsGrid">
             <?php
@@ -242,8 +273,9 @@
         <script>
     document.addEventListener('DOMContentLoaded', function() {
         const grid = document.getElementById('newsGrid');
-        const items = Array.from(grid.getElementsByClassName('news-item'));
         const paginationContainer = document.getElementById('paginationControls');
+        const searchInput = document.getElementById('searchInput');
+        let items = Array.from(grid.getElementsByClassName('news-item'));
         let currentPage = 1;
 
         function getItemsPerPage() {
@@ -258,7 +290,7 @@
             const totalPages = Math.ceil(totalItems / itemsPerPage);
 
             if (page < 1) page = 1;
-            if (page > totalPages) page = totalPages;
+            if (page > totalPages && totalPages > 0) page = totalPages;
             currentPage = page;
 
             const start = (page - 1) * itemsPerPage;
@@ -328,6 +360,19 @@
             resizeTimeout = setTimeout(() => {
                 showPage(1); 
             }, 100);
+        });
+
+        searchInput.addEventListener('input', function() {
+            const query = this.value;
+
+            fetch(`get_news.php?q=${encodeURIComponent(query)}`)
+                .then(response => response.text())
+                .then(data => {
+                    grid.innerHTML = data;
+                    items = Array.from(grid.getElementsByClassName('news-item'));
+                    showPage(1);
+                })
+                .catch(error => console.error('Error:', error));
         });
 
         showPage(1);

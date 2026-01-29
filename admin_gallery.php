@@ -29,6 +29,58 @@ $result = $conn->query($sql);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="Css/admin_gallery.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .filter-action-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .search-filters {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-filters input[type="text"] {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .btn-search {
+            padding: 12px 12px;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .right-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-export {
+            background-color: #27ae60;
+            color: #fff;
+        }
+
+        .btn-export:hover {
+            background-color: #219150;
+            color: #fff;
+        }
+    </style>
 </head>
 <body>
 <div class="admin-container">
@@ -50,10 +102,20 @@ $result = $conn->query($sql);
         <main class="content">
             <h2>Manage Gallery</h2>
             
-            <div class="action-buttons">
-                <a href="add_gallery.php" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Add New Gallery Item
-                </a>
+            <div class="filter-action-container">
+                <div class="search-filters">
+                    <input type="text" id="live_search" placeholder="Search title or description...">
+                    <button class="btn-search"><i class="fas fa-search"></i></button>
+                </div>
+                
+                <div class="right-actions">
+                    <a href="export_gallery.php" class="btn btn btn-export">
+                        <i class="fas fa-file-csv"></i> Export CSV
+                    </a>
+                    <a href="add_gallery.php" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add New Gallery Item
+                    </a>
+                </div>
             </div>
 
             <table border="1">
@@ -65,7 +127,7 @@ $result = $conn->query($sql);
                         <th class="col-actions">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="gallery_table_body">
                 <?php while ($row = $result->fetch_assoc()): ?>
                 <tr>
                     <td><img src="<?php echo 'images/uploads/' . basename($row['thumbnail']); ?>" width="100"></td>
@@ -96,6 +158,25 @@ $result = $conn->query($sql);
             </table>
         </main>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $("#live_search").on("keyup", function(){
+            var input = $(this).val();
+            
+            $.ajax({
+                url: "search_gallery.php",
+                method: "POST",
+                data: {input: input},
+                success: function(data){
+                    $("#gallery_table_body").html(data);
+                }
+            });
+        });
+    });
+</script>
+
 </body>
 </html>
 

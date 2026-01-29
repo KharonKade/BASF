@@ -168,6 +168,26 @@ body {
     gap: 15px;
 }
 
+ .search-filters { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+}
+ .search-filters input[type="text"] { 
+    padding: 12px; 
+    border: 1px solid #ccc; 
+    border-radius: 4px; 
+
+}
+ .btn-search { 
+    padding: 12px 12px; 
+    background: #333; 
+    color: #fff; 
+    border: none; 
+    border-radius: 4px; 
+    cursor: pointer; 
+}
+
 .action-buttons {
     display: flex;
     gap: 10px;
@@ -206,6 +226,15 @@ body {
     background-color: #7f8c8d;
 }
 
+.btn-export {
+    background-color: #27ae60;
+    color: #fff;
+}
+
+.btn-export:hover {
+    background-color: #219150;
+    color: #fff;
+}
 table {
     width: 100%;
     border-collapse: collapse;

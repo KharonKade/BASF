@@ -1,14 +1,11 @@
 <?php
-// Database connection
 $conn = new mysqli("localhost", "root", "", "basf_events");
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Get the event ID
 $event_id = $_GET['id'];
 
-// Fetch event details
 $event_query = "SELECT * FROM upcoming_events WHERE id = $event_id";
 $event = $conn->query($event_query);
 if (!$event || $event->num_rows === 0) {
@@ -16,25 +13,21 @@ if (!$event || $event->num_rows === 0) {
 }
 $event = $event->fetch_assoc();
 
-// Fetch schedules
 $schedules_query = "SELECT * FROM event_schedules WHERE event_id = $event_id";
 $schedules = $conn->query($schedules_query);
 
-// Fetch poster images
 $images_query = "SELECT * FROM event_images WHERE event_id = $event_id";
 $images = $conn->query($images_query);
 if (!$images) {
     die("Error fetching images: " . $conn->error);
 }
 
-// Fetch sponsor logos
 $sponsors_query = "SELECT * FROM sponsor_logos WHERE event_id = $event_id";
 $sponsors = $conn->query($sponsors_query);
 if (!$sponsors) {
     die("Error fetching sponsors: " . $conn->error);
 }
 
-// Fetch registered users
 $registrations_query = "SELECT * FROM event_registrations WHERE event_id = $event_id";
 $registrations = $conn->query($registrations_query);
 ?>
@@ -140,19 +133,20 @@ $registrations = $conn->query($registrations_query);
         <div class="table-header">
             <h3>Registered Participants</h3>
             <div class="filter-controls">
-                <label for="categoryFilter">Filter:</label>
+                <input type="text" id="nameSearch" placeholder="Search by name..." onkeyup="filterTable()">
                 <select id="categoryFilter" onchange="filterTable()">
                     <option value="all">All Categories</option>
                     <option value="Skateboard">Skateboard</option>
                     <option value="Inline">Inline</option>
                     <option value="BMX">BMX</option>
                 </select>
+                <button onclick="exportToCSV()" class="btn-export">Export CSV</button>
             </div>
         </div>
 
         <div class="table-responsive">
             <?php if ($registrations->num_rows > 0): ?>
-                <table>
+                <table id="participantsTable">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -190,16 +184,52 @@ $registrations = $conn->query($registrations_query);
 <script>
 function filterTable() {
     let selectedCategory = document.getElementById("categoryFilter").value;
+    let nameQuery = document.getElementById("nameSearch").value.toLowerCase();
     let rows = document.querySelectorAll(".registration-row");
     
     rows.forEach(row => {
         let category = row.getAttribute("data-category");
-        if (selectedCategory === "all" || category === selectedCategory) {
+        let name = row.querySelector(".bold-text").textContent.toLowerCase();
+        
+        let matchesCategory = (selectedCategory === "all" || category === selectedCategory);
+        let matchesName = name.includes(nameQuery);
+        
+        if (matchesCategory && matchesName) {
             row.style.display = "";
         } else {
             row.style.display = "none";
         }
     });
+}
+
+function exportToCSV() {
+    let table = document.getElementById("participantsTable");
+    let rows = table.querySelectorAll("tr");
+    let csvData = [];
+
+    for (let i = 0; i < rows.length; i++) {
+        if (rows[i].style.display === "none") {
+            continue;
+        }
+
+        let row = [];
+        let cols = rows[i].querySelectorAll("td, th");
+        
+        for (let j = 1; j < cols.length; j++) {
+            let cellText = cols[j].innerText.replace(/,/g, ""); 
+            row.push(cellText);
+        }
+        csvData.push(row.join(","));
+    }
+
+    let csvContent = "data:text/csv;charset=utf-8," + csvData.join("\n");
+    let encodedUri = encodeURI(csvContent);
+    let link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "event_participants.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 </script>
 </body>

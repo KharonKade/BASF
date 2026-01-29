@@ -33,8 +33,8 @@ $sql = "
     WHERE status = 'active'
 ";
 if (!empty($filter_category) && strtolower($filter_category) !== 'all') {
-    $filter_category = $conn->real_escape_string($filter_category);
-    $sql .= " AND category = '$filter_category'";
+    $filter_category_safe = $conn->real_escape_string($filter_category);
+    $sql .= " AND category = '$filter_category_safe'";
 }
 
 $sql .= " ORDER BY news_id DESC";
@@ -50,11 +50,6 @@ $result = $conn->query($sql);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="Css/manage_event.css"> 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-        }
-    </style>
 </head>
 <body>
     <div class="admin-container">
@@ -74,26 +69,29 @@ $result = $conn->query($sql);
         </nav>
         <main class="content">
             <h2>Manage News & Announcements</h2>
-            
+             
             <div class="filter-action-container">
-                <form method="GET">
-                    <label for="category">Filter by Category:</label>
-                    <select name="category" onchange="this.form.submit()">
-                        <option value="All" <?php if ($filter_category === 'All' || empty($filter_category)) echo 'selected'; ?>>All</option>
-                        <option value="Skateboard" <?php if ($filter_category === 'Skateboard') echo 'selected'; ?>>Skateboard</option>
-                        <option value="Inline" <?php if ($filter_category === 'Inline') echo 'selected'; ?>>Inline</option>
-                        <option value="BMX" <?php if ($filter_category === 'BMX') echo 'selected'; ?>>BMX</option>
-                    </select>
-                </form>
+                <div class="search-filters">
+                    <form method="GET" style="display:flex; align-items:center; gap:10px; margin:0;">
+                        <label for="category">Filter by Category:</label>
+                        <select name="category" id="categoryFilter" onchange="this.form.submit()">
+                            <option value="All" <?php if ($filter_category === 'All' || empty($filter_category)) echo 'selected'; ?>>All</option>
+                            <option value="Skateboard" <?php if ($filter_category === 'Skateboard') echo 'selected'; ?>>Skateboard</option>
+                            <option value="Inline" <?php if ($filter_category === 'Inline') echo 'selected'; ?>>Inline</option>
+                            <option value="BMX" <?php if ($filter_category === 'BMX') echo 'selected'; ?>>BMX</option>
+                        </select>
+                    </form>
+                    <input type="text" id="liveSearchInput" placeholder="Search news...">
+                </div>
 
                 <div class="action-buttons">
+                    <a href="export_news.php?category=<?php echo urlencode($filter_category); ?>" class="btn btn-export"><i class="fas fa-file-export"></i> Export CSV</a>
                     <a href="create_news.php" class="btn btn-primary"><i class="fas fa-plus"></i> Create News</a>
                     <a href="archived_news.php" class="btn btn-secondary"><i class="fas fa-archive"></i> Archived News</a>
                 </div>
             </div>
 
-            <?php if ($result->num_rows > 0): ?>
-            <table>
+            <table id="newsTable">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -103,38 +101,55 @@ $result = $conn->query($sql);
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="newsTableBody">
                     <?php 
-                    $row_num = 1;
-                    while ($row = $result->fetch_assoc()): ?>
-                    <tr>
-                        <td><?php echo $row_num++; ?></td> 
-                        <td><?php echo $row['news_title']; ?></td>
-                        <td><?php echo ucfirst($row['category']); ?></td>
-                        <td><?php echo $row['publish_date']; ?></td>
-                        <td>
-                            <a href="view_news.php?id=<?php echo $row['news_id']; ?>" title="View">
-                                <i class="fas fa-eye"></i>
-                            </a> |
-                            <a href="edit_news.php?id=<?php echo $row['news_id']; ?>" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </a> |
-                            <a href="delete_news.php?id=<?php echo $row['news_id']; ?>" onclick="return confirm('Are you sure you want to delete this news item?');" title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </a> |
-                            <a href="archive_news.php?id=<?php echo $row['news_id']; ?>" onclick="return confirm('Archive this news item?');" title="Archive">
-                                <i class="fas fa-archive"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    <?php endwhile; ?>
+                    if ($result->num_rows > 0):
+                        $row_num = 1;
+                        while ($row = $result->fetch_assoc()): ?>
+                        <tr>
+                            <td><?php echo $row_num++; ?></td> 
+                            <td><?php echo $row['news_title']; ?></td>
+                            <td><?php echo ucfirst($row['category']); ?></td>
+                            <td><?php echo $row['publish_date']; ?></td>
+                            <td>
+                                <a href="view_news.php?id=<?php echo $row['news_id']; ?>" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a> |
+                                <a href="edit_news.php?id=<?php echo $row['news_id']; ?>" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a> |
+                                <a href="delete_news.php?id=<?php echo $row['news_id']; ?>" onclick="return confirm('Are you sure you want to delete this news item?');" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </a> |
+                                <a href="manage_news.php?archive_id=<?php echo $row['news_id']; ?>" onclick="return confirm('Archive this news item?');" title="Archive">
+                                    <i class="fas fa-archive"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <?php endwhile; 
+                    else: ?>
+                        <tr><td colspan="5">No news found.</td></tr>
+                    <?php endif; ?>
                 </tbody>
             </table>
-            <?php else: ?>
-            <p>No news found.</p>
-            <?php endif; ?>
         </main>
     </div>
+
+    <script>
+        document.getElementById('liveSearchInput').addEventListener('keyup', function() {
+            let query = this.value;
+            let category = document.getElementById('categoryFilter').value;
+
+            let xhr = new XMLHttpRequest();
+            xhr.open('GET', 'search_news.php?q=' + encodeURIComponent(query) + '&category=' + encodeURIComponent(category), true);
+            xhr.onload = function() {
+                if (this.status === 200) {
+                    document.getElementById('newsTableBody').innerHTML = this.responseText;
+                }
+            };
+            xhr.send();
+        });
+    </script>
 </body>
 </html>
 
