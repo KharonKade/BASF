@@ -155,6 +155,8 @@ $registrations = $conn->query($registrations_query);
                             <th>Phone</th>
                             <th>Age</th>
                             <th>Gender</th>
+                            <th>Date Registered</th>
+                            <th>Time Registered</th>
                             <th>Category</th>
                         </tr>
                     </thead>
@@ -169,6 +171,8 @@ $registrations = $conn->query($registrations_query);
                                 <td><?php echo htmlspecialchars($registration['phone']); ?></td>
                                 <td><?php echo htmlspecialchars($registration['age']); ?></td>
                                 <td><?php echo htmlspecialchars($registration['gender']); ?></td>
+                                <td><?php echo htmlspecialchars($registration['registration_date']); ?></td>
+                                <td><?php echo htmlspecialchars($registration['registration_time']); ?></td>
                                 <td><span class="cat-pill"><?php echo htmlspecialchars($registration['category']); ?></span></td>
                             </tr>
                         <?php endwhile; ?>

@@ -2,13 +2,10 @@
 session_start();
 
 if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
-    // Not logged in as admin, redirect to admin login page
     header("Location: admin_login.php");
     exit();
 }
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -16,8 +13,14 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create News & Announcements</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="Css/admin.css?v=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
 </head>
@@ -37,35 +40,80 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
                 <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </nav>
+
         <main class="content" id="create_news">
-            <h2>Create News & Announcements</h2>
-            <div class="form-container">
-            <form action="store_news.php" method="post" enctype="multipart/form-data">
-                <label for="news_title">News Title:</label>
-                <input type="text" name="news_title" id="news_title" required>
+            <div class="admin-wrapper">
+                <div class="page-header">
+                    <h2>Create News & Announcements</h2>
+                    <p>Publish the latest updates and announcements.</p>
+                </div>
 
-                <label for="description">Description:</label>
-                <textarea name="description" id="description" rows="5"></textarea>
+                <form action="store_news.php" method="post" enctype="multipart/form-data" class="main-form">
+                    
+                    <div class="form-card">
+                        <div class="card-header">
+                            <h3>News Details</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="news_title">News Title</label>
+                                    <input type="text" name="news_title" id="news_title" placeholder="Enter headline" required>
+                                </div>
 
-                <label for="category">Category:</label>
-                <select name="category" id="category" required>
-                    <option value="skateboard">Skateboard</option>
-                    <option value="inline">Inline</option>
-                    <option value="bmx">BMX</option>
-                    <option value="all">All</option>
-                </select>
+                                <div class="form-group">
+                                    <label for="news_date">Date</label>
+                                    <input type="date" name="news_date" id="news_date" required>
+                                </div>
+                            </div>
 
-                <label for="news_date">News Date:</label>
-                <input type="date" name="news_date" id="news_date" required>
+                            <div class="form-group">
+                                <label for="category">Category</label>
+                                <div class="select-wrapper">
+                                    <select name="category" id="category" required>
+                                        <option value="skateboard">Skateboard</option>
+                                        <option value="inline">Inline</option>
+                                        <option value="bmx">BMX</option>
+                                        <option value="all">All</option>
+                                    </select>
+                                </div>
+                            </div>
 
-                <label for="image">News Image:</label>
-                <input type="file" name="image[]" id="image" required>
+                            <div class="form-group">
+                                <label for="description">Content</label>
+                                <textarea name="description" id="description" rows="5"></textarea>
+                            </div>
+                        </div>
+                    </div>
 
-                <button type="submit">Create News</button>
-            </form>
+                    <div class="form-card">
+                        <div class="card-header">
+                            <h3>Featured Images</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="media-section">
+                                <div class="upload-box">
+                                    <label for="image" style="cursor: pointer; width: 100%; display: block;">
+                                        <i class="fas fa-cloud-upload-alt" style="font-size: 24px; color: #cbd5e1; margin-bottom: 10px;"></i><br>
+                                        Click to Upload News Images (Select Multiple)
+                                    </label>
+                                    <input type="file" name="image[]" id="image" required class="file-input" style="display: none;" multiple>
+                                    <p id="file-name" style="margin-top: 10px; color: #64748b; font-size: 0.9rem;"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-cancel" onclick="history.back();">Cancel</button>
+                        <button type="submit" class="btn-primary-large">Publish News</button>
+                    </div>
+
+                </form>
             </div>
         </main>
     </div>
+
     <script>
         let editorInstance;
 
@@ -73,30 +121,38 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
             .create(document.querySelector('#description'))
             .then(editor => {
                 editorInstance = editor;
-
-                // Show the textarea once CKEditor is fully initialized
                 editor.ui.view.editable.element.parentElement.style.display = 'block';
             })
             .catch(error => {
                 console.error(error);
             });
 
-        // Listen for form submission and sync the editor content
         document.querySelector('form').addEventListener('submit', function (e) {
             try {
                 if (editorInstance) {
-                    // Sync CKEditor data to the hidden textarea
                     document.querySelector('#description').value = editorInstance.getData();
                     
-                    // Validate the content before submission
                     if (editorInstance.getData().trim() === "") {
-                        // If the editor has no content, show an alert or prevent form submission
-                        e.preventDefault(); // Prevent form submission
-                        alert("Please enter a description for the news.");
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Missing Content',
+                            text: 'Please enter a description for the news.'
+                        });
                     }
                 }
             } catch (error) {
                 console.error("CKEditor content sync failed:", error);
+            }
+        });
+
+        document.getElementById('image').addEventListener('change', function(e) {
+            const files = e.target.files;
+            if (files.length > 0) {
+                const fileNames = Array.from(files).map(file => file.name).join(', ');
+                document.getElementById('file-name').textContent = fileNames;
+            } else {
+                document.getElementById('file-name').textContent = "No file chosen";
             }
         });
     </script>
