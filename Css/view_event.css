@@ -293,3 +293,21 @@ select {
         width: 100%;
     }
 }
+
+.status-pill.paid {
+    background-color: #e6fffa;
+    color: #2c7a7b;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.status-pill.pending {
+    background-color: #fffaf0;
+    color: #9c4221;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}

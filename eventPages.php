@@ -28,6 +28,10 @@ if ($event_id > 0) {
 
     if ($event_result && $event_result->num_rows > 0) {
         $event = $event_result->fetch_assoc();
+        if (!isset($_SESSION['viewed_event_' . $event_id])) {
+            $conn->query("UPDATE upcoming_events SET views = views + 1 WHERE id = $event_id");
+            $_SESSION['viewed_event_' . $event_id] = true;
+        }
     } else {
         echo "Event not found or no active event available.";
         exit;
@@ -774,6 +778,23 @@ if ($event_id > 0) {
             document.getElementById('shareDropdown').classList.remove('show');
         }
     </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const registerBtn = document.getElementById('registerBtn');
+            if (registerBtn) {
+                registerBtn.addEventListener('click', function() {
+                    const eventId = "<?php echo $event_id; ?>";
+                    const formData = new FormData();
+                    formData.append('event_id', eventId);
+                    
+                    fetch('track_click.php', {
+                        method: 'POST',
+                        body: formData
+                    }).catch(err => console.error(err));
+                });
+            }
+        });
+        </script>
 </body>
 </html>
 <?php $conn->close(); ?>

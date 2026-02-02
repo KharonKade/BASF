@@ -30,6 +30,9 @@ if (!$sponsors) {
 
 $registrations_query = "SELECT * FROM event_registrations WHERE event_id = $event_id";
 $registrations = $conn->query($registrations_query);
+
+$registrations_query = "SELECT *, IFNULL(status, 'pending') AS status FROM event_registrations WHERE event_id = $event_id";
+$registrations = $conn->query($registrations_query);
 ?>
 
 <!DOCTYPE html>
@@ -158,6 +161,7 @@ $registrations = $conn->query($registrations_query);
                             <th>Date Registered</th>
                             <th>Time Registered</th>
                             <th>Category</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -174,6 +178,11 @@ $registrations = $conn->query($registrations_query);
                                 <td><?php echo htmlspecialchars($registration['registration_date']); ?></td>
                                 <td><?php echo htmlspecialchars($registration['registration_time']); ?></td>
                                 <td><span class="cat-pill"><?php echo htmlspecialchars($registration['category']); ?></span></td>
+                                <td>
+                                    <span class="status-pill <?php echo strtolower($registration['status']); ?>">
+                                        <?php echo ucfirst(htmlspecialchars($registration['status'])); ?>
+                                    </span>
+                                </td>
                             </tr>
                         <?php endwhile; ?>
                     </tbody>

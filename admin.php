@@ -23,6 +23,18 @@ $gallery_count = $gallery_result->fetch_assoc()['total'];
 $inquiry_result = $conn_contact->query("SELECT COUNT(*) as total FROM contact_inquiries WHERE archived = 0");
 $inquiry_count = $inquiry_result->fetch_assoc()['total'];
 
+$success_registration_result = $conn_events->query("SELECT COUNT(*) as total FROM event_registrations WHERE status IN ('paid', 'confirmed', 'active')");
+$successful_registrations = $success_registration_result->fetch_assoc()['total'];
+
+$funnel_query = "SELECT SUM(views) as total_views, SUM(clicks) as total_clicks FROM upcoming_events WHERE status = 'active'";
+$funnel_data_result = $conn_events->query($funnel_query);
+$funnel_data = $funnel_data_result->fetch_assoc();
+
+$total_views = $funnel_data['total_views'] ?? 0;
+$total_clicks = $funnel_data['total_clicks'] ?? 0;
+
+$conversion_rate = ($total_clicks > 0) ? round(($successful_registrations / $total_clicks) * 100, 2) : 0;
+
 $registration_result = $conn_events->query("SELECT COUNT(*) as total FROM event_registrations");
 $registration_count = $registration_result->fetch_assoc()['total'];
 
@@ -51,6 +63,29 @@ $chart_day_counts_json = json_encode(array_values($day_freq));
 
 $chart_months_json = json_encode(array_keys($month_freq));
 $chart_month_counts_json = json_encode(array_values($month_freq));
+
+$sport_distribution = [];
+$sport_query = "
+    SELECT category, COUNT(*) as total 
+    FROM event_registrations 
+    WHERE category IN ('Inline', 'BMX', 'Skateboard')
+    GROUP BY category
+";
+
+$sport_result = $conn_events->query($sport_query);
+
+if ($sport_result) {
+    while ($row = $sport_result->fetch_assoc()) {
+        $sport_distribution[$row['category']] = $row['total'];
+    }
+} 
+
+if (empty($sport_distribution)) {
+    $sport_distribution = ['No Data' => 1]; 
+}
+
+$chart_sport_labels_json = json_encode(array_keys($sport_distribution));
+$chart_sport_data_json = json_encode(array_values($sport_distribution));
 
 $visit_conn = new mysqli("localhost", "root", "", "basf_visits");
 
@@ -124,7 +159,7 @@ foreach ($activities as $activity) {
         
         .charts-section {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 20px;
             margin: 20px 0;
         }
@@ -134,6 +169,9 @@ foreach ($activities as $activity) {
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
         }
 
         .chart-card h3 {
@@ -142,6 +180,14 @@ foreach ($activities as $activity) {
             color: #333;
             border-bottom: 2px solid #f4f4f4;
             padding-bottom: 10px;
+        }
+
+        .chart-container {
+            position: relative;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         @media (max-width: 768px) {
@@ -205,11 +251,30 @@ foreach ($activities as $activity) {
         <div class="charts-section">
             <div class="chart-card">
                 <h3><i class="fas fa-calendar-day"></i> Weekly Activity</h3>
-                <canvas id="daysChart"></canvas>
+                <div class="chart-container">
+                    <canvas id="daysChart"></canvas>
+                </div>
             </div>
+            
+            <div class="chart-card">
+                <h3><i class="fas fa-chart-pie"></i> Sport Engagement</h3>
+                <div class="chart-container">
+                    <canvas id="sportChart"></canvas>
+                </div>
+            </div>
+
             <div class="chart-card">
                 <h3><i class="fas fa-calendar-alt"></i> Monthly Trends</h3>
-                <canvas id="monthsChart"></canvas>
+                <div class="chart-container">
+                    <canvas id="monthsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3><i class="fas fa-filter"></i> Registration Funnel (Conv. Rate: <?php echo $conversion_rate; ?>%)</h3>
+                <div class="chart-container">
+                    <canvas id="funnelChart"></canvas>
+                </div>
             </div>
         </div>
 
@@ -291,6 +356,7 @@ foreach ($activities as $activity) {
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     scales: {
                         y: { beginAtZero: true, ticks: { stepSize: 1 } }
                     }
@@ -314,11 +380,82 @@ foreach ($activities as $activity) {
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     scales: {
                         y: { beginAtZero: true, ticks: { stepSize: 1 } }
                     }
                 }
             });
+
+            const sportCtx = document.getElementById('sportChart').getContext('2d');
+            new Chart(sportCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: <?php echo $chart_sport_labels_json; ?>,
+                    datasets: [{
+                        label: 'Registrations',
+                        data: <?php echo $chart_sport_data_json; ?>,
+                        backgroundColor: [
+                            'rgba(255, 206, 86, 0.6)',
+                            'rgba(75, 192, 192, 0.6)', 
+                            'rgba(153, 102, 255, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        });
+
+        const funnelCtx = document.getElementById('funnelChart').getContext('2d');
+        new Chart(funnelCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Page Views', 'Register Clicks', 'Completed (Paid/Free)'],
+                datasets: [{
+                    label: 'Users',
+                    data: [
+                        <?php echo $total_views; ?>, 
+                        <?php echo $total_clicks; ?>, 
+                        <?php echo $successful_registrations; ?> 
+                    ],
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.6)', 
+                        'rgba(255, 206, 86, 0.6)', 
+                        'rgba(75, 192, 192, 0.6)'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { beginAtZero: true }
+                }
+            }
         });
     </script>
 </body>
