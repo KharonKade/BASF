@@ -4,7 +4,8 @@ body {
     font-family: 'Poppins', sans-serif;
     margin: 0;
     padding: 0;
-    background: #f7f9fc;
+    background-image: url('../images/adminbg2.png');
+    background-size: 100% auto;
     color: #333;
 }
 
@@ -71,7 +72,8 @@ body {
     margin-left: 290px;
     flex-grow: 1;
     padding: 20px;
-    background-color: #fff;
+    background-image: url('../images/adminbg2.png');
+    background-size: cover;
     box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
     overflow-y: auto;
     min-height: 100vh;
@@ -253,6 +255,7 @@ form button:hover {
     max-width: 1200px;
     margin: 40px auto;
     padding: 0 20px;
+    
 }
 
 .page-header {

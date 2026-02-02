@@ -79,7 +79,8 @@ body {
 .content {
     flex-grow: 1;
     margin-left: 260px;
-    background: #f1f5f9;
+    background-image: url('../images/adminbg2.png');
+    background-size: cover;
     min-height: 100vh;
     padding-bottom: 50px;
 }

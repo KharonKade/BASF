@@ -19,10 +19,12 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: #f3f4f6;
+    background-image: url('../images/adminbg2.png');
+    background-size: 100% auto;
     color: var(--dark);
     line-height: 1.6;
     padding-bottom: 40px;
+    
 }
 
 .admin-wrapper {

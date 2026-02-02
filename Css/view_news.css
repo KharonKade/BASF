@@ -11,7 +11,8 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: #f1f5f9;
+    background-image: url('../images/adminbg2.png');
+    background-size: 100% auto;
     margin: 0;
     color: var(--dark);
 }
@@ -27,7 +28,6 @@ body {
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 30px;
-    border-bottom: 2px solid var(--border);
     padding-bottom: 20px;
 }
 
