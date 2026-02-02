@@ -45,7 +45,7 @@ $result = $conn->query($sql);
         <main class="content">
             <h2>Archived Events</h2>
 
-            <form method="post" action="delete_all_events.php" onsubmit="return confirm('Are you sure you want to delete all archived events?');">
+            <form method="post" action="delete_all_events.php">
                 <button type="submit" name="delete_all" class="delete-all-btn">Delete All</button>
             </form>
 
@@ -93,10 +93,10 @@ $result = $conn->query($sql);
                                     <a href="view_event.php?id=<?php echo $row['id']; ?>" title="View">
                                         <i class="fas fa-eye"></i>
                                     </a> |
-                                    <a href="delete_archiveEvent.php?id=<?php echo $row['id']; ?>" onclick="return confirm('Are you sure you want to delete this event?');" title="Delete">
+                                    <a href="delete_archiveEvent.php?id=<?php echo $row['id']; ?>" title="Delete">
                                         <i class="fas fa-trash"></i>
                                     </a> |
-                                    <a href="restore_event.php?id=<?php echo $row['id']; ?>" onclick="return confirm('Are you sure you want to restore this event?');" title="Restore">
+                                    <a href="restore_event.php?id=<?php echo $row['id']; ?>" title="Restore">
                                         <i class="fas fa-undo"></i>
                                     </a>
                                 </td>

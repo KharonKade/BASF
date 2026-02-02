@@ -181,6 +181,8 @@ if ($event_id > 0) {
         </div>
     </section>
 
+    <div id="toast-notification" class="toast">Link copied to clipboard!</div>
+
     <div class="event-page animate-on-scroll">
     <div class="event-container">
         
@@ -212,6 +214,25 @@ if ($event_id > 0) {
                 <button onclick="goBack()" class="return-link">
                     <span>&#8592;</span> Return to Events
                 </button>
+                <div class="share-container">
+                    <button class="share-btn" onclick="toggleShareMenu()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                        Share Event
+                    </button>
+                    <div id="shareDropdown" class="share-dropdown">
+                        <a href="#" onclick="shareTo('facebook')" class="share-option">
+                            <img src="images/fbwhite.png" alt="FB" style="filter: invert(1);"> Facebook
+                        </a>
+                        <a href="#" onclick="shareTo('twitter')" class="share-option">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                             X (Twitter)
+                        </a>
+                        <a href="#" onclick="shareTo('copy')" class="share-option">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            Copy Link
+                        </a>
+                    </div>
+                </div>
             </div>
 
             <div class="event-content">
@@ -702,6 +723,56 @@ if ($event_id > 0) {
         const referrer = '<?php echo isset($_SESSION['referrer']) ? $_SESSION['referrer'] : ''; ?>';
         window.location.href = referrer ? referrer : 'event.php';
     }
+
+    
+
+        function showToast(message) {
+            const toast = document.getElementById("toast-notification");
+            toast.innerText = message;
+            toast.classList.add("show");
+            setTimeout(function() {
+                toast.classList.remove("show");
+            }, 3000);
+        }
+
+        function toggleShareMenu() {
+            const dropdown = document.getElementById('shareDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        window.addEventListener('click', function(e) {
+            if (!e.target.matches('.share-btn') && !e.target.closest('.share-btn')) {
+                const dropdown = document.getElementById('shareDropdown');
+                if (dropdown && dropdown.classList.contains('show')) {
+                    dropdown.classList.remove('show');
+                }
+            }
+        });
+
+        function shareTo(platform) {
+            const url = encodeURIComponent(window.location.href);
+            const title = encodeURIComponent("<?php echo isset($event['event_name']) ? addslashes($event['event_name']) : 'Check out this event'; ?>");
+            let shareUrl = '';
+
+            switch (platform) {
+                case 'facebook':
+                    shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+                    window.open(shareUrl, '_blank', 'width=600,height=400');
+                    break;
+                case 'twitter':
+                    shareUrl = `https://twitter.com/intent/tweet?text=${title}&url=${url}`;
+                    window.open(shareUrl, '_blank', 'width=600,height=400');
+                    break;
+                case 'copy':
+                    navigator.clipboard.writeText(window.location.href).then(() => {
+                        showToast('Link copied to clipboard!');
+                    }).catch(err => {
+                        console.error('Failed to copy: ', err);
+                    });
+                    break;
+            }
+            document.getElementById('shareDropdown').classList.remove('show');
+        }
     </script>
 </body>
 </html>

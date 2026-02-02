@@ -124,7 +124,7 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
                         echo "<td>{$row['description']}</td>";
                         echo "<td style='text-align: right;'>
                                 <button onclick=\"toggleEditForm('editRow{$row['id']}')\" class='btn-secondary btn-icon' title='Edit'><i class='fa fa-edit'></i></button>
-                                <a href='handle_highlight.php?delete_id={$row['id']}' class='btn-danger btn-icon' style='text-decoration:none; display:inline-block;' onclick='return confirm(\"Are you sure?\")'><i class='fa fa-trash'></i></a>
+                                <a href='handle_highlight.php?delete_id={$row['id']}' class='btn-danger btn-icon' style='text-decoration:none; display:inline-block;'><i class='fa fa-trash'></i></a>
                             </td>";
                         
                         echo "<tr id='editRow{$row['id']}' style='display:none;'>";
@@ -369,7 +369,7 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
                         echo '<form method="POST" action="handle_leaders.php" style="display:inline;">
                                 <input type="hidden" name="id" value="' . $row['id'] . '">
                                 <input type="hidden" name="delete" value="1">
-                                <button type="submit" class="btn-danger btn-icon" onclick="return confirm(\'Delete?\')"><i class="fa fa-trash"></i></button>
+                                <button type="submit" class="btn-danger btn-icon"><i class="fa fa-trash"></i></button>
                             </form>';
                         echo '</div>';
                         
@@ -463,9 +463,7 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
         }
 
         function confirmDelete(athleteId) {
-            if (confirm('Are you sure you want to delete this athlete? This action cannot be undone.')) {
-                window.location.href = 'handle_athletes.php?delete_id=' + athleteId;
-            }
+            window.location.href = 'handle_athletes.php?delete_id=' + athleteId;
         }
 
         function addNewAchievement() {

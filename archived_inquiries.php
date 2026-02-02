@@ -5,16 +5,12 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
     header("Location: admin_login.php");
     exit();
 }
-?>
 
-<?php
-// Database connection
 $conn = new mysqli("localhost", "root", "", "contact_us");
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Fetch archived contact inquiries from the database
 $sql = "SELECT id, full_name, email, contact_number, concerns, message, submitted_at, archived FROM contact_inquiries WHERE archived = 1 ORDER BY id DESC";
 $result = $conn->query($sql);
 ?>
@@ -27,10 +23,16 @@ $result = $conn->query($sql);
     <title>Archived Inquiries</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="Css/archived_inquiries.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
 </head>
 <body>
     <div class="admin-container">
-        <!-- Sidebar Navigation -->
         <nav class="sidebar">
             <h2>Admin Dashboard</h2>
             <ul>
@@ -46,17 +48,16 @@ $result = $conn->query($sql);
             </ul>
         </nav>
 
-        <!-- Main Content -->
         <div class="content">
             <h2>Archived Inquiries</h2>
 
-            <form action="delete_all_inquiries.php" method="POST" onsubmit="return confirm('Are you sure you want to delete all archived inquiries?');">
-                <button type="submit" class="delete-all-btn">Delete All</button>
-            </form>
+            <div style="margin-bottom: 20px;">
+                <button type="button" class="delete-all-btn" onclick="confirmDeleteAll()">Delete All</button>
+            </div>
 
             <?php
             if ($result->num_rows > 0) {
-                $counter = 1; // Numbering the inquiries
+                $counter = 1; 
                 echo "<table>
                         <thead>
                             <tr>
@@ -72,11 +73,10 @@ $result = $conn->query($sql);
                         </thead>
                         <tbody>";
 
-                // Output data of each row
                 while($row = $result->fetch_assoc()) {
                     $shortMessage = strlen($row["message"]) > 25 ? substr($row["message"], 0, 25) . '...' : $row["message"];
                     echo "<tr>
-                            <td>" . $counter++ . "</td> <!-- Display the numbering -->
+                            <td>" . $counter++ . "</td> 
                             <td>" . htmlspecialchars($row["full_name"]) . "</td>
                             <td>" . htmlspecialchars($row["email"]) . "</td>
                             <td>" . htmlspecialchars($row["contact_number"]) . "</td>
@@ -87,10 +87,10 @@ $result = $conn->query($sql);
                                     <a href='view_message.php?id=" . $row["id"] . "' title='View'>
                                         <i class='fas fa-eye'></i>
                                     </a> |
-                                    <a href='restore_inquiry.php?id=" . $row["id"] . "' onclick='return confirm(\"Are you sure you want to restore this inquiry?\");' title='Restore'>
+                                    <a href='javascript:void(0);' onclick='confirmRestore(" . $row["id"] . ")' title='Restore'>
                                         <i class='fas fa-undo'></i>
                                     </a> |
-                                    <a href='delete_inquiry.php?id=" . $row["id"] . "' onclick='return confirm(\"Are you sure you want to delete this inquiry?\");' title='Delete'>
+                                    <a href='javascript:void(0);' onclick='confirmDelete(" . $row["id"] . ")' title='Delete'>
                                         <i class='fas fa-trash'></i>
                                     </a>
                                 </td>
@@ -103,10 +103,98 @@ $result = $conn->query($sql);
                 echo "<p>No archived inquiries found.</p>";
             }
 
-            // Close the connection
             $conn->close();
             ?>
         </div>
     </div>
+
+    <script>
+        function confirmDeleteAll() {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This will permanently delete ALL archived inquiries. You cannot revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete all!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'delete_all_inquiries.php';
+                }
+            });
+        }
+
+        function confirmRestore(id) {
+            Swal.fire({
+                title: 'Restore Inquiry?',
+                text: "This inquiry will be moved back to the active list.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, restore it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'restore_inquiry.php?id=' + id;
+                }
+            });
+        }
+
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'Permanently Delete?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'delete_inquiry.php?id=' + id + '&redirect=archive';
+                }
+            });
+        }
+
+        <?php if (isset($_GET['status'])): ?>
+            document.addEventListener('DOMContentLoaded', function() {
+                <?php if ($_GET['status'] == 'restored'): ?>
+                    Swal.fire({
+                        title: 'Restored!',
+                        text: 'Inquiry has been restored successfully.',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location = 'archived_inquiries.php';
+                        }
+                    });
+                <?php elseif ($_GET['status'] == 'deleted_all'): ?>
+                    Swal.fire({
+                        title: 'Deleted!',
+                        text: 'All archived inquiries have been deleted.',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location = 'archived_inquiries.php';
+                        }
+                    });
+                <?php elseif ($_GET['status'] == 'deleted'): ?>
+                    Swal.fire({
+                        title: 'Deleted!',
+                        text: 'Inquiry has been permanently deleted.',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location = 'archived_inquiries.php';
+                        }
+                    });
+                <?php endif; ?>
+            });
+        <?php endif; ?>
+    </script>
 </body>
 </html>

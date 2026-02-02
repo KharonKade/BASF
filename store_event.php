@@ -68,11 +68,42 @@ if (!empty($_FILES['sponsors']['tmp_name'][0])) {
     }
     $stmt->close();
 }
+?>
 
-echo "<script type='text/javascript'>
-        alert('Event created successfully!');
-        window.location.href = 'create_event.php'; 
-      </script>";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processing...</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                title: 'Success!',
+                text: 'Event created successfully!',
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#3085d6'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'manage_upcoming.php';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
 
+<?php
 $conn->close();
 ?>

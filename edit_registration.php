@@ -1,18 +1,15 @@
 <?php
-// Database connection
 $conn = new mysqli("localhost", "root", "", "basf_events");
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Get registration ID from URL
 $registration_id = $_GET['id'] ?? null;
 
 if (!$registration_id) {
     die("Invalid registration ID.");
 }
 
-// Fetch registration details
 $registration_query = "SELECT * FROM event_registrations WHERE id = ?";
 $stmt = $conn->prepare($registration_query);
 $stmt->bind_param("i", $registration_id);
@@ -25,7 +22,6 @@ if ($result->num_rows === 0) {
 
 $registration = $result->fetch_assoc();
 
-// Handle form submission
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $name = $_POST['name'] ?? '';
     $email = $_POST['email'] ?? '';
@@ -37,7 +33,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (empty($name) || empty($email) || empty($phone) || empty($age) || empty($gender) || empty($category)) {
         echo "<script>alert('All fields are required!');</script>";
     } else {
-        // Update query with added fields
         $update_query = "UPDATE event_registrations SET name=?, email=?, phone=?, age=?, gender=?, category=? WHERE id=?";
         $stmt = $conn->prepare($update_query);
         $stmt->bind_param("ssssssi", $name, $email, $phone, $age, $gender, $category, $registration_id);
@@ -62,39 +57,82 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Registration</title>
-    <link rel="stylesheet" href="Css/edit_registration.css"></link>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="Css/edit_registration.css">
 </head>
 <body>
-    <form method="post">
-        <h2>Edit Registration</h2>
-        <label>Name:</label>
-        <input type="text" name="name" value="<?php echo htmlspecialchars($registration['name']); ?>" required><br>
+    <div class="main-wrapper">
+        <div class="edit-card">
+            <div class="card-header">
+                <h3><i class="fas fa-user-edit"></i> Edit Registration</h3>
+            </div>
+            
+            <form method="post" class="card-body">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <div class="input-icon">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($registration['name']); ?>" required placeholder="Full Name">
+                    </div>
+                </div>
 
-        <label>Email:</label>
-        <input type="email" name="email" value="<?php echo htmlspecialchars($registration['email']); ?>" required><br>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <div class="input-icon">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($registration['email']); ?>" required placeholder="Email Address">
+                    </div>
+                </div>
 
-        <label>Phone:</label>
-        <input type="text" name="phone" value="<?php echo htmlspecialchars($registration['phone']); ?>" required><br>
+                <div class="form-group">
+                    <label for="phone">Phone</label>
+                    <div class="input-icon">
+                        <i class="fas fa-phone"></i>
+                        <input type="text" id="phone" name="phone" value="<?php echo htmlspecialchars($registration['phone']); ?>" required placeholder="Phone Number">
+                    </div>
+                </div>
 
-        <label>Age:</label>
-        <input type="number" name="age" value="<?php echo htmlspecialchars($registration['age']); ?>" required><br>
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label for="age">Age</label>
+                        <input type="number" id="age" name="age" value="<?php echo htmlspecialchars($registration['age']); ?>" required>
+                    </div>
 
-        <label>Gender:</label>
-        <select name="gender" required>
-            <option value="Male" <?php echo ($registration['gender'] == 'Male') ? 'selected' : ''; ?>>Male</option>
-            <option value="Female" <?php echo ($registration['gender'] == 'Female') ? 'selected' : ''; ?>>Female</option>
-        </select><br>
+                    <div class="form-group half">
+                        <label for="gender">Gender</label>
+                        <div class="select-wrapper">
+                            <select id="gender" name="gender" required>
+                                <option value="Male" <?php echo ($registration['gender'] == 'Male') ? 'selected' : ''; ?>>Male</option>
+                                <option value="Female" <?php echo ($registration['gender'] == 'Female') ? 'selected' : ''; ?>>Female</option>
+                            </select>
+                            <i class="fas fa-chevron-down select-icon"></i>
+                        </div>
+                    </div>
+                </div>
 
-        <label>Category:</label>
-        <select name="category" required>
-            <option value="Skateboard" <?php echo ($registration['category'] == 'Skateboard') ? 'selected' : ''; ?>>Skateboard</option>
-            <option value="Inline" <?php echo ($registration['category'] == 'Inline') ? 'selected' : ''; ?>>Inline</option>
-            <option value="BMX" <?php echo ($registration['category'] == 'BMX') ? 'selected' : ''; ?>>BMX</option>
-        </select><br>
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <div class="select-wrapper">
+                        <select id="category" name="category" required>
+                            <option value="Skateboard" <?php echo ($registration['category'] == 'Skateboard') ? 'selected' : ''; ?>>Skateboard</option>
+                            <option value="Inline" <?php echo ($registration['category'] == 'Inline') ? 'selected' : ''; ?>>Inline</option>
+                            <option value="BMX" <?php echo ($registration['category'] == 'BMX') ? 'selected' : ''; ?>>BMX</option>
+                        </select>
+                        <i class="fas fa-chevron-down select-icon"></i>
+                    </div>
+                </div>
 
-        <button type="submit">Update</button>
-        <a href="javascript:void(0);" onclick="history.back();">Cancel</a>
-
-    </form>
+                <div class="form-actions">
+                    <a href="javascript:void(0);" onclick="history.back();" class="btn btn-cancel">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-update">
+                        Update Details
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

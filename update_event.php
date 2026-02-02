@@ -85,23 +85,42 @@ if (!empty($existing_sponsors)) {
 } else {
     $conn->query("DELETE FROM sponsor_logos WHERE event_id = $event_id");
 }
+?>
 
-if (!empty($_FILES['sponsors']['name'][0])) {
-    $stmt_sponsor = $conn->prepare("INSERT INTO sponsor_logos (event_id, logo_path) VALUES (?, ?)");
-    foreach ($_FILES['sponsors']['tmp_name'] as $index => $tmp_name) {
-        if (!empty($tmp_name)) {
-            $sponsor_name = uniqid() . "_" . basename($_FILES['sponsors']['name'][$index]);
-            $sponsor_path = "images/" . $sponsor_name;
-            if (move_uploaded_file($tmp_name, $sponsor_path)) {
-                $stmt_sponsor->bind_param("is", $event_id, $sponsor_path);
-                $stmt_sponsor->execute();
-            }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Updated</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f4f4;
         }
-    }
-    $stmt_sponsor->close();
-}
+    </style>
+</head>
+<body>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                title: 'Success!',
+                text: 'Event updated successfully.',
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#3085d6'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'manage_upcoming.php';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
 
+<?php
 $conn->close();
-header("Location: manage_upcoming.php");
-exit();
 ?>

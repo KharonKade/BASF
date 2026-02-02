@@ -1,24 +1,88 @@
 <?php
-// Database connection (adjust the database name if necessary)
-$conn = new mysqli("localhost", "root", "", "basf_events"); // Use correct database name
+$conn = new mysqli("localhost", "root", "", "basf_events");
+
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Get the event ID from the URL
-$id = $_GET['id'];
+$event_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$confirm = isset($_GET['confirm']) && $_GET['confirm'] === 'yes';
 
-// Update the event to set status back to active (assuming 'active' status is 1)
-$sql = "UPDATE upcoming_events SET status = 1 WHERE id = $id";  // Adjust table name if needed
-
-if ($conn->query($sql) === TRUE) {
-    // Redirect to the archived events page after restoring the event
-    header("Location: archived_events.php?message=restored");
+if ($event_id === 0) {
+    header("Location: archived_events.php");
     exit();
-} else {
-    echo "Error restoring event: " . $conn->error;
 }
 
-// Close the connection
-$conn->close();
+if ($confirm) {
+    $sql = "UPDATE upcoming_events SET status = 'active' WHERE id = $event_id";
+    
+    if ($conn->query($sql) === TRUE) {
+        $conn->close();
+        ?>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Restored</title>
+            <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            <style> body { font-family: 'Poppins', sans-serif; background-color: #f4f4f4; } </style>
+        </head>
+        <body>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    Swal.fire({
+                        title: 'Restored!',
+                        text: 'The event has been restored to the active list.',
+                        icon: 'success',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#3085d6'
+                    }).then((result) => {
+                        window.location.href = 'archived_events.php';
+                    });
+                });
+            </script>
+        </body>
+        </html>
+        <?php
+        exit();
+    } else {
+        echo "Error: " . $conn->error;
+        exit();
+    }
+}
 ?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Restore</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style> body { font-family: 'Poppins', sans-serif; background-color: #f4f4f4; } </style>
+</head>
+<body>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                title: 'Restore this event?',
+                text: "It will appear in the upcoming events list again.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, restore it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'restore_event.php?id=<?php echo $event_id; ?>&confirm=yes';
+                } else {
+                    window.location.href = 'archived_events.php';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -11,18 +11,6 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-if (isset($_GET['archive_id'])) {
-    $archive_id = intval($_GET['archive_id']);
-    $archive_sql = "UPDATE upcoming_events SET status = 'archived' WHERE id = $archive_id";
-
-    if ($conn->query($archive_sql)) {
-        header("Location: manage_upcoming.php?message=Event archived successfully");
-        exit();
-    } else {
-        die("Error archiving event: " . $conn->error);
-    }
-}
-
 $filter_category = isset($_GET['category']) ? $conn->real_escape_string($_GET['category']) : '';
 $search_query = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
 
@@ -79,8 +67,8 @@ if (isset($_GET['ajax'])) {
             echo "<td>
                     <a href='view_event.php?id=" . $row['id'] . "' title='View'><i class='fas fa-eye'></i></a> |
                     <a href='edit_event.php?id=" . $row['id'] . "' title='Edit'><i class='fas fa-edit'></i></a> |
-                    <a href='delete_event.php?id=" . $row['id'] . "' onclick=\"return confirm('Are you sure you want to delete this event?');\" title='Delete'><i class='fas fa-trash'></i></a> |
-                    <a href='manage_upcoming.php?archive_id=" . $row['id'] . "' onclick=\"return confirm('Archive this event?');\" title='Archive'><i class='fas fa-archive'></i></a>
+                    <a href='delete_event.php?id=" . $row['id'] . "' title='Delete'><i class='fas fa-trash'></i></a> |
+                    <a href='archive_event.php?id=" . $row['id'] . "' title='Archive'><i class='fas fa-archive'></i></a>
                   </td>";
             echo "</tr>";
         }
@@ -203,8 +191,8 @@ if (isset($_GET['ajax'])) {
                         <td>
                             <a href="view_event.php?id=<?php echo $row['id']; ?>" title="View"><i class="fas fa-eye"></i></a> |
                             <a href="edit_event.php?id=<?php echo $row['id']; ?>" title="Edit"><i class="fas fa-edit"></i></a> |
-                            <a href="delete_event.php?id=<?php echo $row['id']; ?>" onclick="return confirm('Are you sure you want to delete this event?');" title="Delete"><i class="fas fa-trash"></i></a> |
-                            <a href="manage_upcoming.php?archive_id=<?php echo $row['id']; ?>" onclick="return confirm('Archive this event?');" title="Archive"><i class="fas fa-archive"></i></a>
+                            <a href="delete_event.php?id=<?php echo $row['id']; ?>" title="Delete"><i class="fas fa-trash"></i></a> |
+                            <a href="archive_event.php?id=<?php echo $row['id']; ?>" title="Archive"><i class="fas fa-archive"></i></a>
                         </td>
                     </tr>
                     <?php endwhile; 

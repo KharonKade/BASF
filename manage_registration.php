@@ -44,58 +44,94 @@ $conn->close();
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Registration</title>
     <link rel="stylesheet" href="Css/manage_registration.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        * { font-family: 'Poppins', sans-serif; }
+        body { font-family: 'Poppins', sans-serif; }
+        .swal2-popup { font-family: 'Poppins', sans-serif !important; }
     </style>
 </head>
 <body>
-    <div class="registration-container">
-        <?php if ($registration): ?>
-            <h3>Your Registration</h3>
-            <table border="1" cellspacing="0" cellpadding="8">
-                <thead>
-                    <tr>
-                        <th>Name</th><th>Email</th><th>Phone</th>
-                        <th>Age</th><th>Gender</th><th>Category</th><th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><?= htmlspecialchars($registration['name']); ?></td>
-                        <td><?= htmlspecialchars($registration['email']); ?></td>
-                        <td><?= htmlspecialchars($registration['phone']); ?></td>
-                        <td><?= htmlspecialchars($registration['age']); ?></td>
-                        <td><?= htmlspecialchars($registration['gender']); ?></td>
-                        <td><?= htmlspecialchars($registration['category']); ?></td>
-                        <td>
-                            <a href="edit_registration.php?id=<?= $registration['id']; ?>" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            |
-                            <a href="delete_registration.php?id=<?= $registration['id']; ?>"
-                            onclick="return confirm('Are you sure you want to remove your registration?');" 
-                            title="Remove Registration">
-                                <i class="fas fa-trash-alt" style="color: red;"></i>
-                            </a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        <?php else: ?>
-            <p style="color: red; text-align: center;">Invalid token or no registration found for this specific event.</p>
-        <?php endif; ?>
-        
-        <?php if (isset($event_id)): ?>
-            <div class="return-btn">
-                <a href="eventPages.php?id=<?= $event_id; ?>">
-                    Return to Event Page
-                </a>
-            </div>
-        <?php endif; ?>
+    <div class="main-wrapper">
+        <div class="registration-card">
+            <?php if ($registration): ?>
+                <div class="card-header">
+                    <h3><i class="fas fa-ticket-alt"></i> Your Registration Details</h3>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="styled-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Age</th>
+                                <th>Gender</th>
+                                <th>Category</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td data-label="Name"><?= htmlspecialchars($registration['name']); ?></td>
+                                <td data-label="Email"><?= htmlspecialchars($registration['email']); ?></td>
+                                <td data-label="Phone"><?= htmlspecialchars($registration['phone']); ?></td>
+                                <td data-label="Age"><?= htmlspecialchars($registration['age']); ?></td>
+                                <td data-label="Gender"><?= htmlspecialchars($registration['gender']); ?></td>
+                                <td data-label="Category">
+                                    <span class="category-badge"><?= htmlspecialchars($registration['category']); ?></span>
+                                </td>
+                                <td data-label="Actions" class="action-cells">
+                                    <a href="edit_registration.php?id=<?= $registration['id']; ?>" class="btn-icon edit" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button onclick="confirmDelete(<?= $registration['id']; ?>)" class="btn-icon delete" title="Remove Registration">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            <?php else: ?>
+                <div class="error-state">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>Invalid token or no registration found for this specific event.</p>
+                </div>
+            <?php endif; ?>
+
+            <?php if (isset($event_id)): ?>
+                <div class="card-footer">
+                    <a href="eventPages.php?id=<?= $event_id; ?>" class="return-btn">
+                        <i class="fas fa-arrow-left"></i> Return to Event Page
+                    </a>
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
+
+    <script>
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'Are you sure you want to remove your Registration?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!',
+                font: 'Poppins'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'delete_registration.php?id=' + id;
+                }
+            });
+        }
+    </script>
 </body>
 </html>

@@ -16,6 +16,12 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="Css/view_inquiries.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
 </head>
 <body>
     <div class="admin-container">
@@ -103,6 +109,7 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
             if ($result->num_rows > 0) {
                 while($row = $result->fetch_assoc()) {
                     $shortMessage = strlen($row["message"]) > 25 ? substr($row["message"], 0, 25) . '...' : $row["message"];
+                    
                     echo "<tr>
                             <td>" . $counter . "</td>
                             <td>" . htmlspecialchars($row["full_name"]) . "</td>
@@ -113,8 +120,8 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
                             <td>" . htmlspecialchars($row["submitted_at"]) . "</td>
                             <td>
                                 <a href='view_message.php?id=" . $row["id"] . "' title='View'><i class='fas fa-eye'></i></a> |
-                                <a href='archive_inquiry.php?id=" . $row["id"] . "' onclick='return confirm(\"Are you sure you want to archive this inquiry?\");' title='Archive'><i class='fas fa-box-archive'></i></a> |
-                                <a href='delete_inquiry.php?id=" . $row["id"] . "' onclick='return confirm(\"Are you sure you want to delete this inquiry?\");' title='Delete'><i class='fas fa-trash'></i></a>
+                                <a href='javascript:void(0);' onclick='confirmArchive(" . $row["id"] . ")' title='Archive'><i class='fas fa-box-archive'></i></a> |
+                                <a href='javascript:void(0);' onclick='confirmDelete(" . $row["id"] . ")' title='Delete'><i class='fas fa-trash'></i></a>
                             </td>
                           </tr>";
                     $counter++;
@@ -148,6 +155,68 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
             
             xhr.send('search=' + encodeURIComponent(searchTerm) + '&filter=' + encodeURIComponent(filterValue));
         });
+
+        function confirmArchive(id) {
+            Swal.fire({
+                title: 'Archive Inquiry?',
+                text: "This inquiry will be moved to the archives.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, archive it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'archive_inquiry.php?id=' + id;
+                }
+            });
+        }
+
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'Permanently Delete?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'delete_inquiry.php?id=' + id;
+                }
+            });
+        }
     </script>
+
+    <?php if (isset($_GET['status'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                <?php if ($_GET['status'] == 'archived'): ?>
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'Inquiry has been archived.',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location = 'view_inquiries.php';
+                        }
+                    });
+                <?php elseif ($_GET['status'] == 'deleted'): ?>
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'Inquiry has been deleted.',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location = 'view_inquiries.php';
+                        }
+                    });
+                <?php endif; ?>
+            });
+        </script>
+    <?php endif; ?>
 </body>
 </html>

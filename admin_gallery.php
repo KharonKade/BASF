@@ -28,6 +28,7 @@ $result = $conn->query($sql);
     <title>Manage Gallery</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="Css/admin_gallery.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         body {
@@ -148,7 +149,7 @@ $result = $conn->query($sql);
                         <a href="edit_gallery.php?id=<?php echo $row['id']; ?>" title="Edit">
                             <i class="fas fa-edit"></i>
                         </a> |
-                        <a href="delete_gallery.php?id=<?php echo $row['id']; ?>" onclick="return confirm('Are you sure?')" title="Delete">
+                        <a href="javascript:void(0);" onclick="confirmDelete(<?php echo $row['id']; ?>)" title="Delete">
                             <i class="fas fa-trash"></i>
                         </a>
                     </td>
@@ -175,6 +176,25 @@ $result = $conn->query($sql);
             });
         });
     });
+</script>
+
+<script>
+    function confirmDelete(id) {
+        Swal.fire({
+            title: 'Permanently Delete?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!',
+            font: 'Poppins'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = 'delete_gallery.php?id=' + id;
+            }
+        });
+    }
 </script>
 
 </body>

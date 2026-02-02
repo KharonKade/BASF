@@ -48,7 +48,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    echo "<script>alert('Gallery item updated successfully!'); window.location='admin_gallery.php?id=$id';</script>";
+    echo "<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                title: 'Success!',
+                text: 'Gallery item updated successfully.',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location = 'admin_gallery.php?id=$id';
+                }
+            });
+        });
+    </script>";
 }
 
 $conn->close();
@@ -62,9 +75,10 @@ $conn->close();
     <link rel="stylesheet" href="Css/edit_gallery.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>Edit Gallery Item</title>
     <style>
-        body, html, input, textarea, button, h2, h3, h4, p, label {
+        body, html, input, textarea, button, h2, h3, h4, p, label, .swal2-popup {
             font-family: 'Poppins', sans-serif !important;
         }
     </style>
@@ -165,16 +179,32 @@ $conn->close();
     });
 
     function removeGalleryImage(button, imageId) {
-        if(confirm("Are you sure you want to remove this image? (Changes will apply after clicking Update)")) {
-            const form = document.querySelector('form');
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'delete_ids[]'; 
-            input.value = imageId;
-            form.appendChild(input);
-            
-            button.closest('.media-item').style.display = 'none';
-        }
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This image will be removed when you click Update. This action cannot be undone.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, remove it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.querySelector('form');
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'delete_ids[]'; 
+                input.value = imageId;
+                form.appendChild(input);
+                
+                button.closest('.media-item').style.display = 'none';
+                
+                Swal.fire(
+                    'Marked for Removal!',
+                    'Click "Update Gallery Item" to save changes.',
+                    'success'
+                )
+            }
+        })
     }
 </script>
 

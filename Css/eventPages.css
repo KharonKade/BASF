@@ -280,6 +280,120 @@ header:hover {
   color: var(--primary-color);
 }
 
+.share-container {
+    position: relative;
+    display: inline-block;
+}
+
+.share-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: transparent;
+    color: var(--text-light);
+    border: 1px solid #e2e8f0;
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Poppins', sans-serif;
+}
+
+.share-btn:hover {
+    background-color: #f8fafc;
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* Dropdown Menu */
+.share-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 110%; /* Places it just below the button */
+    background-color: white;
+    min-width: 180px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    border: 1px solid #f0f0f0;
+    z-index: 100;
+    overflow: hidden;
+    animation: fadeIn 0.2s ease-out;
+}
+
+/* Class to toggle visibility via JS */
+.share-dropdown.show {
+    display: block;
+}
+
+.share-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: var(--text-dark);
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: background-color 0.2s;
+    width: 100%;
+    box-sizing: border-box; /* Ensures padding doesn't affect width */
+}
+
+.share-option:hover {
+    background-color: #f8fafc;
+    color: var(--primary-color);
+}
+
+.share-option img, 
+.share-option svg {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+    .header-actions {
+        flex-direction: row; 
+        gap: 10px;
+    }
+    
+    .share-btn span {
+        display: none; 
+    }
+}
+
+.toast {
+    visibility: hidden;
+    min-width: 250px;
+    margin-left: -125px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 8px;
+    padding: 16px;
+    position: fixed;
+    z-index: 1000;
+    left: 50%;
+    bottom: 30px;
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.3s, bottom 0.3s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.toast.show {
+    visibility: visible;
+    opacity: 1;
+    bottom: 50px;
+}
+
 .section-title {
   font-size: 1.1rem;
   color: var(--primary-color);
