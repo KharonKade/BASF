@@ -270,14 +270,30 @@ if ($event_id > 0) {
 
                 <?php if ($event['registration'] == 1): ?>
                     <div class="registration-area">
-                        <div class="fee-display">
-                            <?php 
-                            if ($event['registration_fee'] > 0) {
-                                echo "₱" . number_format($event['registration_fee'], 2); 
-                            } else {
-                                echo "Free Registration";
-                            }
-                            ?>
+                        <div class="registration-header">
+                            <div class="fee-display">
+                                <?php 
+                                if ($event['registration_fee'] > 0) {
+                                    echo "₱" . number_format($event['registration_fee'], 2); 
+                                } else {
+                                    echo "Free Registration";
+                                }
+                                ?>
+                            </div>
+
+                            <?php if ($registration_limit > 0 && $registration_count >= $registration_limit): ?>
+                                <div class="event-popularity">
+                                    <span class="popularity-badge" style="background-color: #ef4444;">
+                                        Registration Closed - Full
+                                    </span>
+                                </div>
+                            <?php else: ?>
+                                <div class="event-popularity">
+                                    <span class="popularity-badge">
+                                        <?php echo ($registration_limit > 0) ? "$slots_left Slots Remaining" : "$registration_count Joined"; ?>
+                                    </span>
+                                </div>
+                            <?php endif; ?>
                         </div>
 
                         <?php if ($registration_limit == 0 || $registration_count < $registration_limit): ?>
@@ -285,22 +301,10 @@ if ($event_id > 0) {
                                 <?php echo ($event['registration_fee'] > 0) ? "Register & Pay Now" : "Secure Your Spot"; ?>
                             </button>
                         <?php endif; ?>
-
-                        <?php if ($registration_limit > 0 && $registration_count >= $registration_limit): ?>
-                            <div class="event-popularity">
-                                <span class="popularity-badge" style="background-color: #ef4444;">
-                                    Registration Closed - Full
-                                </span>
-                            </div>
-                        <?php else: ?>
-                            <div class="event-popularity">
-                                <span class="popularity-badge">
-                                    <?php echo ($registration_limit > 0) ? "$slots_left Slots Remaining" : "$registration_count Joined"; ?>
-                                </span>
-                            </div>
-                        <?php endif; ?>
                         
-                        <a href="#" class="token-link" onclick="showTokenModal()">Already registered? Edit registration here</a>
+                        <div class="link-container">
+                            <a href="#" class="token-link" onclick="showTokenModal()">Already registered? Edit registration here</a>
+                        </div>
                     </div>
                 <?php endif; ?>
 

@@ -453,44 +453,86 @@ header:hover {
 }
 
 .registration-area {
+  font-family: 'Poppins', sans-serif;
   background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
   padding: 30px;
   border-radius: 16px;
   color: var(--white);
-  text-align: center;
   margin-bottom: 40px;
   box-shadow: 0 10px 20px rgba(37, 82, 59, 0.2);
 }
 
+.registration-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  width: 100%;
+}
+
 .fee-display {
-  font-size: 1.5rem;
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.8rem;
   font-weight: 700;
-  margin-bottom: 15px;
+  margin: 0;
+}
+
+.event-popularity {
+  text-align: right;
+}
+
+.popularity-badge {
+    font-family: 'Poppins', sans-serif;
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+    white-space: nowrap;
+    transition: all 0.3s ease;
+    cursor: default;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.popularity-badge:hover {
+    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.35);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
 }
 
 .register-btn {
+  font-family: 'Poppins', sans-serif;
   background: var(--white);
   color: var(--primary-color);
   border: none;
-  padding: 14px 35px;
-  font-size: 1rem;
-  font-weight: 600;
+  padding: 20px 40px;
+  font-size: 1.3rem;
+  font-weight: 700;
   border-radius: 50px;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
   width: 100%;
-  max-width: 300px;
+  display: block;
+  margin-bottom: 20px;
 }
 
 .register-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.link-container {
+  text-align: center;
+  width: 100%;
 }
 
 .token-link {
-  color: rgba(255,255,255,0.8);
-  font-size: 0.85rem;
-  margin-top: 15px;
+  font-family: 'Poppins', sans-serif;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.95rem;
   display: inline-block;
   text-decoration: underline;
   transition: color 0.2s;
@@ -498,17 +540,6 @@ header:hover {
 
 .token-link:hover {
   color: var(--white);
-}
-
-.popularity-badge {
-  display: inline-block;
-  padding: 8px 16px;
-  border-radius: 50px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  background: rgba(255,255,255,0.2);
-  margin-top: 15px;
-  backdrop-filter: blur(5px);
 }
 
 .sponsors-grid {

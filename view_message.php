@@ -1,4 +1,6 @@
 <?php
+session_start(); // Ensure session is started at the very top
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -7,12 +9,17 @@ require 'PHPMailer/PHPMailer.php';
 require 'PHPMailer/SMTP.php';
 require 'secrets.php'; 
 
+if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
+    header("Location: admin_login.php");
+    exit();
+}
+
 $conn = new mysqli("localhost", "root", "", "contact_us");
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-$id = $_GET['id'];
+$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $statusMsg = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_reply'])) {
@@ -26,10 +33,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_reply'])) {
         $mail->isSMTP();
         $mail->Host       = SMTP_HOST;
         $mail->SMTPAuth   = true;
-        
         $mail->Username   = SMTP_USER; 
         $mail->Password   = SMTP_PASS; 
-        
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = SMTP_PORT;
 
@@ -42,12 +47,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_reply'])) {
         $mail->AltBody = $reply_body;
 
         $mail->send();
-        $statusMsg = "<div class='alert success'>Reply sent successfully!</div>";
+
+        // Update database
+        $update_sql = "UPDATE contact_inquiries SET archived = 1 WHERE id = $id";
+        if ($conn->query($update_sql) === TRUE) {
+            // SAVE ID TO SESSION FOR PERSISTENT HIGHLIGHTING
+            $_SESSION['highlight_archive_id'] = $id;
+            
+            header("Location: archived_inquiries.php?status=replied");
+            exit();
+        } else {
+            $statusMsg = "<div class='alert error'>Reply sent, but failed to archive inquiry: " . $conn->error . "</div>";
+        }
+
     } catch (Exception $e) {
         $statusMsg = "<div class='alert error'>Message could not be sent. Mailer Error: {$mail->ErrorInfo}</div>";
     }
 }
 
+// Fetch position for "Inquiry #X" display
 $sql_all_inquiries = "SELECT id FROM contact_inquiries ORDER BY id DESC";
 $result_all = $conn->query($sql_all_inquiries);
 
@@ -154,7 +172,7 @@ $row = $result->fetch_assoc();
                         <label>Your Response</label>
                         <textarea name="reply_message" placeholder="Type your reply here..." required></textarea>
                         
-                        <button type="submit" name="send_reply" class="btn-send">Send Reply via Email</button>
+                        <button type="submit" name="send_reply" class="btn-send">Send Reply & Archive</button>
                     </form>
                 </div>
             </div>

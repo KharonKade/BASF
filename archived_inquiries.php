@@ -11,6 +11,20 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+// Logic to determine which row to highlight
+$highlight_id = 0;
+
+// 1. Check if ID is in Session (Persistent)
+if (isset($_SESSION['highlight_archive_id'])) {
+    $highlight_id = $_SESSION['highlight_archive_id'];
+}
+
+// 2. Check if ID is in URL (Overrides session if present)
+if (isset($_GET['highlight_id'])) {
+    $highlight_id = intval($_GET['highlight_id']);
+    $_SESSION['highlight_archive_id'] = $highlight_id; // Update session
+}
+
 $sql = "SELECT id, full_name, email, contact_number, concerns, message, submitted_at, archived FROM contact_inquiries WHERE archived = 1 ORDER BY id DESC";
 $result = $conn->query($sql);
 ?>
@@ -28,6 +42,10 @@ $result = $conn->query($sql);
     <style>
         body {
             font-family: 'Poppins', sans-serif;
+        }
+        .highlight-row {
+            background-color: #d1e7dd !important; 
+            border-left: 5px solid #0f5132;
         }
     </style>
 </head>
@@ -75,7 +93,11 @@ $result = $conn->query($sql);
 
                 while($row = $result->fetch_assoc()) {
                     $shortMessage = strlen($row["message"]) > 25 ? substr($row["message"], 0, 25) . '...' : $row["message"];
-                    echo "<tr>
+                    
+                    // Check if this row matches the highlight ID
+                    $rowClass = ($row['id'] == $highlight_id) ? 'highlight-row' : '';
+                    
+                    echo "<tr class='$rowClass' id='inquiry-" . $row['id'] . "'>
                             <td>" . $counter++ . "</td> 
                             <td>" . htmlspecialchars($row["full_name"]) . "</td>
                             <td>" . htmlspecialchars($row["email"]) . "</td>
@@ -109,6 +131,13 @@ $result = $conn->query($sql);
     </div>
 
     <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var highlightedRow = document.querySelector(".highlight-row");
+            if (highlightedRow) {
+                highlightedRow.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+        });
+
         function confirmDeleteAll() {
             Swal.fire({
                 title: 'Are you sure?',
@@ -159,7 +188,14 @@ $result = $conn->query($sql);
 
         <?php if (isset($_GET['status'])): ?>
             document.addEventListener('DOMContentLoaded', function() {
-                <?php if ($_GET['status'] == 'restored'): ?>
+                <?php if ($_GET['status'] == 'replied'): ?>
+                    Swal.fire({
+                        title: 'Sent & Archived!',
+                        text: 'The reply was sent and the inquiry has been moved to archives.',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    });
+                <?php elseif ($_GET['status'] == 'restored'): ?>
                     Swal.fire({
                         title: 'Restored!',
                         text: 'Inquiry has been restored successfully.',
