@@ -1,8 +1,8 @@
 <?php
 $servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "basf_content_Skateboard";
+$username = "u142318015_usr_vf0t87O6";
+$password = "B^vC=ErJ@7";
+$dbname = "u142318015_db_vf0t87O7";
 $conn = new mysqli($servername, $username, $password, $dbname);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["logo"])) {

@@ -4,9 +4,9 @@ session_start();
 require_once 'secrets.php'; 
 
 $servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "basf_events";
+$username = "u142318015_usr_vf0t87O1";
+$password = "W1xz8gB^";
+$dbname = "u142318015_db_vf0t87O1";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
@@ -21,7 +21,7 @@ if (!isset($_GET['db_id']) || !is_numeric($_GET['db_id'])) {
 $db_id = (int)$_GET['db_id'];
 
 $stmt = $conn->prepare("
-    SELECT r.paymongo_id, r.token, r.event_id, r.status, r.name, r.email, e.event_name 
+    SELECT r.paymongo_id, r.token, r.event_id, r.status, r.name, r.email, e.event_name, e.registration_fee 
     FROM event_registrations r 
     JOIN upcoming_events e ON r.event_id = e.id 
     WHERE r.id = ?
@@ -39,6 +39,7 @@ $session_id = $registration['paymongo_id'];
 $token = $registration['token'];
 $event_id = $registration['event_id'];
 $event_name = $registration['event_name'];
+$registration_fee = $registration['registration_fee'];
 $user_name = $registration['name'];
 $user_email = $registration['email'];
 $current_status = $registration['status'];
@@ -115,7 +116,7 @@ if ($is_paid) {
                     <p><strong>Event:</strong> ' . htmlspecialchars($event_name) . '</p>
                     <p><strong>Participant:</strong> ' . htmlspecialchars($user_name) . '</p>
                     <p><strong>Date Paid:</strong> ' . date("F j, Y, g:i a") . '</p>
-                    <p><strong>Amount Paid:</strong> PHP 100.00</p>
+                    <p><strong>Amount Paid:</strong> PHP ' . number_format($registration_fee, 2) . '</p>
                     <p><strong>Reference ID:</strong> ' . htmlspecialchars($session_id) . '</p>
                 </div>
                 <p style="text-align: center;">Here is your unique registration token. Please present this at the event entry.</p>

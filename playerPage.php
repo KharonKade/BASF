@@ -1,9 +1,9 @@
 <?php
 // Include the database connection
 $servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "basf_content";
+$username = "u142318015_usr_vf0t87O2";
+$password = "0^Yf>YXE/C";
+$dbname = "u142318015_db_vf0t87O3";
 $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
 
@@ -141,7 +141,7 @@ $gallery_result = $conn->query($gallery_query);
     <footer class="footer animate-on-scroll">
         <!-- BASF Logo Section -->
         <div class="footer-section logo-section">
-            <img src="images/logo.png" alt="BASF Logo" class="footer-logo">
+            <img src="images/whitelogo.png" alt="BASF Logo" class="footer-logo">
         </div>
     
         <!-- Explore Us Section -->
@@ -175,15 +175,14 @@ $gallery_result = $conn->query($gallery_query);
         <div class="footer-section social-section">
             <h3>Connect with us</h3>
             <div class="social-icons">
-                <a href="https://facebook.com"><img src="images/fblogo.png" alt="Facebook"></a>
-                <a href="https://instagram.com"><img src="images/iglogo.png" alt="Instagram"></a>
+                <a href="https://facebook.com"><img src="images/fbwhite.png" alt="Facebook"></a>
+                <a href="https://instagram.com"><img src="images/igwhite.png" alt="Instagram"></a>
             </div>
         </div>
     
-        <!-- Supported by Section -->
         <div class="footer-section supported-section">
             <h3>Supported by</h3>
-            <img src="images/vanlogo.png" alt="Sponsor Logo" class="sponsor-logo">
+            <img src="images/vanswhite.png" alt="Sponsor Logo" class="sponsor-logo">
         </div>
     </footer>
     

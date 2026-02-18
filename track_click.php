@@ -1,9 +1,9 @@
 <?php
 session_start();
 $servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "basf_events";
+$username = "u142318015_usr_vf0t87O1";
+$password = "W1xz8gB^";
+$dbname = "u142318015_db_vf0t87O1";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 

@@ -12,37 +12,46 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skate Board Page</title>
-    <link rel="stylesheet" href="Css/editInlinePage.css">
+    <title>Skateboard Page</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="Css/editInlinePage.css?v=1.1">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
 </head>
 <body>
     <div class="admin-container">
-        <nav class="sidebar">
-            <h1>Admin Dashboard</h1>
+        
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        
+        <nav class="sidebar" id="sidebar">
+            <button class="close-sidebar" id="closeSidebar"><i class="fas fa-times"></i></button>
+            <h2>Admin Dashboard</h2>
             <ul>
                 <li><a href="admin.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="manage_upcoming.php"><i class="fas fa-calendar-check"></i>Events</a></li>
-                <li><a href="manage_news.php"><i class="fas fa-edit"></i>News & Announcements</a></li>
-                <li><a href="admin_gallery.php"><i class="fas fa-images"></i>Gallery Page</a></li>
-                <li><a href="editInlinePage.php"><i class="fas fa-skating"></i>Inline Page</a></li>
-                <li><a href="editBmxPage.php"><i class="fas fa-bicycle"></i>BMX Page</a></li>
-                <li><a href="editSkateboardPage.php"><i class="fas fa-snowboarding"></i>Skateboard Page</a></li>
+                <li><a href="manage_upcoming.php"><i class="fas fa-calendar-check"></i> Events</a></li>
+                <li><a href="manage_news.php"><i class="fas fa-edit"></i> News & Announcements</a></li>
+                <li><a href="admin_gallery.php"><i class="fas fa-images"></i> Gallery Page</a></li>
+                <li><a href="editInlinePage.php"><i class="fas fa-skating"></i> Inline Page</a></li>
+                <li><a href="editBmxPage.php"><i class="fas fa-bicycle"></i> BMX Page</a></li>
+                <li><a href="editSkateboardPage.php"><i class="fas fa-snowboarding"></i> Skateboard Page</a></li>
                 <li><a href="view_inquiries.php"><i class="fas fa-question-circle"></i> Inquiries</a></li>
                 <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </nav>
 
-            <main class="content">
+        <main class="content">
+            <div class="top-header">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+            </div>
+            
         <?php
             $servername = "localhost";
-            $username = "root";
-            $password = "";
-            $dbname_content = "basf_content";
+            $username = "u142318015_usr_vf0t87O6";
+            $password = "B^vC=ErJ@7";
+            $dbname_content = "u142318015_db_vf0t87O7";
 
-            $conn_content = new mysqli($servername, $username, $password, "basf_content_skateboard");
+            $conn_content = new mysqli($servername, $username, $password, $dbname_content);
 
             if ($conn_content->connect_error) {
                 die("Connection failed: " . $conn_content->connect_error);
@@ -51,12 +60,12 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
         ?>
 
         <div class="section-card">
-            <h2>
+            <div class="section-header">
                 <span>About Us</span>
                 <button onclick="showEditForm('aboutUsForm')" class="btn-primary">
                     <i class="fa fa-edit"></i> Edit Content
                 </button>
-            </h2>
+            </div>
             
             <?php
             $result = $conn_content->query("SELECT content FROM content WHERE section='about_us'");
@@ -79,12 +88,12 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
         </div>
 
         <div class="section-card">
-            <h2>
+            <div class="section-header">
                 <span>Highlight Carousel</span>
                 <button onclick="showAddForm('addHighlightForm')" class="btn-primary">
                     <i class="fa fa-plus"></i> Add Highlight
                 </button>
-            </h2>
+            </div>
 
             <form id="addHighlightForm" class="form-container" style="display:none;" method="post" action="handle_highlight_skateboard.php" enctype="multipart/form-data">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
@@ -105,60 +114,62 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
                 </div>
             </form>
 
-            <table class="modern-table">
-                <thead>
-                    <tr>
-                        <th>File</th>
-                        <th>Title</th>
-                        <th>Description</th>
-                        <th style="text-align: right;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                <?php
-                    $result = $conn_content->query("SELECT id, video, title, description FROM highlight_carousel");
-                    while ($row = $result->fetch_assoc()) {
-                        echo "<tr id='row{$row['id']}'>";
-                        echo "<td>" . basename($row["video"]) . "</td>";
-                        echo "<td><strong>{$row['title']}</strong></td>";
-                        echo "<td>{$row['description']}</td>";
-                        echo "<td style='text-align: right;'>
-                                <button onclick=\"toggleEditForm('editRow{$row['id']}')\" class='btn-secondary btn-icon' title='Edit'><i class='fa fa-edit'></i></button>
-                                <a href='handle_highlight_skateboard.php?delete_id={$row['id']}' class='btn-danger btn-icon' style='text-decoration:none; display:inline-block;'><i class='fa fa-trash'></i></a>
-                            </td>";
-                        
-                        echo "<tr id='editRow{$row['id']}' style='display:none;'>";
-                        echo "<td colspan='4' style='padding:0;'>
-                                <div class='form-container' style='margin: 10px;'>
-                                    <form method='post' action='handle_highlight_skateboard.php' enctype='multipart/form-data'>
-                                        <input type='hidden' name='id' value='{$row['id']}'>
-                                        <label>Edit Video File</label>
-                                        <input type='file' name='video'>
-                                        <label>Title</label>
-                                        <input type='text' name='title' value='{$row['title']}' required>
-                                        <label>Description</label>
-                                        <textarea name='description' required>{$row['description']}</textarea>
-                                        <div class='action-buttons'>
-                                            <button type='submit' class='btn-success'>Update</button>
-                                            <button type='button' onclick=\"toggleEditForm('editRow{$row['id']}')\" class='btn-danger'>Cancel</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </td>";
-                        echo "</tr>";
-                    }
-                ?>
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>File</th>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php
+                        $result = $conn_content->query("SELECT id, video, title, description FROM highlight_carousel");
+                        while ($row = $result->fetch_assoc()) {
+                            echo "<tr id='row{$row['id']}'>";
+                            echo "<td>" . basename($row["video"]) . "</td>";
+                            echo "<td><strong>" . htmlspecialchars($row['title']) . "</strong></td>";
+                            echo "<td>" . htmlspecialchars($row['description']) . "</td>";
+                            echo "<td style='text-align: right;'>
+                                    <button onclick=\"toggleEditForm('editRow{$row['id']}')\" class='btn-secondary btn-icon' title='Edit'><i class='fa fa-edit'></i></button>
+                                    <a href='handle_highlight_skateboard.php?delete_id={$row['id']}' class='btn-danger btn-icon' style='text-decoration:none; display:inline-block;'><i class='fa fa-trash'></i></a>
+                                </td>";
+                            
+                            echo "<tr id='editRow{$row['id']}' style='display:none;'>";
+                            echo "<td colspan='4' style='padding:0;'>
+                                    <div class='form-container' style='margin: 10px;'>
+                                        <form method='post' action='handle_highlight_skateboard.php' enctype='multipart/form-data'>
+                                            <input type='hidden' name='id' value='{$row['id']}'>
+                                            <label>Edit Video File</label>
+                                            <input type='file' name='video'>
+                                            <label>Title</label>
+                                            <input type='text' name='title' value='" . htmlspecialchars($row['title']) . "' required>
+                                            <label>Description</label>
+                                            <textarea name='description' required>" . htmlspecialchars($row['description']) . "</textarea>
+                                            <div class='action-buttons'>
+                                                <button type='submit' class='btn-success'>Update</button>
+                                                <button type='button' onclick=\"toggleEditForm('editRow{$row['id']}')\" class='btn-danger'>Cancel</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </td>";
+                            echo "</tr>";
+                        }
+                    ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="section-card">
-            <h2>
+            <div class="section-header">
                 <span>Top Athletes</span>
                 <button onclick="showAddForm('addAthleteForm')" class="btn-primary">
                     <i class="fa fa-plus"></i> Add New Athlete
                 </button>
-            </h2>
+            </div>
             
             <form id="addAthleteForm" class="form-container" style="display:none;" method="post" action="handle_athletes_skateboard.php" enctype="multipart/form-data">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
@@ -267,19 +278,19 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
                     echo "</div>"; 
                 echo "</div>";
 
-                echo "<form id='editAthleteForm{$row['id']}' class='form-container' style='display:none;' method='post' action='handle_athletes_skatebaord.php' enctype='multipart/form-data'>";
+                echo "<form id='editAthleteForm{$row['id']}' class='form-container' style='display:none;' method='post' action='handle_athletes_skateboard.php' enctype='multipart/form-data'>";
                 echo "<input type='hidden' name='edit_id' value='{$row['id']}'>";
                 echo "<input type='hidden' name='page' value='$page'>";
                 echo "<h3>Edit {$row['name']}</h3>";
-                echo "<label>Name</label><input type='text' name='name' value='{$row['name']}' required>";
-                echo "<label>Bio</label><textarea name='bio' required>{$row['bio']}</textarea>";
-                echo "<label>Description</label><textarea name='description' required>{$row['description']}</textarea>";
+                echo "<label>Name</label><input type='text' name='name' value='" . htmlspecialchars($row['name']) . "' required>";
+                echo "<label>Bio</label><textarea name='bio' required>" . htmlspecialchars($row['bio']) . "</textarea>";
+                echo "<label>Description</label><textarea name='description' required>" . htmlspecialchars($row['description']) . "</textarea>";
                 
                 echo "<div class='stat-grid'>";
                     echo "<div><label>Wins</label><input type='number' name='wins' value='{$row['wins']}' required></div>";
                     echo "<div><label>Podiums</label><input type='number' name='podium_finishes' value='{$row['podium_finishes']}' required></div>";
                     echo "<div><label>Years</label><input type='number' name='years_active' value='{$row['years_active']}' required></div>";
-                    echo "<div><label>Specialty</label><input type='text' name='specialty' value='{$row['specialty']}' required></div>";
+                    echo "<div><label>Specialty</label><input type='text' name='specialty' value='" . htmlspecialchars($row['specialty']) . "' required></div>";
                 echo "</div>";
 
                 echo "<label>Update Profile Image</label><input type='hidden' name='existing_image' value='{$row['image']}'><input type='file' name='image'>";
@@ -290,8 +301,8 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
                 while ($ach = $achievements->fetch_assoc()) {
                     echo "<div class='achievement-item' id='achievement-{$ach['id']}' style='border:1px solid #ddd; padding:10px; margin-bottom:10px;'>";
                     echo "<input type='hidden' name='achievement_ids[]' value='{$ach['id']}'>";
-                    echo "<input type='text' name='achievements[]' value='{$ach['title']}' required>";
-                    echo "<textarea name='achievements_descriptions[]' required>{$ach['description']}</textarea>";
+                    echo "<input type='text' name='achievements[]' value='" . htmlspecialchars($ach['title']) . "' required>";
+                    echo "<textarea name='achievements_descriptions[]' required>" . htmlspecialchars($ach['description']) . "</textarea>";
                     echo "<button type='button' class='btn-danger btn-icon' onclick=\"removeAchievement('achievement-{$ach['id']}')\"><i class='fa fa-trash'></i></button>";
                     echo "</div>";
                 }
@@ -308,7 +319,7 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
                     echo "<img src='{$img['image']}' style='width:100%; height:100px; object-fit:cover;'>";
                     echo "<input type='hidden' name='gallery_existing_images[]' value='{$img['image']}'>";
                     echo "<input type='file' name='athlete_gallery[]' style='margin-top:10px;'>";
-                    echo "<textarea name='gallery_descriptions[]' required style='margin-top:5px;'>{$img['description']}</textarea>";
+                    echo "<textarea name='gallery_descriptions[]' required style='margin-top:5px;'>" . htmlspecialchars($img['description']) . "</textarea>";
                     echo "<button type='button' class='btn-danger' style='margin-top:10px;' onclick=\"removeGalleryImage('gallery-{$img['id']}', '{$row['id']}')\">Remove</button>";
                     echo "</div>";
                 }
@@ -336,12 +347,12 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
         </div>
 
         <div class="section-card">
-            <h2>
+            <div class="section-header">
                 <span>Community Leaders</span>
                 <button onclick="toggleForm('addLeaderForm')" class="btn-primary">
                     <i class="fa fa-user-plus"></i> Add Leader
                 </button>
-            </h2>
+            </div>
 
             <form id="addLeaderForm" class="form-container" style="display: none;" method="POST" action="handle_leaders_skateboard.php" enctype="multipart/form-data">
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
@@ -390,12 +401,12 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
         </div>
 
         <div class="section-card">
-            <h2>
+            <div class="section-header">
                 <span>Partners & Sponsors</span>
                 <button onclick="toggleForm('addPartnerForm')" class="btn-primary">
                     <i class="fa fa-handshake"></i> Add Partner
                 </button>
-            </h2>
+            </div>
 
             <form id="addPartnerForm" class="form-container" style="display: none;" method="POST" action="handle_partnerships_skateboard.php" enctype="multipart/form-data">
                 <label>Logo File</label>
@@ -432,6 +443,7 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
         ClassicEditor
         .create(document.querySelector('#about_us_editor'))
         .then(editor => {
+            editorInstance = editor;
             editor.ui.view.editable.element.parentElement.style.display = 'block';
         })
         .catch(error => {
@@ -441,7 +453,7 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
         document.querySelector('form').addEventListener('submit', function (e) {
             try {
                 if (editorInstance) {
-                    document.querySelector('#description').value = editorInstance.getData();
+                    document.querySelector('#about_us_editor').value = editorInstance.getData();
                 }
             } catch (error) {
                 console.error("CKEditor content sync failed:", error);
@@ -552,6 +564,21 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
             `;
             container.appendChild(newImageDiv);
         };
+
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.add('active');
+            document.getElementById('sidebarOverlay').classList.add('active');
+        });
+
+        document.getElementById('closeSidebar').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.remove('active');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        });
+
+        document.getElementById('sidebarOverlay').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.remove('active');
+            this.classList.remove('active');
+        });
         </script>
 
         <?php $conn_content->close(); ?>

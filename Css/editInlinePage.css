@@ -1,22 +1,42 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
+:root {
+    --primary: #4361ee;
+    --primary-dark: #3a0ca3;
+    --secondary: #4cc9f0;
+    --success: #2ec4b6;
+    --danger: #ef233c;
+    --dark: #1e293b;
+    --light: #f8f9fa;
+    --gray: #64748b;
+    --border: #e2e8f0;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --radius: 12px;
+    --font-poppins: 'Poppins', sans-serif;
 }
 
-body {
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-poppins);
     background-color: #f1f5f9;
     color: var(--dark);
+    overflow-x: hidden;
+    width: 100%;
+}
+
+* {
+    box-sizing: border-box;
 }
 
 .admin-container {
     display: flex;
     min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
 }
 
+/* Sidebar identical to view_inquiries.css */
 .sidebar {
     width: 290px;
     background: #2c3e50;
@@ -29,17 +49,30 @@ body {
     position: fixed;
     height: 100%;
     overflow-y: auto;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+}
+
+.close-sidebar {
+    display: none !important;
+    background: none;
+    border: none;
+    color: #ecf0f1;
+    font-size: 1.5rem;
+    text-align: right;
+    cursor: pointer;
 }
 
 .sidebar i {
     margin-right: 10px;
 }
 
-.sidebar h1 {
+.sidebar h2 {
     text-align: center;
     font-size: 1.5rem;
     margin-bottom: 20px;
-    margin-top: 20px;
 }
 
 .sidebar ul {
@@ -69,31 +102,57 @@ body {
     background: #34495e;
 }
 
-:root {
-    --primary: #4361ee;
-    --primary-dark: #3a0ca3;
-    --secondary: #4cc9f0;
-    --success: #2ec4b6;
-    --danger: #ef233c;
-    --dark: #1e293b;
-    --light: #f8f9fa;
-    --gray: #64748b;
-    --border: #e2e8f0;
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --radius: 12px;
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* Content Area exactly like view_inquiries.css */
 .content {
+    margin-left: 250px;
+    width: calc(100% - 250px);
     flex-grow: 1;
-    padding: 40px;
+    padding: 40px 40px 40px 60px;
     background-image: url('../images/adminbg2.png');
-    background-size: 100% auto;
-    border-radius: 10px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    margin-left: 280px;
-    align-items: center;
+    background-size: cover;
+    background-position: center;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+    min-height: 100vh;
+    box-sizing: border-box;
 }
 
+.top-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.menu-toggle {
+    display: none !important;
+    background: #2c3e50;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    font-size: 1.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 20px;
+}
+
+/* Component Styles */
 .section-card {
     background: white;
     border-radius: var(--radius);
@@ -103,7 +162,7 @@ body {
     border: 1px solid var(--border);
 }
 
-h2 {
+.section-header {
     font-size: 1.5rem;
     font-weight: 600;
     color: var(--dark);
@@ -188,6 +247,12 @@ button {
     border-radius: 6px;
 }
 
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 .modern-table {
     width: 100%;
     border-collapse: collapse;
@@ -195,6 +260,7 @@ button {
     background: white;
     border-radius: 8px;
     overflow: hidden;
+    min-width: 600px;
 }
 
 .modern-table th {
@@ -279,6 +345,7 @@ button {
     border-radius: var(--radius);
     overflow: hidden;
     margin-bottom: 30px;
+    border: 1px solid var(--border);
 }
 
 .athlete-sidebar {
@@ -295,6 +362,11 @@ button {
     object-fit: cover;
     margin-bottom: 20px;
     box-shadow: var(--shadow);
+}
+
+.athlete-sidebar h3 {
+    margin: 0;
+    color: var(--dark);
 }
 
 .athlete-details {
@@ -388,8 +460,67 @@ button {
 }
 
 @media (max-width: 992px) {
-    .content { margin-left: 0; padding: 20px; }
-    .athlete-profile { grid-template-columns: 1fr; }
-    .athlete-sidebar { border-right: none; border-bottom: 1px solid var(--border); }
-    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .menu-toggle {
+        display: inline-block !important;
+    }
+
+    .sidebar {
+        transform: translateX(-100%);
+        width: 260px;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    .close-sidebar {
+        display: block !important;
+    }
+
+    .content {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px;
+    }
+    
+    .athlete-profile { 
+        grid-template-columns: 1fr; 
+    }
+    
+    .athlete-sidebar { 
+        border-right: none; 
+        border-bottom: 1px solid var(--border); 
+    }
+    
+    .stat-grid { 
+        grid-template-columns: repeat(2, 1fr); 
+    }
+}
+
+@media (max-width: 768px) {
+    .section-card {
+        padding: 20px;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .section-header button {
+        width: 100%;
+    }
+
+    .form-container > div[style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .action-buttons button {
+        width: 100%;
+    }
 }

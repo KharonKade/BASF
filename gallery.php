@@ -1,8 +1,8 @@
 <?php
 $host = "localhost";
-$username = "root";
-$password = "";
-$database = "basf_gallery";
+$username = "u142318015_usr_vf0t87O1";
+$password = "W1xz8gB^";
+$database = "u142318015_db_vf0t87O1";
 
 $conn = new mysqli($host, $username, $password, $database);
 
@@ -45,67 +45,13 @@ $conn->close();
     <link rel="stylesheet" href="Css/gallery.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif !important;
-        }
-
-        .search-container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-            margin-top: 20px;
-        }
-
-        #searchInput {
-            width: 100%;
-            max-width: 400px;
-            padding: 12px 20px;
-            border: 2px solid #25523B;
-            border-radius: 20px;
-            font-size: 16px;
-            outline: none;
-            transition: all 0.3s ease;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        #searchInput:focus {
-            border-color: #333;
-            box-shadow: 0 0 8px rgba(0,0,0,0.1);
-        }
-
-        .gallery-container {
-            display: grid;
-            gap: 20px;
-            grid-template-columns: repeat(4, 1fr);
-        }
-
-        @media (max-width: 1024px) {
-            .gallery-container {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .gallery-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 480px) {
-            .gallery-container {
-                grid-template-columns: repeat(1, 1fr);
-            }
-        }
-    </style>
 </head>
 <body>
     <header>
         <nav class="navbar">
             <img src="images/basflogo.png" alt="BASF Logo" class="logo">
             <div class="nav-center">
-                <ul class="nav-links">
+                <ul class="nav-links" id="navLinks">
                     <li><a href="index.php">Home</a></li>
                     <li><a href="spots.html">Spots</a></li>
                     <li><a href="event.php">Events</a></li>
@@ -113,6 +59,11 @@ $conn->close();
                     <li><a href="sponsorship.html">Sponsorship</a></li>
                     <li><a href="contactUs.html">Contact Us</a></li>
                 </ul>
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
             </div>
         </nav>
     </header>
@@ -292,20 +243,33 @@ $conn->close();
                 if (currentPage > 1) {
                     currentPage--;
                     renderPage();
+                    document.getElementById('galleryContainer').scrollIntoView({ behavior: 'smooth' });
                 }
             };
             container.appendChild(prevBtn);
 
-            for (let i = 1; i <= totalPages; i++) {
+            // --- Sliding Window Logic (Max 4 pages) ---
+            let maxVisible = 4;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+            let endPage = startPage + maxVisible - 1;
+
+            if (endPage > totalPages) {
+                endPage = totalPages;
+                startPage = Math.max(1, endPage - maxVisible + 1);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
                 const btn = document.createElement('button');
                 btn.innerText = i;
                 if (i === currentPage) btn.classList.add('active');
                 btn.onclick = () => {
                     currentPage = i;
                     renderPage();
+                    document.getElementById('galleryContainer').scrollIntoView({ behavior: 'smooth' });
                 };
                 container.appendChild(btn);
             }
+            // -------------------------------------------
 
             const nextBtn = document.createElement('button');
             nextBtn.innerText = 'Next';
@@ -314,11 +278,11 @@ $conn->close();
                 if (currentPage < totalPages) {
                     currentPage++;
                     renderPage();
+                    document.getElementById('galleryContainer').scrollIntoView({ behavior: 'smooth' });
                 }
             };
             container.appendChild(nextBtn);
         }
-
         document.addEventListener("DOMContentLoaded", function () {
             allGalleryItems = Array.from(document.querySelectorAll('.gallery-item'));
             filteredItems = [...allGalleryItems];
@@ -374,6 +338,15 @@ $conn->close();
             toggleVisibility();
         });
         
+    </script>
+    <script>
+        const hamburger = document.getElementById('hamburger');
+        const navLinks = document.getElementById('navLinks');
+
+        hamburger.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        });
     </script>
 </body>
 </html>

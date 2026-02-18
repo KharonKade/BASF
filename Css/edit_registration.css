@@ -43,6 +43,7 @@ body {
     box-shadow: var(--shadow);
     overflow: hidden;
     animation: fadeIn 0.4s ease-out;
+    margin: 10px;
 }
 
 .card-header {
@@ -92,11 +93,18 @@ select {
     padding: 12px 15px;
     padding-left: 40px; 
     font-size: 0.95rem;
+    border: 1px solid #ddd;
     border-radius: 8px;
     background-color: #f8f9fa;
     transition: all 0.3s ease;
     color: var(--text-dark);
     appearance: none; 
+}
+
+/* Specific styling for inputs without icons (like Age) */
+.form-group.half input,
+.select-wrapper select {
+    padding-left: 15px; 
 }
 
 .input-icon {
@@ -111,11 +119,6 @@ select {
     color: var(--text-light);
     font-size: 1rem;
     z-index: 2;
-}
-
-.form-group.half input,
-.select-wrapper select {
-    padding-left: 15px; 
 }
 
 .select-wrapper {
@@ -137,7 +140,7 @@ select:focus {
     outline: none;
     border-color: #25523B;
     background-color: #fff;
-    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+    box-shadow: 0 0 0 3px rgba(37, 82, 59, 0.15);
 }
 
 .form-actions {
@@ -157,6 +160,9 @@ select:focus {
     text-align: center;
     text-decoration: none;
     transition: all 0.3s ease;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .btn-update {
@@ -167,7 +173,7 @@ select:focus {
 .btn-update:hover {
     background: linear-gradient(90deg, #25523B, #358856);
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(4, 90, 47, 0.3);
+    box-shadow: 0 4px 10px rgba(37, 82, 59, 0.3);
 }
 
 .btn-cancel {
@@ -179,7 +185,7 @@ select:focus {
 .btn-cancel:hover {
     background-color: #e9ecef;
     color: var(--danger-color);
-    border-color: #e9ecef;
+    border-color: #dee2e6;
 }
 
 @keyframes fadeIn {
@@ -187,13 +193,41 @@ select:focus {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* --- Responsive Design --- */
 @media (max-width: 480px) {
+    .edit-card {
+        width: 100%;
+        margin: 10px;
+    }
+
     .card-body {
         padding: 20px;
     }
     
+    /* Stack Age and Gender vertically */
     .form-row {
         flex-direction: column;
         gap: 0;
+    }
+
+    .form-group.half {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    /* Stack buttons vertically for better touch targets */
+    .form-actions {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .btn {
+        width: 100%;
+        padding: 14px; /* Slightly larger touch area */
+    }
+
+    /* Reverse order so Update is on top (optional, standard on mobile forms) */
+    .form-actions {
+        flex-direction: column-reverse; 
     }
 }

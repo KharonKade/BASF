@@ -1,13 +1,12 @@
-let next = document.querySelector('.next');
-let prev = document.querySelector('.prev');
-let slider = document.querySelector('.slider');
+let nextBtn = document.querySelector('.next');
+let prevBtn = document.querySelector('.prev');
 
-next.addEventListener('click', function() {
-  let slides = document.querySelectorAll('.slides');
-  slider.appendChild(slides[0]);
-})
+nextBtn.addEventListener('click', function() {
+    let items = document.querySelectorAll('.slides');
+    document.querySelector('.slider').appendChild(items[0]);
+});
 
-prev.addEventListener('click', function() {
-  let slides = document.querySelectorAll('.slides');
-  slider.prepend(slides[slides.length - 1]);
-})
+prevBtn.addEventListener('click', function() {
+    let items = document.querySelectorAll('.slides');
+    document.querySelector('.slider').prepend(items[items.length - 1]);
+});

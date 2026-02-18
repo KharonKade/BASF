@@ -6,10 +6,10 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
     exit();
 }
 
-$conn_events = new mysqli("localhost", "root", "", "basf_events");
-$conn_news = new mysqli("localhost", "root", "", "basf_news");
-$conn_gallery = new mysqli("localhost", "root", "", "basf_gallery");
-$conn_contact = new mysqli("localhost", "root", "", "contact_us");
+$conn_events = new mysqli("localhost", "u142318015_usr_vf0t87O1", "W1xz8gB^", "u142318015_db_vf0t87O1");
+$conn_news = new mysqli("localhost", "u142318015_usr_vf0t87O1", "W1xz8gB^", "u142318015_db_vf0t87O1");
+$conn_gallery = new mysqli("localhost", "u142318015_usr_vf0t87O1", "W1xz8gB^", "u142318015_db_vf0t87O1");
+$conn_contact = new mysqli("localhost", "u142318015_usr_vf0t87O1", "W1xz8gB^", "u142318015_db_vf0t87O1");
 
 $events_result = $conn_events->query("SELECT COUNT(*) as total FROM upcoming_events WHERE status = 'active'");
 $events_count = $events_result->fetch_assoc()['total'];
@@ -87,7 +87,7 @@ if (empty($sport_distribution)) {
 $chart_sport_labels_json = json_encode(array_keys($sport_distribution));
 $chart_sport_data_json = json_encode(array_values($sport_distribution));
 
-$visit_conn = new mysqli("localhost", "root", "", "basf_visits");
+$visit_conn = new mysqli("localhost", "u142318015_usr_vf0t87O1", "W1xz8gB^", "u142318015_db_vf0t87O1");
 
 if ($visit_conn->connect_error) {
     die("Connection failed: " . $visit_conn->connect_error);
@@ -143,184 +143,163 @@ foreach ($activities as $activity) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="Css/dashboard.css?v=1.0">
-    
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="Css/dashboard.css?v=1.1">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="fullcalendar-6.1.17/dist/index.global.min.js" rel="stylesheet">
     <script src="fullcalendar-6.1.17/dist/index.global.js"></script>
-
-    <style>
-        * {
-            font-family: 'Poppins', sans-serif;
-        }
-        
-        .charts-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 20px;
-            margin: 20px 0;
-        }
-
-        .chart-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            min-height: 300px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chart-card h3 {
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-            color: #333;
-            border-bottom: 2px solid #f4f4f4;
-            padding-bottom: 10px;
-        }
-
-        .chart-container {
-            position: relative;
-            flex-grow: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        @media (max-width: 768px) {
-            .charts-section {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
 </head>
 <body>
     <div class="admin-container">
-        <nav class="sidebar">
+        
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <nav class="sidebar" id="sidebar">
+            <button class="close-sidebar" id="closeSidebar"><i class="fas fa-times"></i></button>
             <h2>Admin Dashboard</h2>
             <ul>
                 <li><a href="admin.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="manage_upcoming.php"><i class="fas fa-calendar-check"></i>Events</a></li>
-                <li><a href="manage_news.php"><i class="fas fa-edit"></i>News & Announcements</a></li>
-                <li><a href="admin_gallery.php"><i class="fas fa-images"></i>Gallery Page</a></li>
-                <li><a href="editInlinePage.php"><i class="fas fa-skating"></i>Inline Page</a></li>
-                <li><a href="editBmxPage.php"><i class="fas fa-bicycle"></i>BMX Page</a></li>
-                <li><a href="editSkateboardPage.php"><i class="fas fa-snowboarding"></i>Skateboard Page</a></li>
+                <li><a href="manage_upcoming.php"><i class="fas fa-calendar-check"></i> Events</a></li>
+                <li><a href="manage_news.php"><i class="fas fa-edit"></i> News & Announcements</a></li>
+                <li><a href="admin_gallery.php"><i class="fas fa-images"></i> Gallery Page</a></li>
+                <li><a href="editInlinePage.php"><i class="fas fa-skating"></i> Inline Page</a></li>
+                <li><a href="editBmxPage.php"><i class="fas fa-bicycle"></i> BMX Page</a></li>
+                <li><a href="editSkateboardPage.php"><i class="fas fa-snowboarding"></i> Skateboard Page</a></li>
                 <li><a href="view_inquiries.php"><i class="fas fa-question-circle"></i> Inquiries</a></li>
                 <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </nav>
+        
         <main class="content" id="dashboard">
-        <h2>Welcome to the Admin Dashboard</h2>
-        <div class="dashboard-cards">
-        <div class="card">
-            <i class="fas fa-calendar-plus"></i>
-            <h3>Total Events</h3>
-            <p><?php echo $events_count; ?></p>
-        </div>
-        <div class="card">
-            <i class="fas fa-newspaper"></i>
-            <h3>News Articles</h3>
-            <p><?php echo $news_count; ?></p>
-        </div>
-        <div class="card">
-            <i class="fas fa-images"></i>
-            <h3>Gallery Items</h3>
-            <p><?php echo $gallery_count; ?></p>
-        </div>
-        <div class="card">
-            <i class="fas fa-question-circle"></i>
-            <h3>New Inquiries</h3>
-            <p><?php echo $inquiry_count; ?></p>
-        </div>
-        <div class="card">
-            <i class="fas fa-users"></i>
-            <h3>Total Registration</h3>
-            <p><?php echo $registration_count; ?></p>
-        </div>
-        <div class="card">
-            <i class="fas fa-eye"></i>
-            <h3>Total Visits</h3>
-            <p><?php echo $visit_count; ?></p>
-        </div>
-        </div>
-
-        <div class="charts-section">
-            <div class="chart-card">
-                <h3><i class="fas fa-calendar-day"></i> Weekly Activity</h3>
-                <div class="chart-container">
-                    <canvas id="daysChart"></canvas>
-                </div>
+            <div class="top-header">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                <h2>Welcome to the Admin Dashboard</h2>
             </div>
             
-            <div class="chart-card">
-                <h3><i class="fas fa-chart-pie"></i> Sport Engagement</h3>
-                <div class="chart-container">
-                    <canvas id="sportChart"></canvas>
+            <div class="dashboard-cards">
+                <div class="card">
+                    <i class="fas fa-calendar-plus"></i>
+                    <h3>Total Events</h3>
+                    <p><?php echo $events_count; ?></p>
+                </div>
+                <div class="card">
+                    <i class="fas fa-newspaper"></i>
+                    <h3>News Articles</h3>
+                    <p><?php echo $news_count; ?></p>
+                </div>
+                <div class="card">
+                    <i class="fas fa-images"></i>
+                    <h3>Gallery Items</h3>
+                    <p><?php echo $gallery_count; ?></p>
+                </div>
+                <div class="card">
+                    <i class="fas fa-question-circle"></i>
+                    <h3>New Inquiries</h3>
+                    <p><?php echo $inquiry_count; ?></p>
+                </div>
+                <div class="card">
+                    <i class="fas fa-users"></i>
+                    <h3>Total Registration</h3>
+                    <p><?php echo $registration_count; ?></p>
+                </div>
+                <div class="card">
+                    <i class="fas fa-eye"></i>
+                    <h3>Total Visits</h3>
+                    <p><?php echo $visit_count; ?></p>
                 </div>
             </div>
 
-            <div class="chart-card">
-                <h3><i class="fas fa-calendar-alt"></i> Monthly Trends</h3>
-                <div class="chart-container">
-                    <canvas id="monthsChart"></canvas>
+            <div class="charts-section">
+                <div class="chart-card">
+                    <h3><i class="fas fa-calendar-day"></i> Weekly Activity</h3>
+                    <div class="chart-container">
+                        <canvas id="daysChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <h3><i class="fas fa-chart-pie"></i> Sport Engagement</h3>
+                    <div class="chart-container">
+                        <canvas id="sportChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3><i class="fas fa-calendar-alt"></i> Monthly Trends</h3>
+                    <div class="chart-container">
+                        <canvas id="monthsChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3><i class="fas fa-filter"></i> Registration Funnel (Conv. Rate: <?php echo $conversion_rate; ?>%)</h3>
+                    <div class="chart-container">
+                        <canvas id="funnelChart"></canvas>
+                    </div>
                 </div>
             </div>
 
-            <div class="chart-card">
-                <h3><i class="fas fa-filter"></i> Registration Funnel (Conv. Rate: <?php echo $conversion_rate; ?>%)</h3>
-                <div class="chart-container">
-                    <canvas id="funnelChart"></canvas>
-                </div>
+            <div class=calendar>
+                <h3>Events Calendar</h3>
+                <div id="calendar"></div>
             </div>
-        </div>
 
-        <div class=calendar>
-            <h3>Events Calendar</h3>
-            <div id="calendar"></div>
-        </div>
+            <div class="recent-activity">
+                <h3>Recent Activity (<?= $monday->format('F j') ?> – <?= $sunday->format('F j, Y') ?>)</h3>
+                <ul>
+                    <?php foreach ($grouped as $date => $activities): ?>
+                        <li>
+                            <ul>
+                                <?php for ($i = 0; $i < min(5, count($activities)); $i++): ?>
+                                    <li>
+                                        <?php
+                                            $a = $activities[$i];
+                                            echo $a['emoji'] . ' ' . $a['type'] . ' "' . htmlspecialchars($a['title']) . '" was added on ' . date("M d, Y", strtotime($a['time']));
+                                        ?>
+                                    </li>
+                                <?php endfor; ?>
 
-        <div class="recent-activity">
-            <h3>Recent Activity (<?= $monday->format('F j') ?> – <?= $sunday->format('F j, Y') ?>)</h3>
-            <ul>
-                <?php foreach ($grouped as $date => $activities): ?>
-                    <li>
-                        <ul>
-                            <?php for ($i = 0; $i < min(5, count($activities)); $i++): ?>
-                                <li>
-                                    <?php
-                                        $a = $activities[$i];
-                                        echo $a['emoji'] . ' ' . $a['type'] . ' "' . htmlspecialchars($a['title']) . '" was added on ' . date("M d, Y", strtotime($a['time']));
-                                    ?>
-                                </li>
-                            <?php endfor; ?>
-
-                            <?php if (count($activities) > 5): ?>
-                                <div class="toggle-container">
-                                    <button onclick="toggleActivities(this)">⬇ Show More</button>
-                                    <ul class="extra-activities" style="display: none;">
-                                        <?php for ($i = 5; $i < count($activities); $i++): ?>
-                                            <li>
-                                                <?php
-                                                    $a = $activities[$i];
-                                                    echo $a['emoji'] . ' ' . $a['type'] . ' "' . htmlspecialchars($a['title']) . '" was added on ' . date("M d, Y", strtotime($a['time']));
-                                                ?>
-                                            </li>
-                                        <?php endfor; ?>
-                                    </ul>
-                                </div>
-                            <?php endif; ?>
-                        </ul>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
+                                <?php if (count($activities) > 5): ?>
+                                    <div class="toggle-container">
+                                        <button onclick="toggleActivities(this)">⬇ Show More</button>
+                                        <ul class="extra-activities" style="display: none;">
+                                            <?php for ($i = 5; $i < count($activities); $i++): ?>
+                                                <li>
+                                                    <?php
+                                                        $a = $activities[$i];
+                                                        echo $a['emoji'] . ' ' . $a['type'] . ' "' . htmlspecialchars($a['title']) . '" was added on ' . date("M d, Y", strtotime($a['time']));
+                                                    ?>
+                                                </li>
+                                            <?php endfor; ?>
+                                        </ul>
+                                    </div>
+                                <?php endif; ?>
+                            </ul>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
         </main>
     </div>
+    
     <script>
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.add('active');
+            document.getElementById('sidebarOverlay').classList.add('active');
+        });
+
+        document.getElementById('closeSidebar').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.remove('active');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        });
+
+        document.getElementById('sidebarOverlay').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.remove('active');
+            this.classList.remove('active');
+        });
+
         function toggleActivities(button) {
             const extra = button.nextElementSibling;
             if (extra.style.display === "none") {
@@ -418,44 +397,44 @@ foreach ($activities as $activity) {
                     }
                 }
             });
-        });
 
-        const funnelCtx = document.getElementById('funnelChart').getContext('2d');
-        new Chart(funnelCtx, {
-            type: 'bar',
-            data: {
-                labels: ['Page Views', 'Register Clicks', 'Completed (Paid/Free)'],
-                datasets: [{
-                    label: 'Users',
-                    data: [
-                        <?php echo $total_views; ?>, 
-                        <?php echo $total_clicks; ?>, 
-                        <?php echo $successful_registrations; ?> 
-                    ],
-                    backgroundColor: [
-                        'rgba(54, 162, 235, 0.6)', 
-                        'rgba(255, 206, 86, 0.6)', 
-                        'rgba(75, 192, 192, 0.6)'
-                    ],
-                    borderColor: [
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
+            const funnelCtx = document.getElementById('funnelChart').getContext('2d');
+            new Chart(funnelCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Page Views', 'Register Clicks', 'Completed (Paid/Free)'],
+                    datasets: [{
+                        label: 'Users',
+                        data: [
+                            <?php echo $total_views; ?>, 
+                            <?php echo $total_clicks; ?>, 
+                            <?php echo $successful_registrations; ?> 
+                        ],
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.6)', 
+                            'rgba(255, 206, 86, 0.6)', 
+                            'rgba(75, 192, 192, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
                 },
-                scales: {
-                    x: { beginAtZero: true }
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { beginAtZero: true }
+                    }
                 }
-            }
+            });
         });
     </script>
 </body>

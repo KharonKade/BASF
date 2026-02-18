@@ -7,9 +7,9 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
 }
 
 $host = "localhost";
-$username = "root";
-$password = "";
-$database = "basf_gallery";
+$username = "u142318015_usr_vf0t87O1";
+$password = "W1xz8gB^";
+$database = "u142318015_db_vf0t87O1";
 
 $conn = new mysqli($host, $username, $password, $database);
 if ($conn->connect_error) {

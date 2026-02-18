@@ -7,44 +7,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home Page</title>
+    <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="Css/index.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        
-        .search-container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        #searchInput {
-            width: 100%;
-            max-width: 400px;
-            padding: 12px 20px;
-            border: 2px solid #25523B;
-            border-radius: 20px;
-            font-size: 16px;
-            outline: none;
-            transition: all 0.3s ease;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        #searchInput:focus {
-            border-color: #333;
-            box-shadow: 0 0 8px rgba(0,0,0,0.1);
-        }
-    </style>
 </head>
 
 <body>
     <header>
         <nav class="navbar">
-            <img src="images/basflogo.png" alt="BASF Logo"  id="basflogo" class="logo">
+            <img src="images/basflogo.png" alt="BASF Logo" id="basflogo" class="logo">
             <div class="nav-center">
-                <ul class="nav-links">
+                <ul class="nav-links" id="navLinks">
                     <li><a href="index.php">Home</a></li>
                     <li><a href="spots.html">Spots</a></li>
                     <li><a href="event.php">Events</a></li>
@@ -52,6 +27,11 @@
                     <li><a href="sponsorship.html">Sponsorship</a></li>
                     <li><a href="contactUs.html">Contact Us</a></li>
                 </ul>
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
             </div>
         </nav>
     </header>
@@ -66,65 +46,63 @@
     </section>
 
     <section id="news" class="news-container animate-on-scroll">
-    <h2>News & Announcements</h2>
-    
-    <div class="search-container">
-        <input type="text" id="searchInput" placeholder="Search news title...">
-    </div>
+        <h2>News & Announcements</h2>
+        
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search news title...">
+        </div>
 
-    <div class="news-grid-wrapper">
-        <div class="news-grid" id="newsGrid">
-            <?php
-            $conn = new mysqli("localhost", "root", "", "basf_news");
+        <div class="news-grid-wrapper">
+            <div class="news-grid" id="newsGrid">
+                <?php
+                $conn = new mysqli("localhost", "u142318015_usr_vf0t87O1", "W1xz8gB^", "u142318015_db_vf0t87O1");
 
-            if ($conn->connect_error) {
-                die("Connection failed: " . $conn->connect_error);
-            }
-
-            $sql = "SELECT * FROM news_announcements WHERE status = 'active' ORDER BY publish_date DESC";
-            $result = $conn->query($sql);
-
-            if ($result->num_rows > 0) {
-                while ($row = $result->fetch_assoc()) {
-                    $news_title = $row['news_title'];
-                    $news_content = $row['news_content'];
-                    $publish_date = $row['publish_date'];
-                    $image_path = '';
-
-                    $publish_date_obj = new DateTime($publish_date);
-                    $formatted_publish_date = $publish_date_obj->format('l, F j, Y');
-
-                    $news_id = $row['news_id'];
-                    $image_sql = "SELECT * FROM news_images WHERE news_id = '$news_id' LIMIT 1";
-                    $image_result = $conn->query($image_sql);
-                    if ($image_result->num_rows > 0) {
-                        $image_row = $image_result->fetch_assoc();
-                        $image_path = $image_row['image_path'];
-                    }
-
-                    echo '
-                        <div class="news-item">
-                            <img src="' . $image_path . '" alt="' . $news_title . '">
-                            <div class="news-item-content">
-                                <h3>' . $news_title . '</h3>
-                                    <p class="news-desc">' . substr(strip_tags($news_content), 0, 50) . '...</p>
-                                    <p class="publish-date">' . $formatted_publish_date . '</p>
-                                    <a class="read-more" href="newsPages.php?id=' . $news_id . '">Read More</a>
-                            </div>
-                        </div>';
+                if ($conn->connect_error) {
+                    die("Connection failed: " . $conn->connect_error);
                 }
-            } else {
-                echo '<p>No news available at the moment.</p>';
-            }
-            $conn->close();
-            ?>
-        </div>
 
-        <div class="pagination-container" id="paginationControls">
-        </div>
-    </div>
-</section>
+                $sql = "SELECT * FROM news_announcements WHERE status = 'active' ORDER BY publish_date DESC";
+                $result = $conn->query($sql);
 
+                if ($result->num_rows > 0) {
+                    while ($row = $result->fetch_assoc()) {
+                        $news_title = $row['news_title'];
+                        $news_content = $row['news_content'];
+                        $publish_date = $row['publish_date'];
+                        $image_path = '';
+
+                        $publish_date_obj = new DateTime($publish_date);
+                        $formatted_publish_date = $publish_date_obj->format('l, F j, Y');
+
+                        $news_id = $row['news_id'];
+                        $image_sql = "SELECT * FROM news_images WHERE news_id = '$news_id' LIMIT 1";
+                        $image_result = $conn->query($image_sql);
+                        if ($image_result->num_rows > 0) {
+                            $image_row = $image_result->fetch_assoc();
+                            $image_path = $image_row['image_path'];
+                        }
+
+                        echo '
+                            <div class="news-item">
+                                <img src="' . $image_path . '" alt="' . $news_title . '">
+                                <div class="news-item-content">
+                                    <h3>' . $news_title . '</h3>
+                                        <p class="news-desc">' . substr(strip_tags($news_content), 0, 50) . '...</p>
+                                        <p class="publish-date">' . $formatted_publish_date . '</p>
+                                        <a class="read-more" href="newsPages.php?id=' . $news_id . '">Read More</a>
+                                </div>
+                            </div>';
+                    }
+                } else {
+                    echo '<p>No news available at the moment.</p>';
+                }
+                $conn->close();
+                ?>
+            </div>
+
+            <div class="pagination-container" id="paginationControls">
+            </div>
+        </div>
 
         <div class="advertisement animate-on-scroll">
             <a id="ad-link" href="#" target="_blank">
@@ -326,7 +304,35 @@
             prevBtnLink.appendChild(prevBtn);
             paginationContainer.appendChild(prevBtnLink);
 
-            for (let i = 1; i <= totalPages; i++) {
+            let maxVisible = 4;
+            let startPage = Math.max(1, currentPage - 1);
+            let endPage = startPage + maxVisible - 1;
+
+            if (endPage > totalPages) {
+                endPage = totalPages;
+                startPage = Math.max(1, endPage - maxVisible + 1);
+            }
+
+            if (startPage > 1) {
+                const firstPageLink = document.createElement('a');
+                firstPageLink.href = 'javascript:void(0)';
+                const firstPageBtn = document.createElement('button');
+                firstPageBtn.innerText = '1';
+                firstPageBtn.onclick = () => showPage(1);
+                firstPageLink.appendChild(firstPageBtn);
+                paginationContainer.appendChild(firstPageLink);
+
+                if (startPage > 2) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.innerText = '...';
+                    ellipsis.style.padding = '8px';
+                    ellipsis.style.fontFamily = "'Poppins', sans-serif";
+                    ellipsis.style.fontWeight = "bold";
+                    paginationContainer.appendChild(ellipsis);
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
                 const pageLink = document.createElement('a');
                 pageLink.href = 'javascript:void(0)';
                 
@@ -339,6 +345,25 @@
                 
                 pageLink.appendChild(pageBtn);
                 paginationContainer.appendChild(pageLink);
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.innerText = '...';
+                    ellipsis.style.padding = '8px';
+                    ellipsis.style.fontFamily = "'Poppins', sans-serif";
+                    ellipsis.style.fontWeight = "bold";
+                    paginationContainer.appendChild(ellipsis);
+                }
+                
+                const lastPageLink = document.createElement('a');
+                lastPageLink.href = 'javascript:void(0)';
+                const lastPageBtn = document.createElement('button');
+                lastPageBtn.innerText = totalPages;
+                lastPageBtn.onclick = () => showPage(totalPages);
+                lastPageLink.appendChild(lastPageBtn);
+                paginationContainer.appendChild(lastPageLink);
             }
 
             const nextBtnLink = document.createElement('a');
@@ -378,5 +403,14 @@
         showPage(1);
     });
 </script>
+<script>
+        const hamburger = document.getElementById('hamburger');
+        const navLinks = document.getElementById('navLinks');
+
+        hamburger.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        });
+    </script>
 </body>
 </html>

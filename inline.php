@@ -13,7 +13,7 @@
         <nav class="navbar">
             <img src="images/basflogo.png" alt="BASF Logo" class="logo">
             <div class="nav-center">
-                <ul class="nav-links">
+                <ul class="nav-links" id="navLinks">
                     <li><a href="index.php">Home</a></li>
                     <li><a href="spots.html">Spots</a></li>
                     <li><a href="event.php">Events</a></li>
@@ -21,6 +21,11 @@
                     <li><a href="sponsorship.html">Sponsorship</a></li>
                     <li><a href="contactUs.html">Contact Us</a></li>
                 </ul>
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
             </div>
         </nav>
     </header>
@@ -32,14 +37,9 @@
     </section>
 
     <?php
-    $servername = "localhost";
-    $username = "root";
-    $password = "";
-    $dbname_content = "basf_content";
-    $dbname_events = "basf_events";
 
-    $conn_content = new mysqli($servername, $username, $password, $dbname_content);
-    $conn_events = new mysqli($servername, $username, $password, $dbname_events);
+    $conn_content = new mysqli("localhost", "u142318015_usr_vf0t87O2", "0^Yf>YXE/C", "u142318015_db_vf0t87O3");
+    $conn_events = new mysqli("localhost", "u142318015_usr_vf0t87O1", "W1xz8gB^", "u142318015_db_vf0t87O1");
 
     if ($conn_content->connect_error || $conn_events->connect_error) {
         die("Connection failed: " . ($conn_content->connect_error ?: $conn_events->connect_error));
@@ -251,9 +251,7 @@
                     <div class="content">
                         <h1>' . $row["name"] . '</h1>
                         <p>' . $row["description"] . '</p>
-                        <button class="explore-btn">
-                            <a href="playerPage.php?id=' . $row['id'] . '">Check Athlete</a>
-                        </button>
+                        <a href="playerPage.php?id=' . $row['id'] . '" class="explore-btn">Check Athlete</a>
                     </div>
                   </div>';            
                 }
@@ -618,7 +616,16 @@
         };
         container.appendChild(prevBtn);
 
-        for (let i = 1; i <= totalPages; i++) {
+        let maxVisible = 4;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+        let endPage = startPage + maxVisible - 1;
+
+        if (endPage > totalPages) {
+            endPage = totalPages;
+            startPage = Math.max(1, endPage - maxVisible + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
             const btn = document.createElement('button');
             btn.innerText = i;
             if (i === currentPage) btn.classList.add('active');
@@ -701,7 +708,16 @@
             };
             paginationContainer.appendChild(prevBtn);
 
-            for (let i = 1; i <= totalPages; i++) {
+            let maxVisible = 4;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+            let endPage = startPage + maxVisible - 1;
+
+            if (endPage > totalPages) {
+                endPage = totalPages;
+                startPage = Math.max(1, endPage - maxVisible + 1);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
                 const btn = document.createElement('button');
                 btn.innerText = i;
                 if (i === currentPage) btn.classList.add('active');
@@ -729,5 +745,14 @@
         calculateLayout();
     });
 </script>
+<script>
+        const hamburger = document.getElementById('hamburger');
+        const navLinks = document.getElementById('navLinks');
+
+        hamburger.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        });
+    </script>
 </body>
 </html>

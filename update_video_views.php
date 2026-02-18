@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// Validate input
 if (!isset($_POST['id']) || !isset($_POST['source'])) {
     echo "Invalid request";
     exit;
@@ -10,11 +9,22 @@ if (!isset($_POST['id']) || !isset($_POST['source'])) {
 $videoId = (int) $_POST['id'];
 $source = $_POST['source'];
 
-// Mapping of source to database
 $allowedSources = [
-    'bmx' => 'basf_content_bmx',
-    'inline' => 'basf_content',
-    'skateboard' => 'basf_content_skateboard'
+    'bmx' => [
+        'dbname' => 'u142318015_db_vf0t87O5',
+        'username' => 'u142318015_usr_vf0t87O4',
+        'password' => 'dmBI2c5QdB4*'
+    ],
+    'inline' => [
+        'dbname' => 'u142318015_db_vf0t87O3',
+        'username' => 'u142318015_usr_vf0t87O2',
+        'password' => '0^Yf>YXE/C'
+    ],
+    'skateboard' => [
+        'dbname' => 'u142318015_db_vf0t87O7',
+        'username' => 'u142318015_usr_vf0t87O6',
+        'password' => 'B^vC=ErJ@7'
+    ]
 ];
 
 if (!isset($allowedSources[$source]) || $videoId <= 0) {
@@ -22,19 +32,19 @@ if (!isset($allowedSources[$source]) || $videoId <= 0) {
     exit;
 }
 
-$dbname = $allowedSources[$source];
+$dbConfig = $allowedSources[$source];
 $servername = "localhost";
-$username = "root";
-$password = "";
+$dbname = $dbConfig['dbname'];
+$username = $dbConfig['username'];
+$password = $dbConfig['password'];
 
-// Connect
 $conn = new mysqli($servername, $username, $password, $dbname);
+
 if ($conn->connect_error) {
     echo "Connection failed";
     exit;
 }
 
-// Check and update views per session
 $sessionKey = 'viewed_' . $source;
 
 if (!isset($_SESSION[$sessionKey])) {
@@ -46,8 +56,8 @@ if (!in_array($videoId, $_SESSION[$sessionKey])) {
     $_SESSION[$sessionKey][] = $videoId;
 }
 
-// Fetch updated view count
 $result = $conn->query("SELECT views FROM highlight_carousel WHERE id = $videoId");
+
 if ($row = $result->fetch_assoc()) {
     echo $row['views'];
 } else {

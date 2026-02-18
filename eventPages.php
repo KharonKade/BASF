@@ -9,9 +9,9 @@ if (isset($_SERVER['HTTP_REFERER'])) {
 }
 
 $servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "basf_events";
+$username = "u142318015_usr_vf0t87O1";
+$password = "W1xz8gB^";
+$dbname = "u142318015_db_vf0t87O1";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
   
@@ -97,77 +97,13 @@ if ($event_id > 0) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-    <style>
-        * { font-family: 'Poppins', sans-serif; }
-        
-        .waiver-box {
-            max-height: 200px;
-            overflow-y: auto;
-            background: #f4f4f4;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            font-size: 0.9rem;
-            color: #333;
-            text-align: left;
-        }
-
-        .waiver-checkbox-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-            font-size: 0.95rem;
-        }
-
-        .waiver-checkbox-container input {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-
-        .next-btn {
-            background: linear-gradient(90deg, #25523B, #358856);
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            width: 100%;
-        }
-
-        .next-btn:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-
-        .step-container {
-            display: none;
-        }
-
-        .step-container.active {
-            display: block;
-        }
-
-        .fee-display {
-            background: #e8f6f3;
-            color: #0e6655;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            text-align: center;
-            font-weight: 600;
-        }
-    </style>
 </head>
 <body>
     <header>
         <nav class="navbar">
             <img src="images/basflogo.png" alt="BASF Logo" class="logo">
             <div class="nav-center">
-                <ul class="nav-links">
+                <ul class="nav-links" id="navLinks">
                     <li><a href="index.php">Home</a></li>
                     <li><a href="spots.html">Spots</a></li>
                     <li><a href="event.php">Events</a></li>
@@ -175,6 +111,11 @@ if ($event_id > 0) {
                     <li><a href="sponsorship.html">Sponsorship</a></li>
                     <li><a href="contactUs.html">Contact Us</a></li>
                 </ul>
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
             </div>
         </nav>
     </header>
@@ -229,7 +170,7 @@ if ($event_id > 0) {
                         </a>
                         <a href="#" onclick="shareTo('twitter')" class="share-option">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                             X (Twitter)
+                            X (Twitter)
                         </a>
                         <a href="#" onclick="shareTo('copy')" class="share-option">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
@@ -706,7 +647,7 @@ if ($event_id > 0) {
 
     function closeTokenSuccessModal() {
         document.getElementById('tokenSuccessModal').style.display = 'none';
-        window.location.href = window.location.pathname + "?id=<?php echo $event_id; ?>";
+        window.location.href = "eventPages.php?id=<?php echo $event_id; ?>";
     }
 
     function copyGeneratedToken() {
@@ -799,6 +740,15 @@ if ($event_id > 0) {
             }
         });
         </script>
+        <script>
+        const hamburger = document.getElementById('hamburger');
+        const navLinks = document.getElementById('navLinks');
+
+        hamburger.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        });
+    </script>
 </body>
 </html>
 <?php $conn->close(); ?>

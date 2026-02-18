@@ -7,9 +7,9 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
 }
 
 $host = "localhost";
-$username = "root";
-$password = "";
-$database = "basf_gallery";
+$username = "u142318015_usr_vf0t87O1";
+$password = "W1xz8gB^";
+$database = "u142318015_db_vf0t87O1";
 
 $conn = new mysqli($host, $username, $password, $database);
 if ($conn->connect_error) {
@@ -26,82 +26,38 @@ $result = $conn->query($sql);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Gallery</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="Css/admin_gallery.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-        }
-
-        .filter-action-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .search-filters {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .search-filters input[type="text"] {
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        .btn-search {
-            padding: 12px 12px;
-            background: #333;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        .right-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn-export {
-            background-color: #27ae60;
-            color: #fff;
-        }
-
-        .btn-export:hover {
-            background-color: #219150;
-            color: #fff;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="Css/admin_gallery.css?v=1.1">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-<div class="admin-container">
-        <nav class="sidebar">
+    <div class="admin-container">
+        
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <nav class="sidebar" id="sidebar">
+            <button class="close-sidebar" id="closeSidebar"><i class="fas fa-times"></i></button>
             <h2>Admin Dashboard</h2>
             <ul>
                 <li><a href="admin.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="manage_upcoming.php"><i class="fas fa-calendar-check"></i>Events</a></li>
-                <li><a href="manage_news.php"><i class="fas fa-edit"></i>News & Announcements</a></li>
-                <li><a href="admin_gallery.php"><i class="fas fa-images"></i>Gallery Page</a></li>
-                <li><a href="editInlinePage.php"><i class="fas fa-skating"></i>Inline Page</a></li>
-                <li><a href="editBmxPage.php"><i class="fas fa-bicycle"></i>BMX Page</a></li>
-                <li><a href="editSkateboardPage.php"><i class="fas fa-snowboarding"></i>Skateboard Page</a></li>
+                <li><a href="manage_upcoming.php"><i class="fas fa-calendar-check"></i> Events</a></li>
+                <li><a href="manage_news.php"><i class="fas fa-edit"></i> News & Announcements</a></li>
+                <li><a href="admin_gallery.php"><i class="fas fa-images"></i> Gallery Page</a></li>
+                <li><a href="editInlinePage.php"><i class="fas fa-skating"></i> Inline Page</a></li>
+                <li><a href="editBmxPage.php"><i class="fas fa-bicycle"></i> BMX Page</a></li>
+                <li><a href="editSkateboardPage.php"><i class="fas fa-snowboarding"></i> Skateboard Page</a></li>
                 <li><a href="view_inquiries.php"><i class="fas fa-question-circle"></i> Inquiries</a></li>
                 <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </nav>
 
         <main class="content">
-            <h2>Manage Gallery</h2>
+            <div class="top-header">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                <h2>Manage Gallery</h2>
+            </div>
             
             <div class="filter-action-container">
                 <div class="search-filters">
@@ -110,7 +66,7 @@ $result = $conn->query($sql);
                 </div>
                 
                 <div class="right-actions">
-                    <a href="export_gallery.php" class="btn btn btn-export">
+                    <a href="export_gallery.php" class="btn btn-export">
                         <i class="fas fa-file-csv"></i> Export CSV
                     </a>
                     <a href="add_gallery.php" class="btn btn-primary">
@@ -119,49 +75,65 @@ $result = $conn->query($sql);
                 </div>
             </div>
 
-            <table border="1">
-                <thead>
-                    <tr>
-                        <th class="col-thumb">Thumbnail</th>
-                        <th class="col-title">Title</th>
-                        <th class="col-desc">Description</th>
-                        <th class="col-actions">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="gallery_table_body">
-                <?php while ($row = $result->fetch_assoc()): ?>
-                <tr>
-                    <td><img src="<?php echo 'images/uploads/' . basename($row['thumbnail']); ?>" width="100"></td>
-                    <td>
-                        <div class="text-limit" title="<?php echo htmlspecialchars($row['title']); ?>">
-                            <?php echo $row['title']; ?>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="text-limit" title="<?php echo htmlspecialchars($row['description']); ?>">
-                            <?php echo $row['description']; ?> 
-                        </div>
-                    </td>
-                    <td>
-                        <a href="view_gallery.php?id=<?php echo $row['id']; ?>" title="View">
-                            <i class="fas fa-eye"></i>
-                        </a> |
-                        <a href="edit_gallery.php?id=<?php echo $row['id']; ?>" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </a> |
-                        <a href="javascript:void(0);" onclick="confirmDelete(<?php echo $row['id']; ?>)" title="Delete">
-                            <i class="fas fa-trash"></i>
-                        </a>
-                    </td>
-                </tr>
-                <?php endwhile; ?>
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-thumb">Thumbnail</th>
+                            <th class="col-title">Title</th>
+                            <th class="col-desc">Description</th>
+                            <th class="col-actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gallery_table_body">
+                    <?php while ($row = $result->fetch_assoc()): ?>
+                        <tr>
+                            <td><img src="<?php echo 'images/uploads/' . basename($row['thumbnail']); ?>" width="100"></td>
+                            <td>
+                                <div class="text-limit" title="<?php echo htmlspecialchars($row['title']); ?>">
+                                    <?php echo htmlspecialchars($row['title']); ?>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="text-limit" title="<?php echo htmlspecialchars($row['description']); ?>">
+                                    <?php echo htmlspecialchars($row['description']); ?> 
+                                </div>
+                            </td>
+                            <td>
+                                <a href="view_gallery.php?id=<?php echo $row['id']; ?>" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a> |
+                                <a href="edit_gallery.php?id=<?php echo $row['id']; ?>" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a> |
+                                <a href="javascript:void(0);" onclick="confirmDelete(<?php echo $row['id']; ?>)" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    <?php endwhile; ?>
+                    </tbody>
+                </table>
+            </div>
         </main>
-</div>
+    </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+    document.getElementById('menuToggle').addEventListener('click', function() {
+        document.getElementById('sidebar').classList.add('active');
+        document.getElementById('sidebarOverlay').classList.add('active');
+    });
+
+    document.getElementById('closeSidebar').addEventListener('click', function() {
+        document.getElementById('sidebar').classList.remove('active');
+        document.getElementById('sidebarOverlay').classList.remove('active');
+    });
+
+    document.getElementById('sidebarOverlay').addEventListener('click', function() {
+        document.getElementById('sidebar').classList.remove('active');
+        this.classList.remove('active');
+    });
+
     $(document).ready(function(){
         $("#live_search").on("keyup", function(){
             var input = $(this).val();
@@ -176,9 +148,7 @@ $result = $conn->query($sql);
             });
         });
     });
-</script>
 
-<script>
     function confirmDelete(id) {
         Swal.fire({
             title: 'Permanently Delete?',
@@ -187,8 +157,7 @@ $result = $conn->query($sql);
             showCancelButton: true,
             confirmButtonColor: '#d33',
             cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-            font: 'Poppins'
+            confirmButtonText: 'Yes, delete it!'
         }).then((result) => {
             if (result.isConfirmed) {
                 window.location.href = 'delete_gallery.php?id=' + id;

@@ -1,15 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
 
-body {
+html, body {
     margin: 0;
+    padding: 0;
     font-family: 'Poppins', sans-serif;
     background-color: #f5f7fa;
     color: #333;
+    overflow-x: hidden;
+    width: 100%;
 }
 
 .admin-container {
     display: flex;
     min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
 }
 
 .sidebar {
@@ -24,6 +29,20 @@ body {
     position: fixed;
     height: 100%;
     overflow-y: auto;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+}
+
+.close-sidebar {
+    display: none !important;
+    background: none;
+    border: none;
+    color: #ecf0f1;
+    font-size: 1.5rem;
+    text-align: right;
+    cursor: pointer;
 }
 
 .sidebar i {
@@ -63,26 +82,61 @@ body {
     background: #34495e;
 }
 
-.main-content {
-    margin-left: 290px;
-    flex-grow: 1;
-    padding: 20px;
-    background-image: url('../images/adminbg2.png');
-    background-size: cover;
-    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
-    overflow-y: auto;
-    min-height: 100vh;
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
-.content-wrapper {
-    margin-top: 20px;
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+.content {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    flex-grow: 1;
+    padding: 40px 40px 40px 60px;
+    background-image: url('../images/adminbg2.png');
+    background-size: cover;
+    background-position: center;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+.top-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.menu-toggle {
+    display: none !important;
+    background: #2c3e50;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    font-size: 1.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 20px;
 }
 
 .content-wrapper h2 {
     font-size: 26px;
     color: #1e293b;
+    margin-top: 0;
     margin-bottom: 20px;
-    text-align: start;
+    text-align: left;
 }
 
 .filter-action-container {
@@ -94,9 +148,33 @@ body {
     gap: 15px;
 }
 
+.search-filters {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.search-filters input[type="text"] {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: 'Poppins', sans-serif;
+    width: 250px;
+}
+
+.search-filters select {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+}
+
 .action-buttons {
     display: flex;
     gap: 10px;
+    flex-wrap: wrap;
 }
 
 .btn {
@@ -108,6 +186,7 @@ body {
     font-size: 14px;
     transition: background-color 0.3s;
     font-weight: 500;
+    font-family: 'Poppins', sans-serif;
 }
 
 .btn i {
@@ -123,58 +202,20 @@ body {
     background-color: #7f8c8d;
 }
 
- .filter-action-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .search-filters {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .search-filters input[type="text"] {
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-family: 'Poppins', sans-serif;
-            width: 250px;
-        }
-
-        .search-filters select {
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        .btn-search {
-            padding: 12px 12px;
-            background: #333;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        .action-buttons .btn {
-            font-family: 'Poppins', sans-serif;
-        }
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    background-color: #fff;
+    margin-bottom: 20px;
+}
 
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    background-color: #fff;
-    border-radius: 8px;
-    overflow: hidden;
+    min-width: 900px;
 }
 
 table thead {
@@ -182,10 +223,8 @@ table thead {
     color: #fff;
 }
 
-table th,
-table td {
+table th, table td {
     padding: 12px 15px;
-    text-align: left;
     border-bottom: 1px solid #e2e8f0;
     text-align: center;
 }
@@ -193,6 +232,7 @@ table td {
 table th {
     font-size: 14px;
     text-transform: uppercase;
+    white-space: nowrap;
 }
 
 table tbody tr:hover {
@@ -215,36 +255,51 @@ table td a:hover {
     color: #ff4500;
 }
 
-form {
-    margin-bottom: 0;
-}
+@media (max-width: 992px) {
+    .menu-toggle {
+        display: inline-block !important;
+    }
 
-select {
-    padding: 10px;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    width: auto;
-    min-width: 150px;
-    background-color: white;
-    cursor: pointer;
+    .sidebar {
+        transform: translateX(-100%);
+        width: 260px;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    .close-sidebar {
+        display: block !important;
+    }
+
+    .content {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px;
+    }
 }
 
 @media (max-width: 768px) {
-    .sidebar {
-        width: 200px;
-    }
-
-    .main-content {
-        padding: 15px;
-    }
-
-    table {
-        font-size: 14px;
-    }
-
     .filter-action-container {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .search-filters {
+        width: 100%;
+    }
+
+    .search-filters input[type="text"], .search-filters select, #filterForm {
+        width: 100%;
+    }
+
+    .action-buttons {
+        width: 100%;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
     }
 }

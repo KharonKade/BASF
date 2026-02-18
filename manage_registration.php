@@ -1,8 +1,8 @@
 <?php
 $servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "basf_events";
+$username = "u142318015_usr_vf0t87O1";
+$password = "W1xz8gB^";
+$dbname = "u142318015_db_vf0t87O1";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
@@ -79,7 +79,7 @@ $conn->close();
                         <tbody>
                             <tr>
                                 <td data-label="Name"><?= htmlspecialchars($registration['name']); ?></td>
-                                <td data-label="Email"><?= htmlspecialchars($registration['email']); ?></td>
+                                <td data-label="Email" style="word-break: break-all;"><?= htmlspecialchars($registration['email']); ?></td>
                                 <td data-label="Phone"><?= htmlspecialchars($registration['phone']); ?></td>
                                 <td data-label="Age"><?= htmlspecialchars($registration['age']); ?></td>
                                 <td data-label="Gender"><?= htmlspecialchars($registration['gender']); ?></td>

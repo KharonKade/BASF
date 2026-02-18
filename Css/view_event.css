@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
 :root {
     --primary: #4f46e5;
     --secondary: #64748b;
@@ -8,20 +10,143 @@
     --success: #22c55e;
     --danger: #ef4444;
     --accent: #f1f5f9;
+    --font-poppins: 'Poppins', sans-serif;
 }
 
-body {
-    font-family: 'Poppins', sans-serif;
-    background-image: url('../images/adminbg2.png');
-    background-size: 100% auto;
+html, body {
     margin: 0;
+    padding: 0;
+    font-family: var(--font-poppins);
+    background-color: #f5f7fa;
     color: var(--dark);
+    overflow-x: hidden;
+    width: 100%;
+}
+
+.admin-container {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+.sidebar {
+    width: 250px;
+    background: #2c3e50;
+    color: #ecf0f1;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: fixed;
+    height: 100%;
+    overflow-y: auto;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+}
+
+.close-sidebar {
+    display: none !important;
+    background: none;
+    border: none;
+    color: #ecf0f1;
+    font-size: 1.5rem;
+    text-align: right;
+    cursor: pointer;
+}
+
+.sidebar i {
+    margin-right: 10px;
+}
+
+.sidebar h2 {
+    text-align: center;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar ul li {
+    margin: 15px 0;
+}
+
+.sidebar ul li a {
+    text-decoration: none;
+    color: #ecf0f1;
+    padding: 10px 15px;
+    display: block;
+    border-radius: 5px;
+    transition: background 0.3s;
+    position: relative;
+    overflow-wrap: break-word;
+    padding-left: 45px;
+    text-indent: -15px;
+}
+
+.sidebar ul li a:hover {
+    background: #34495e;
+}
+
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+.content {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    flex-grow: 1;
+    padding: 40px 40px 40px 60px; 
+    background-image: url('../images/adminbg2.png');
+    background-size: cover;
+    background-position: center;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+.top-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.menu-toggle {
+    display: none !important;
+    background: #2c3e50;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    font-size: 1.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 20px;
 }
 
 .admin-wrapper {
     max-width: 1300px;
-    margin: 40px auto;
-    padding: 0 20px;
+    margin: 0 auto;
 }
 
 .page-header {
@@ -99,6 +224,8 @@ body {
 
 .status-pill.enabled { background: #dcfce7; color: #166534; }
 .status-pill.disabled { background: #fee2e2; color: #991b1b; }
+.status-pill.paid { background-color: #e6fffa; color: #2c7a7b; font-weight: 500; }
+.status-pill.pending { background-color: #fffaf0; color: #9c4221; font-weight: 500; }
 
 .description-box {
     margin-top: 25px;
@@ -171,6 +298,8 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
 .table-header h3 {
@@ -183,13 +312,14 @@ body {
     display: flex;
     gap: 10px;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 #nameSearch {
     padding: 8px 12px;
     border-radius: 6px;
     border: 1px solid var(--border);
-    font-family: 'Poppins';
+    font-family: var(--font-poppins);
     outline: none;
     width: 250px;
 }
@@ -200,7 +330,7 @@ body {
     border: none;
     padding: 8px 16px;
     border-radius: 6px;
-    font-family: 'Poppins';
+    font-family: var(--font-poppins);
     cursor: pointer;
     font-weight: 500;
     transition: 0.2s;
@@ -211,12 +341,15 @@ body {
 }
 
 .table-responsive {
+    width: 100%;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 800px;
 }
 
 th {
@@ -226,6 +359,7 @@ th {
     font-size: 0.85rem;
     font-weight: 600;
     padding: 12px 15px;
+    white-space: nowrap;
 }
 
 td {
@@ -253,7 +387,7 @@ tr:hover td {
     border: 1px solid var(--border);
     padding: 10px 20px;
     border-radius: 8px;
-    font-family: 'Poppins';
+    font-family: var(--font-poppins);
     cursor: pointer;
     font-weight: 500;
     transition: 0.2s;
@@ -268,7 +402,7 @@ select {
     padding: 8px 12px;
     border-radius: 6px;
     border: 1px solid var(--border);
-    font-family: 'Poppins';
+    font-family: var(--font-poppins);
     outline: none;
 }
 
@@ -280,34 +414,48 @@ select {
 }
 
 @media (max-width: 992px) {
+    .menu-toggle {
+        display: inline-block !important;
+    }
+
+    .sidebar {
+        transform: translateX(-100%);
+        width: 260px;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    .close-sidebar {
+        display: block !important;
+    }
+
+    .content {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px;
+    }
+
     .dashboard-grid, .media-grid {
         grid-template-columns: 1fr;
     }
-    
+}
+
+@media (max-width: 768px) {
     .filter-controls {
         flex-direction: column;
         align-items: stretch;
-    }
-    
-    #nameSearch {
         width: 100%;
     }
-}
+    
+    #nameSearch, select, .btn-export {
+        width: 100%;
+    }
 
-.status-pill.paid {
-    background-color: #e6fffa;
-    color: #2c7a7b;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 500;
-}
-
-.status-pill.pending {
-    background-color: #fffaf0;
-    color: #9c4221;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 500;
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
 }

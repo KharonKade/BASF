@@ -1,8 +1,8 @@
 <?php
 $servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "basf_content";
+$username = "u142318015_usr_vf0t87O2";
+$password = "0^Yf>YXE/C";
+$dbname = "u142318015_db_vf0t87O3";
 $conn = new mysqli($servername, $username, $password, $dbname);
 
 if ($conn->connect_error) {

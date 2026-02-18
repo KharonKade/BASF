@@ -1,8 +1,8 @@
 <?php
 $servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "basf_news";
+$username = "u142318015_usr_vf0t87O1";
+$password = "W1xz8gB^";
+$dbname = "u142318015_db_vf0t87O1";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
@@ -59,7 +59,7 @@ if ($news_id > 0) {
         <nav class="navbar">
             <img src="images/basflogo.png" alt="BASF Logo" class="logo">
             <div class="nav-center">
-                <ul class="nav-links">
+                <ul class="nav-links" id="navLinks">
                     <li><a href="index.php">Home</a></li>
                     <li><a href="spots.html">Spots</a></li>
                     <li><a href="event.php">Events</a></li>
@@ -67,6 +67,11 @@ if ($news_id > 0) {
                     <li><a href="sponsorship.html">Sponsorship</a></li>
                     <li><a href="contactUs.html">Contact Us</a></li>
                 </ul>
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
             </div>
         </nav>
     </header>
@@ -334,8 +339,16 @@ if ($news_id > 0) {
         document.getElementById('shareDropdown').classList.remove('show');
     }
 </script>
-</body>
+<script>
+        const hamburger = document.getElementById('hamburger');
+        const navLinks = document.getElementById('navLinks');
 
+        hamburger.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        });
+    </script>
+</body>
 </html>
 
 <?php

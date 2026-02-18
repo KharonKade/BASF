@@ -6,7 +6,7 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
     exit();
 }
 
-$conn = new mysqli("localhost", "root", "", "basf_news");
+$conn = new mysqli("localhost", "u142318015_usr_vf0t87O1", "W1xz8gB^", "u142318015_db_vf0t87O1");
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }

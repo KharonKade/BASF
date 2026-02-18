@@ -72,7 +72,7 @@ body {
     border-collapse: collapse;
     margin: 0;
     font-size: 0.95rem;
-    min-width: 800px;
+    min-width: 800px; /* Forces scroll on medium screens if not stacking */
 }
 
 .styled-table thead tr {
@@ -133,6 +133,9 @@ body {
     border-radius: 50%;
     transition: all 0.3s ease;
     text-decoration: none;
+    cursor: pointer;
+    border: none;
+    font-size: 1rem;
 }
 
 .btn-icon.edit {
@@ -149,7 +152,6 @@ body {
 .btn-icon.delete {
     color: var(--danger-color);
     background-color: rgba(239, 71, 111, 0.1);
-    border: none;
 }
 
 .btn-icon.delete:hover {
@@ -208,61 +210,114 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-@media (max-width: 768px) {
+/* --- Responsive Design --- */
+
+@media (max-width: 900px) {
     .registration-card {
         margin: 10px;
     }
-
+    
     .table-responsive {
         padding: 0;
     }
 
-    .styled-table {
-        min-width: 100%;
+    /* Force table to act like a list of cards */
+    .styled-table, .styled-table tbody, .styled-table tr, .styled-table td {
         display: block;
+        width: 100%;
+        min-width: unset; /* Remove the min-width that forces scroll */
     }
 
     .styled-table thead {
-        display: none;
-    }
-
-    .styled-table tbody, 
-    .styled-table tr, 
-    .styled-table td {
-        display: block;
-        width: 100%;
+        display: none; /* Hide standard table headers */
     }
 
     .styled-table tr {
-        margin-bottom: 15px;
+        margin-bottom: 20px;
+        background-color: #fff;
         border-bottom: 2px solid #e9ecef;
-        padding: 15px;
     }
 
     .styled-table td {
         text-align: right;
-        padding: 10px 0;
+        padding: 12px 20px;
         position: relative;
-        border: none;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        border-bottom: 1px solid #f0f0f0;
     }
 
+    /* Create labels from data attributes */
     .styled-table td::before {
         content: attr(data-label);
-        float: left;
         font-weight: 700;
         text-transform: uppercase;
         color: var(--text-light);
         font-size: 0.8rem;
+        margin-right: 20px;
+        text-align: left;
+        flex-shrink: 0; /* Prevents label from squishing */
+    }
+
+    .styled-table td:last-child {
+        border-bottom: 0;
+        justify-content: flex-end; /* Align buttons to right */
+        padding-top: 20px;
+        padding-bottom: 20px;
+    }
+    
+    /* Handle long text like emails */
+    .styled-table td[data-label="Email"] {
+        align-items: flex-start; /* Align to top if text wraps */
+    }
+    
+    .styled-table td[data-label="Email"]::before {
+        margin-top: 2px; /* Visual adjustment for alignment */
+    }
+
+    /* Make buttons larger on mobile for touch */
+    .btn-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 1.2rem;
     }
 
     .card-footer {
         justify-content: center;
+        padding: 20px;
     }
 
-    .action-cells {
+    .return-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .card-header {
+        padding: 15px 20px;
+    }
+
+    .card-header h3 {
+        font-size: 1.2rem;
+    }
+
+    .styled-table td {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+        gap: 5px;
+    }
+
+    .styled-table td::before {
+        margin-bottom: 2px;
+        color: var(--primary-color);
+        font-size: 0.75rem;
+    }
+
+    .styled-table td:last-child {
+        flex-direction: row;
         justify-content: flex-end;
     }
 }

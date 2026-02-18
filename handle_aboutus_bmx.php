@@ -1,8 +1,8 @@
 <?php
 $servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "basf_content_bmx";
+$username = "u142318015_usr_vf0t87O4";
+$password = "dmBI2c5QdB4*";
+$dbname = "u142318015_db_vf0t87O5";
 $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
 if ($_SERVER["REQUEST_METHOD"] == "POST") {

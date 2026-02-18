@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
 :root {
     --primary: #3498db;
     --primary-hover: #2980b9;
@@ -10,32 +12,54 @@
     --font-poppins: 'Poppins', sans-serif;
 }
 
-body {
-    font-family: var(--font-poppins);
+html, body {
     margin: 0;
     padding: 0;
-    background: #f1f5f9;
+    box-sizing: border-box;
+    font-family: var(--font-poppins);
+    background-color: #f1f5f9;
     color: var(--dark);
+    overflow-x: hidden;
+    width: 100%;
+}
+
+*, *::before, *::after {
+    box-sizing: inherit;
 }
 
 .admin-container {
     display: flex;
     min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
 }
 
-/* Sidebar Styles (Consistent across pages) */
+/* Sidebar hidden completely on desktop */
 .sidebar {
-    width: 250px;
+    display: none;
     background: #2c3e50;
     color: #ecf0f1;
     padding: 20px;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-    display: flex;
     flex-direction: column;
     gap: 20px;
     position: fixed;
     height: 100%;
     overflow-y: auto;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+}
+
+.close-sidebar {
+    display: none !important;
+    background: none;
+    border: none;
+    color: #ecf0f1;
+    font-size: 1.5rem;
+    text-align: right;
+    cursor: pointer;
 }
 
 .sidebar i {
@@ -75,20 +99,59 @@ body {
     background: #34495e;
 }
 
-/* Content Area */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* Content takes full width on desktop */
 .content {
+    margin-left: 0;
+    width: 100%;
     flex-grow: 1;
-    margin-left: 260px;
+    padding: 40px;
     background-image: url('../images/adminbg2.png');
     background-size: cover;
+    background-position: center;
     min-height: 100vh;
     padding-bottom: 50px;
+    box-sizing: border-box;
+}
+
+.top-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.menu-toggle {
+    display: none !important;
+    background: #2c3e50;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    font-size: 1.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 20px;
 }
 
 .admin-wrapper {
     max-width: 950px;
-    margin: 40px auto;
-    padding: 0 30px;
+    margin: 0 auto;
 }
 
 .page-header {
@@ -109,7 +172,6 @@ body {
     margin: 0;
 }
 
-/* Form Styles */
 .main-form {
     display: flex;
     flex-direction: column;
@@ -184,7 +246,6 @@ textarea {
     resize: vertical;
 }
 
-/* Media Upload Styles */
 .media-section {
     margin-bottom: 25px;
 }
@@ -250,7 +311,6 @@ textarea {
     font-weight: 500;
 }
 
-/* Action Buttons */
 .form-actions {
     display: flex;
     gap: 15px;
@@ -299,33 +359,32 @@ textarea {
     color: var(--dark);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .admin-container {
-        flex-direction: column;
-    }
-
+@media (max-width: 992px) {
+    /* Show sidebar and hamburger on mobile/tablet */
     .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-        flex-direction: row;
-        overflow-x: auto;
-        padding: 10px;
-        justify-content: space-between;
+        display: flex; 
+        transform: translateX(-100%);
+        width: 260px;
     }
-    
-    .sidebar h2 { display: none; }
-    
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    .menu-toggle {
+        display: inline-block !important;
+    }
+
+    .close-sidebar {
+        display: block !important;
+    }
+
     .content {
-        margin-left: 0;
-        padding: 20px 0;
+        padding: 20px;
     }
+}
 
-    .admin-wrapper {
-        padding: 0 15px;
-    }
-
+@media (max-width: 768px) {
     .form-actions {
         flex-direction: column-reverse;
     }

@@ -1,5 +1,5 @@
 <?php
-$conn = new mysqli("localhost", "root", "", "basf_news");
+$conn = new mysqli("localhost", "u142318015_usr_vf0t87O1", "W1xz8gB^", "u142318015_db_vf0t87O1");
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
 
-        if (!empty($_FILES['image']['tmp_name'])) {
+        if (!empty($_FILES['image']['tmp_name']) && $_FILES['image']['error'][0] != UPLOAD_ERR_NO_FILE) {
             $upload_dir = "images/uploads/";
             if (!is_dir($upload_dir)) {
                 mkdir($upload_dir, 0777, true);
@@ -142,102 +142,142 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit News & Announcements</title>
-    <link rel="stylesheet" href="Css/edit_news.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="Css/edit_news.css?v=1.1">
     <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
 </head>
 <body>
-    <div class="admin-wrapper">
-    <div class="page-header">
-        <h2>Edit News & Announcements</h2>
-        <p>Update news content, categorize entries, and manage media.</p>
+
+    <div class="admin-container">
+        
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <nav class="sidebar" id="sidebar">
+            <button class="close-sidebar" id="closeSidebar"><i class="fas fa-times"></i></button>
+            <h2>Admin Dashboard</h2>
+            <ul>
+                <li><a href="admin.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="manage_upcoming.php"><i class="fas fa-calendar-check"></i> Events</a></li>
+                <li><a href="manage_news.php"><i class="fas fa-edit"></i> News & Announcements</a></li>
+                <li><a href="admin_gallery.php"><i class="fas fa-images"></i> Gallery Page</a></li>
+                <li><a href="editInlinePage.php"><i class="fas fa-skating"></i> Inline Page</a></li>
+                <li><a href="editBmxPage.php"><i class="fas fa-bicycle"></i> BMX Page</a></li>
+                <li><a href="editSkateboardPage.php"><i class="fas fa-snowboarding"></i> Skateboard Page</a></li>
+                <li><a href="view_inquiries.php"><i class="fas fa-question-circle"></i> Inquiries</a></li>
+                <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </nav>
+
+        <main class="content">
+            <div class="top-header">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+            </div>
+
+            <div class="admin-wrapper">
+                <div class="page-header">
+                    <h2>Edit News & Announcements</h2>
+                    <p>Update news content, categorize entries, and manage media.</p>
+                </div>
+
+                <form action="edit_news.php?id=<?php echo $news_id; ?>" method="POST" enctype="multipart/form-data" class="main-form">
+                    
+                    <div class="form-card">
+                        <div class="card-header">
+                            <h3>News Details</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="news_title">News Title</label>
+                                <input type="text" id="news_title" name="news_title" value="<?php echo htmlspecialchars($news['news_title']); ?>" placeholder="Enter headline" required>
+                            </div>
+
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="category">Category</label>
+                                    <div class="select-wrapper">
+                                        <select id="category" name="category">
+                                            <option value="All" <?php echo ($news['category'] == 'All') ? 'selected' : ''; ?>>All</option>
+                                            <option value="Skateboard" <?php echo ($news['category'] == 'Skateboard') ? 'selected' : ''; ?>>Skateboard</option>
+                                            <option value="Inline" <?php echo ($news['category'] == 'Inline') ? 'selected' : ''; ?>>Inline</option>
+                                            <option value="BMX" <?php echo ($news['category'] == 'BMX') ? 'selected' : ''; ?>>BMX</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="news_date">Publish Date</label>
+                                    <input type="date" id="news_date" name="news_date" value="<?php echo htmlspecialchars($news['publish_date']); ?>" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-card">
+                        <div class="card-header">
+                            <h3>Content</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <textarea id="description" name="description"><?php echo htmlspecialchars($news['news_content']); ?></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-card">
+                        <div class="card-header">
+                            <h3>Media Gallery</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="media-section">
+                                <h4>Existing Images</h4>
+                                <?php if (!empty($images)): ?>
+                                <div class="image-grid">
+                                    <?php foreach ($images as $image): ?>
+                                    <div class="media-item">
+                                        <img src="<?php echo htmlspecialchars($image['image_path']); ?>" alt="News Image">
+                                        <input type="hidden" name="existing_images[]" value="<?php echo htmlspecialchars($image['image_id']); ?>">
+                                        <button type="button" class="btn-overlay-remove" onclick="removeElement(this)">REMOVE</button>
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                                <?php else: ?>
+                                    <p class="no-data">No images uploaded yet.</p>
+                                <?php endif; ?>
+                                
+                                <div class="upload-box">
+                                    <label for="image">Upload New Images</label>
+                                    <input type="file" id="image" name="image[]" multiple class="file-input">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary-large" style="margin-right: 15px;" onclick="window.location.href='manage_news.php';">Cancel</button>
+                        <button type="submit" class="btn-primary-large">Update News</button>
+                    </div>
+                </form>
+            </div>
+        </main>
     </div>
 
-    <form action="edit_news.php?id=<?php echo $news_id; ?>" method="POST" enctype="multipart/form-data" class="main-form">
-        
-        <div class="form-card">
-            <div class="card-header">
-                <h3>News Details</h3>
-            </div>
-            <div class="card-body">
-                <div class="form-group">
-                    <label for="news_title">News Title</label>
-                    <input type="text" id="news_title" name="news_title" value="<?php echo $news['news_title']; ?>" placeholder="Enter headline" required>
-                </div>
-
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="category">Category</label>
-                        <div class="select-wrapper">
-                            <select id="category" name="category">
-                                <option value="All" <?php echo ($news['category'] == 'All') ? 'selected' : ''; ?>>All</option>
-                                <option value="Skateboard" <?php echo ($news['category'] == 'Skateboard') ? 'selected' : ''; ?>>Skateboard</option>
-                                <option value="Inline" <?php echo ($news['category'] == 'Inline') ? 'selected' : ''; ?>>Inline</option>
-                                <option value="BMX" <?php echo ($news['category'] == 'BMX') ? 'selected' : ''; ?>>BMX</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="news_date">Publish Date</label>
-                        <input type="date" id="news_date" name="news_date" value="<?php echo $news['publish_date']; ?>" required>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="form-card">
-            <div class="card-header">
-                <h3>Content</h3>
-            </div>
-            <div class="card-body">
-                <div class="form-group">
-                    <textarea id="description" name="description"><?php echo $news['news_content']; ?></textarea>
-                </div>
-            </div>
-        </div>
-
-        <div class="form-card">
-            <div class="card-header">
-                <h3>Media Gallery</h3>
-            </div>
-            <div class="card-body">
-                <div class="media-section">
-                    <h4>Existing Images</h4>
-                    <?php if (!empty($images)): ?>
-                    <div class="image-grid">
-                        <?php foreach ($images as $image): ?>
-                        <div class="media-item">
-                            <img src="<?php echo $image['image_path']; ?>" alt="News Image">
-                            <input type="hidden" name="existing_images[]" value="<?php echo $image['image_id']; ?>">
-                            <button type="button" class="btn-overlay-remove" onclick="removeElement(this)">REMOVE</button>
-                        </div>
-                        <?php endforeach; ?>
-                    </div>
-                    <?php else: ?>
-                        <p class="no-data">No images uploaded yet.</p>
-                    <?php endif; ?>
-                    
-                    <div class="upload-box">
-                        <label for="image">Upload New Images</label>
-                        <input type="file" id="image" name="image[]" multiple class="file-input">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="form-actions">
-            <button type="submit" class="btn-primary-large">Update News</button>
-        </div>
-    </form>
-</div>
-
 <script>
+    document.getElementById('menuToggle').addEventListener('click', function() {
+        document.getElementById('sidebar').classList.add('active');
+        document.getElementById('sidebarOverlay').classList.add('active');
+    });
+
+    document.getElementById('closeSidebar').addEventListener('click', function() {
+        document.getElementById('sidebar').classList.remove('active');
+        document.getElementById('sidebarOverlay').classList.remove('active');
+    });
+
+    document.getElementById('sidebarOverlay').addEventListener('click', function() {
+        document.getElementById('sidebar').classList.remove('active');
+        this.classList.remove('active');
+    });
+
     let editorInstance;
 
     ClassicEditor

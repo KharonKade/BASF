@@ -1,8 +1,8 @@
 <?php
 $servername = "localhost"; // Your database host
-$username = "root";        // Your database username
-$password = "";            // Your database password
-$dbname = "basf_events";    // Your database name
+$username = "u142318015_usr_vf0t87O1";        // Your database username
+$password = "W1xz8gB^";            // Your database password
+$dbname = "u142318015_db_vf0t87O1";    // Your database name
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 

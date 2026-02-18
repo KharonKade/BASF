@@ -3,9 +3,9 @@ $input = @file_get_contents("php://input");
 $event = json_decode($input, true);
 
 $servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "basf_events";
+$username = "u142318015_usr_vf0t87O1";
+$password = "W1xz8gB^";
+$dbname = "u142318015_db_vf0t87O1";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
@@ -30,7 +30,7 @@ if ($type === 'checkout_session.payment.paid') {
         $stmt->execute();
         $stmt->close();
 
-        $user_sql = "SELECT r.email, r.name, e.event_name FROM event_registrations r JOIN upcoming_events e ON r.event_id = e.id WHERE r.id = $db_id";
+        $user_sql = "SELECT r.email, r.name, e.event_name, e.registration_fee FROM event_registrations r JOIN upcoming_events e ON r.event_id = e.id WHERE r.id = $db_id";
         $result = $conn->query($user_sql);
         
         if ($result && $result->num_rows > 0) {
@@ -63,7 +63,7 @@ if ($type === 'checkout_session.payment.paid') {
                         <p><strong>Event:</strong> ' . htmlspecialchars($user['event_name']) . '</p>
                         <p><strong>Participant:</strong> ' . htmlspecialchars($user['name']) . '</p>
                         <p><strong>Date Paid:</strong> ' . date("F j, Y, g:i a") . '</p>
-                        <p><strong>Amount Paid:</strong> PHP 100.00</p>
+                        <p><strong>Amount Paid:</strong> PHP ' . number_format($user['registration_fee'], 2) . '</p>
                         <p><strong>Reference ID:</strong> ' . htmlspecialchars($paymongo_id) . '</p>
                     </div>
                     <p style="text-align: center;">Here is your unique registration token. Please present this at the event entry.</p>
@@ -78,7 +78,7 @@ if ($type === 'checkout_session.payment.paid') {
 
             $headers = "MIME-Version: 1.0" . "\r\n";
             $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-            $headers .= "From: no-reply@basfevents.com" . "\r\n";
+            $headers .= "From: @basfevents.com" . "\r\n";
 
             mail($to, $subject, $message, $headers);
         }

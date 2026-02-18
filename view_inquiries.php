@@ -13,39 +13,42 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Inquiries</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="Css/view_inquiries.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="Css/view_inquiries.css?v=1.1">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-        }
-    </style>
 </head>
 <body>
     <div class="admin-container">
-        <nav class="sidebar">
+        
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <nav class="sidebar" id="sidebar">
+            <button class="close-sidebar" id="closeSidebar"><i class="fas fa-times"></i></button>
             <h2>Admin Dashboard</h2>
             <ul>
                 <li><a href="admin.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="manage_upcoming.php"><i class="fas fa-calendar-check"></i>Events</a></li>
-                <li><a href="manage_news.php"><i class="fas fa-edit"></i>News & Announcements</a></li>
-                <li><a href="admin_gallery.php"><i class="fas fa-images"></i>Gallery Page</a></li>
-                <li><a href="editInlinePage.php"><i class="fas fa-skating"></i>Inline Page</a></li>
-                <li><a href="editBmxPage.php"><i class="fas fa-bicycle"></i>BMX Page</a></li>
-                <li><a href="editSkateboardPage.php"><i class="fas fa-snowboarding"></i>Skateboard Page</a></li>
+                <li><a href="manage_upcoming.php"><i class="fas fa-calendar-check"></i> Events</a></li>
+                <li><a href="manage_news.php"><i class="fas fa-edit"></i> News & Announcements</a></li>
+                <li><a href="admin_gallery.php"><i class="fas fa-images"></i> Gallery Page</a></li>
+                <li><a href="editInlinePage.php"><i class="fas fa-skating"></i> Inline Page</a></li>
+                <li><a href="editBmxPage.php"><i class="fas fa-bicycle"></i> BMX Page</a></li>
+                <li><a href="editSkateboardPage.php"><i class="fas fa-snowboarding"></i> Skateboard Page</a></li>
                 <li><a href="view_inquiries.php"><i class="fas fa-question-circle"></i> Inquiries</a></li>
                 <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </nav>
 
-        <div class="main-content">
+        <main class="content">
+            <div class="top-header">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+            </div>
+
             <?php
             $servername = "localhost";
-            $username = "root";
-            $password = "";
-            $dbname = "contact_us";
+            $username = "u142318015_usr_vf0t87O1";
+            $password = "W1xz8gB^";
+            $dbname = "u142318015_db_vf0t87O1";
 
             $conn = new mysqli($servername, $username, $password, $dbname);
 
@@ -82,20 +85,21 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
                 </div>
             </div>";
 
-            echo "<table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Full Name</th>
-                            <th>Email</th>
-                            <th>Contact Number</th>
-                            <th>Concerns</th>
-                            <th>Message</th>
-                            <th>Submitted At</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id='inquiries_table_body'>";
+            echo "<div class='table-responsive'>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Full Name</th>
+                                <th>Email</th>
+                                <th>Contact Number</th>
+                                <th>Concerns</th>
+                                <th>Message</th>
+                                <th>Submitted At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id='inquiries_table_body'>";
 
             $sql = "SELECT id, full_name, email, contact_number, concerns, message, submitted_at, archived FROM contact_inquiries WHERE archived = 0";
             if (!empty($filter)) {
@@ -130,15 +134,30 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
                 echo "<tr><td colspan='8' style='text-align:center;'>No inquiries found.</td></tr>";
             }
 
-            echo "</tbody></table>";
+            echo "</tbody></table></div>";
             echo "</div>";
 
             $conn->close();
             ?>
-        </div>
+        </main>
     </div>
 
     <script>
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.add('active');
+            document.getElementById('sidebarOverlay').classList.add('active');
+        });
+
+        document.getElementById('closeSidebar').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.remove('active');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        });
+
+        document.getElementById('sidebarOverlay').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.remove('active');
+            this.classList.remove('active');
+        });
+
         document.getElementById('live_search').addEventListener('keyup', function() {
             var searchTerm = this.value;
             var filterValue = document.getElementById('filter').value;

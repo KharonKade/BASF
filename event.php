@@ -12,11 +12,11 @@
 </head>
 
 <body>
-<header>
+    <header>
         <nav class="navbar">
             <img src="images/basflogo.png" alt="BASF Logo" class="logo">
             <div class="nav-center">
-                <ul class="nav-links">
+                <ul class="nav-links" id="navLinks">
                     <li><a href="index.php">Home</a></li>
                     <li><a href="spots.html">Spots</a></li>
                     <li><a href="event.php">Events</a></li>
@@ -24,6 +24,11 @@
                     <li><a href="sponsorship.html">Sponsorship</a></li>
                     <li><a href="contactUs.html">Contact Us</a></li>
                 </ul>
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
             </div>
         </nav>
     </header>
@@ -70,9 +75,9 @@
         <div class="event-grid" id="eventGrid">
             <?php
             $servername = "localhost";
-            $username = "root";
-            $password = "";
-            $dbname = "basf_events";
+            $username = "u142318015_usr_vf0t87O1";
+            $password = "W1xz8gB^";
+            $dbname = "u142318015_db_vf0t87O1";
 
             $conn = new mysqli($servername, $username, $password, $dbname);
 
@@ -170,7 +175,6 @@
         <div id="pagination-controls" class="pagination-container"></div>
     </section>
 
-    
     <div class="footer-ramp-icons animate-on-scroll">
         <img src="images/ramp.png" alt="Left Ramp" class="ramp-icon left">
         <img src="images/pyramid.png" alt="Center Pyramid Ramp" class="ramp-icon center">
@@ -341,7 +345,16 @@ document.addEventListener("DOMContentLoaded", function () {
         };
         paginationContainer.appendChild(prevBtn);
 
-        for (let i = 1; i <= totalPages; i++) {
+        let maxVisible = 4;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+        let endPage = startPage + maxVisible - 1;
+
+        if (endPage > totalPages) {
+            endPage = totalPages;
+            startPage = Math.max(1, endPage - maxVisible + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
             const btn = document.createElement('button');
             btn.innerText = i;
             btn.style.fontFamily = 'Poppins, sans-serif';
@@ -409,5 +422,14 @@ document.addEventListener("DOMContentLoaded", function () {
     calculateItemsPerPage();
 });
 </script>
+<script>
+        const hamburger = document.getElementById('hamburger');
+        const navLinks = document.getElementById('navLinks');
+
+        hamburger.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        });
+    </script>
 </body>
 </html>

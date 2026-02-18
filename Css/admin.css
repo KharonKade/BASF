@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
 :root {
     --primary: #3498db;
     --primary-hover: #2980b9;
@@ -10,18 +12,21 @@
     --font-poppins: 'Poppins', sans-serif;
 }
 
-body {
+html, body {
     font-family: var(--font-poppins);
     margin: 0;
     padding: 0;
     background: #f1f5f9;
     color: var(--dark);
-    
+    overflow-x: hidden;
+    width: 100%;
 }
 
 .admin-container {
     display: flex;
     min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
 }
 
 .sidebar {
@@ -36,6 +41,20 @@ body {
     position: fixed;
     height: 100%;
     overflow-y: auto;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+}
+
+.close-sidebar {
+    display: none !important;
+    background: none;
+    border: none;
+    color: #ecf0f1;
+    font-size: 1.5rem;
+    text-align: right;
+    cursor: pointer;
 }
 
 .sidebar i {
@@ -75,18 +94,57 @@ body {
     background: #34495e;
 }
 
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
 .content {
     flex-grow: 1;
-    margin-left: 260px;
+    margin-left: 250px;
+    width: calc(100% - 250px);
     background-image: url('../images/adminbg2.png');
-    background-size: 100% auto;
+    background-size: cover;
+    background-position: center;
     min-height: 100vh;
     padding-bottom: 50px;
+    box-sizing: border-box;
+}
+
+.top-header {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+}
+
+.menu-toggle {
+    display: none !important;
+    background: #2c3e50;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    font-size: 1.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 20px;
 }
 
 .admin-wrapper {
     max-width: 950px;
-    margin: 40px auto;
+    margin: 0 auto 40px auto;
     padding: 0 30px;
 }
 
@@ -303,6 +361,7 @@ input:checked + .slider:before {
     text-align: center;
     background: #fafafa;
     transition: all 0.3s;
+    overflow: hidden;
 }
 
 .upload-box:hover {
@@ -314,7 +373,7 @@ input:checked + .slider:before {
     border: none;
     background: transparent;
     padding: 0;
-    width: auto;
+    width: 100%;
 }
 
 .form-actions {
@@ -376,6 +435,7 @@ input:checked + .slider:before {
     align-items: center;
     justify-content: center;
     transition: 0.2s;
+    flex-shrink: 0;
 }
 
 .btn-icon-danger:hover {
@@ -407,28 +467,32 @@ input:checked + .slider:before {
     to { opacity: 1; transform: translateY(0); }
 }
 
-@media (max-width: 768px) {
-    .admin-container {
-        flex-direction: column;
+@media (max-width: 992px) {
+    .menu-toggle {
+        display: inline-block !important;
     }
 
     .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-        flex-direction: row;
-        overflow-x: auto;
-        padding: 10px;
-        justify-content: space-between;
-    }
-    
-    .sidebar h2 { display: none; }
-    
-    .content {
-        margin-left: 0;
-        padding: 20px 0;
+        transform: translateX(-100%);
+        width: 260px;
     }
 
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    .close-sidebar {
+        display: block !important;
+    }
+
+    .content {
+        margin-left: 0;
+        width: 100%;
+        padding-bottom: 30px;
+    }
+}
+
+@media (max-width: 768px) {
     .admin-wrapper {
         padding: 0 15px;
     }
@@ -446,5 +510,19 @@ input:checked + .slider:before {
         width: 100%;
         height: 40px;
         margin-top: 10px;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn-cancel, .btn-primary-large {
+        width: 100%;
+    }
+
+    .card-header.flex-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
     }
 }

@@ -1,8 +1,8 @@
 <?php
 $servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "basf_content_skateboard";
+$username = "u142318015_usr_vf0t87O6";
+$password = "B^vC=ErJ@7";
+$dbname = "u142318015_db_vf0t87O7";
 $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
 
