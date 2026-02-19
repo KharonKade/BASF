@@ -91,6 +91,7 @@ if ($event_id > 0) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Page</title>
+    <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="Css/eventPages.css">
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">

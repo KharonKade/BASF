@@ -30,6 +30,7 @@ $gallery_result = $conn->query($gallery_query);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Player Profile</title>
+    <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="Css/playerPage.css">
 </head>
 <body>
