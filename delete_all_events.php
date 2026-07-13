@@ -10,12 +10,7 @@ $request_delete = isset($_POST['delete_all']);
 if ($confirm) {
     $delete_sql = "DELETE FROM upcoming_events WHERE status = 'archived'";
     
-    // We also need to delete related data for these archived events to maintain integrity
-    // Ideally, you should fetch IDs first or use cascading deletes in SQL
-    // For now, we proceed with the requested query
-    
     if ($conn->query($delete_sql) === TRUE) {
-        // Clean up orphaned records if necessary, or just proceed
         ?>
         <!DOCTYPE html>
         <html lang="en">
@@ -86,7 +81,6 @@ if ($confirm) {
     <?php
     exit();
 } else {
-    // If accessed directly without POST or Confirm, go back
     header("Location: archived_events.php");
     exit();
 }

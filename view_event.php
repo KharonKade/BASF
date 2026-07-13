@@ -30,6 +30,15 @@ if (!$sponsors) {
 
 $registrations_query = "SELECT *, IFNULL(status, 'pending') AS status FROM event_registrations WHERE event_id = $event_id";
 $registrations = $conn->query($registrations_query);
+
+$categories_query = "SELECT * FROM event_categories WHERE event_id = $event_id ORDER BY sport_type ASC, id ASC";
+$categories_result = $conn->query($categories_query);
+$categories_data = [];
+if ($categories_result && $categories_result->num_rows > 0) {
+    while ($cat = $categories_result->fetch_assoc()) {
+        $categories_data[$cat['sport_type']][] = $cat;
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -121,6 +130,31 @@ $registrations = $conn->query($registrations_query);
                                 <?php endwhile; ?>
                             <?php else: ?>
                                 <p class="empty-state">No schedules available.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div class="card event-categories-card" style="grid-column: 1 / -1; font-family: 'Poppins', sans-serif;">
+                        <h3 style="font-family: 'Poppins', sans-serif;">Categories & Fees</h3>
+                        <div class="categories-list" style="display: flex; flex-wrap: wrap; gap: 20px;">
+                            <?php if (!empty($categories_data)): ?>
+                                <?php foreach ($categories_data as $sport => $cats): ?>
+                                    <div class="sport-category-group" style="flex: 1; min-width: 250px; background: #f9f9f9; padding: 15px; border-radius: 8px;">
+                                        <h4 style="margin-top: 0; margin-bottom: 10px; color: #333; text-transform: capitalize; font-family: 'Poppins', sans-serif;"><?php echo htmlspecialchars($sport); ?></h4>
+                                        <ul style="list-style: none; padding: 0; margin: 0;">
+                                            <?php foreach ($cats as $c): ?>
+                                                <li style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-family: 'Poppins', sans-serif;">
+                                                    <span><?php echo htmlspecialchars($c['category_name']); ?></span>
+                                                    <span style="font-weight: 600; color: #2ecc71;">
+                                                        <?php echo $c['fee'] > 0 ? '₱' . number_format($c['fee'], 2) : 'Free'; ?>
+                                                    </span>
+                                                </li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <p class="empty-state" style="font-family: 'Poppins', sans-serif;">No specific categories set.</p>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -261,6 +295,13 @@ $registrations = $conn->query($registrations_query);
         let rows = table.querySelectorAll("tr");
         let csvData = [];
 
+        let eventName = "<?php echo addslashes($event['event_name']); ?>";
+        let exportDate = "<?php echo date('F d, Y h:i A'); ?>";
+
+        csvData.push(`"EVENT REGISTRATIONS:","${eventName}"`);
+        csvData.push(`"GENERATED ON:","${exportDate}"`);
+        csvData.push(""); 
+
         for (let i = 0; i < rows.length; i++) {
             if (rows[i].style.display === "none") {
                 continue;
@@ -270,17 +311,21 @@ $registrations = $conn->query($registrations_query);
             let cols = rows[i].querySelectorAll("td, th");
             
             for (let j = 1; j < cols.length; j++) {
-                let cellText = cols[j].innerText.replace(/,/g, ""); 
-                row.push(cellText);
+                let cellText = cols[j].innerText.replace(/"/g, '""'); 
+                row.push(`"${cellText}"`);
             }
             csvData.push(row.join(","));
         }
 
         let csvContent = "data:text/csv;charset=utf-8," + csvData.join("\n");
         let encodedUri = encodeURI(csvContent);
+        
         let link = document.createElement("a");
+        let safeFileName = eventName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "event_participants.csv");
+        link.setAttribute("download", safeFileName + "_participants.csv");
+        
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

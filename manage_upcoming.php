@@ -11,12 +11,114 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+$auto_archive_sql = "
+    UPDATE upcoming_events ue
+    JOIN (
+        SELECT event_id, MAX(CONCAT(event_date, ' ', end_time)) as last_schedule
+        FROM event_schedules
+        GROUP BY event_id
+    ) s ON ue.id = s.event_id
+    SET ue.status = 'archived'
+    WHERE ue.status = 'active' AND s.last_schedule < NOW()
+";
+$conn->query($auto_archive_sql);
+
+$paid_regs = 0;
+$free_regs = 0;
+$fee_insight = "Waiting for registration data to populate.";
+
+$fee_result = $conn->query("
+    SELECT 
+        IF((SELECT COUNT(*) FROM event_categories c WHERE c.event_id = e.id AND c.fee > 0) > 0, 'Paid', 'Free') AS fee_type,
+        COUNT(r.id) AS total_regs
+    FROM event_registrations r
+    JOIN upcoming_events e ON r.event_id = e.id
+    GROUP BY fee_type
+");
+
+if ($fee_result) {
+    while($row = $fee_result->fetch_assoc()) {
+        if($row['fee_type'] == 'Paid') {
+            $paid_regs = (int)$row['total_regs'];
+        } else {
+            $free_regs = (int)$row['total_regs'];
+        }
+    }
+}
+
+$total_fee_regs = $paid_regs + $free_regs;
+$free_percentage = $total_fee_regs > 0 ? round(($free_regs / $total_fee_regs) * 100) : 0;
+
+if ($total_fee_regs > 0) {
+    if ($free_percentage >= 75) {
+        $fee_insight = "<strong>$free_percentage%</strong> of registrations are for Free events. The community is highly price-sensitive. Consider lowering fees or relying on sponsorships for revenue.";
+    } elseif ($free_percentage >= 50) {
+        $fee_insight = "Registrations are fairly balanced, leaning slightly towards Free events ($free_percentage%).";
+    } else {
+        $fee_insight = "Paid events are performing exceptionally well, capturing " . (100 - $free_percentage) . "% of registrations! Your premium offerings are highly valued.";
+    }
+}
+
+$fee_labels_json = json_encode(['Free Events', 'Paid Events']);
+$fee_data_json = json_encode([$free_regs, $paid_regs]);
+
+$buckets = [
+    'Last Minute (0-3 Days)' => 0,
+    'Late (4-7 Days)' => 0,
+    'Proactive (8-14 Days)' => 0,
+    'Early Bird (15+ Days)' => 0
+];
+$lead_insight = "Waiting for registration data to establish lead time trends.";
+
+$lead_result = $conn->query("
+    SELECT 
+        DATEDIFF(MIN(s.event_date), r.registration_time) AS days_before
+    FROM event_registrations r
+    JOIN event_schedules s ON r.event_id = s.event_id
+    GROUP BY r.id
+");
+
+if ($lead_result) {
+    while($row = $lead_result->fetch_assoc()) {
+        $days = (int)$row['days_before'];
+        if ($days <= 3) {
+            $buckets['Last Minute (0-3 Days)']++;
+        } elseif ($days <= 7) {
+            $buckets['Late (4-7 Days)']++;
+        } elseif ($days <= 14) {
+            $buckets['Proactive (8-14 Days)']++;
+        } else {
+            $buckets['Early Bird (15+ Days)']++;
+        }
+    }
+}
+
+$sorted_buckets = $buckets;
+arsort($sorted_buckets);
+$top_bucket = key($sorted_buckets);
+$top_bucket_count = current($sorted_buckets);
+$total_lead_regs = array_sum($buckets);
+$top_bucket_percent = $total_lead_regs > 0 ? round(($top_bucket_count / $total_lead_regs) * 100) : 0;
+
+if ($total_lead_regs > 0) {
+    if (strpos($top_bucket, 'Last Minute') !== false) {
+        $lead_insight = "<strong>$top_bucket_percent%</strong> of users are <strong>Last Minute</strong> registrants. Don't panic if numbers look low a week out—push your heaviest marketing in the final 72 hours.";
+    } elseif (strpos($top_bucket, 'Early Bird') !== false) {
+        $lead_insight = "<strong>$top_bucket_percent%</strong> of users are <strong>Early Birds</strong>! Your audience plans ahead. Capitalize on this by opening registrations even earlier.";
+    } else {
+        $lead_insight = "The majority of users (<strong>$top_bucket_percent%</strong>) register in the <strong>$top_bucket</strong> window. Focus your marketing pushes during this timeframe.";
+    }
+}
+
+$lead_labels_json = json_encode(array_keys($buckets));
+$lead_data_json = json_encode(array_values($buckets));
+
 $filter_category = isset($_GET['category']) ? $conn->real_escape_string($_GET['category']) : '';
 $search_query = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
 
 $sql = "
     SELECT 
-        id, event_name, location, category, registration, registration_limit, registration_fee
+        id, event_name, location, category, registration, registration_limit
     FROM upcoming_events 
     WHERE status = 'active'
 ";
@@ -43,8 +145,12 @@ if (isset($_GET['ajax'])) {
             echo "<td>" . ucfirst($row['category']) . "</td>";
             echo "<td>";
             if ($row['registration'] == 1) {
-                if ($row['registration_fee'] > 0) {
-                    echo "<span style='color:green; font-weight:600;'>Paid</span><br><small>₱" . number_format($row['registration_fee'], 2) . "</small>";
+                $fee_check = $conn->query("SELECT MIN(fee) as min_fee, MAX(fee) as max_fee FROM event_categories WHERE event_id = " . $row['id']);
+                $fee_data = $fee_check->fetch_assoc();
+                
+                if ($fee_data && $fee_data['max_fee'] > 0) {
+                    $display_fee = ($fee_data['min_fee'] == $fee_data['max_fee']) ? "₱" . number_format($fee_data['min_fee'], 2) : "₱" . number_format($fee_data['min_fee'], 2) . " - ₱" . number_format($fee_data['max_fee'], 2);
+                    echo "<span style='color:green; font-weight:600;'>Paid</span><br><small>" . $display_fee . "</small>";
                 } else {
                     echo "<span style='color:blue; font-weight:600;'>Free</span>";
                 }
@@ -89,8 +195,53 @@ if (isset($_GET['ajax'])) {
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="Css/manage_event.css?v=1.1">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .charts-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .chart-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .chart-header {
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            color: #333;
+            border-bottom: 2px solid #f4f4f4;
+            padding-bottom: 10px;
+        }
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+            flex-grow: 1;
+        }
+        .ai-insight {
+            background: #f8faff;
+            border-left: 4px solid #4a90e2;
+            padding: 12px 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #333;
+            line-height: 1.5;
+        }
+        .ai-insight i {
+            color: #4a90e2;
+            margin-right: 8px;
+        }
+    </style>
 </head>
-<body>
+<body style="font-family: 'Poppins', sans-serif;">
     <div class="admin-container">
         
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -122,6 +273,32 @@ if (isset($_GET['ajax'])) {
                     <?php echo htmlspecialchars($_GET['message']); ?>
                 </div>
             <?php endif; ?>
+
+            <div class="charts-section">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <i class="fas fa-clock"></i> Registration Lead Time
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="leadTimeChart"></canvas>
+                    </div>
+                    <div class="ai-insight">
+                        <i class="fas fa-magic"></i> <strong>AI Insight:</strong> <?php echo $lead_insight; ?>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <i class="fas fa-ticket-alt"></i> Free vs. Paid Conversions
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="feeChart"></canvas>
+                    </div>
+                    <div class="ai-insight">
+                        <i class="fas fa-magic"></i> <strong>AI Insight:</strong> <?php echo $fee_insight; ?>
+                    </div>
+                </div>
+            </div>
 
             <div class="filter-action-container">
                 <form id="filterForm" method="GET" class="search-filters">
@@ -171,8 +348,12 @@ if (isset($_GET['ajax'])) {
                             <td>
                                 <?php 
                                     if ($row['registration'] == 1) {
-                                        if ($row['registration_fee'] > 0) {
-                                            echo "<span style='color:green; font-weight:600;'>Paid</span><br><small>₱" . number_format($row['registration_fee'], 2) . "</small>";
+                                        $fee_check = $conn->query("SELECT MIN(fee) as min_fee, MAX(fee) as max_fee FROM event_categories WHERE event_id = " . $row['id']);
+                                        $fee_data = $fee_check->fetch_assoc();
+                                        
+                                        if ($fee_data && $fee_data['max_fee'] > 0) {
+                                            $display_fee = ($fee_data['min_fee'] == $fee_data['max_fee']) ? "₱" . number_format($fee_data['min_fee'], 2) : "₱" . number_format($fee_data['min_fee'], 2) . " - ₱" . number_format($fee_data['max_fee'], 2);
+                                            echo "<span style='color:green; font-weight:600;'>Paid</span><br><small>" . $display_fee . "</small>";
                                         } else {
                                             echo "<span style='color:blue; font-weight:600;'>Free</span>";
                                         }
@@ -213,6 +394,77 @@ if (isset($_GET['ajax'])) {
     </div>
 
     <script>
+        Chart.defaults.font.family = "'Poppins', sans-serif";
+        Chart.defaults.color = "#555";
+
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            const leadCtx = document.getElementById('leadTimeChart').getContext('2d');
+            new Chart(leadCtx, {
+                type: 'bar',
+                data: {
+                    labels: <?php echo $lead_labels_json; ?>,
+                    datasets: [{
+                        label: 'Registrations',
+                        data: <?php echo $lead_data_json; ?>,
+                        backgroundColor: ['#e74c3c', '#f39c12', '#3498db', '#2ecc71'],
+                        borderRadius: 6,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#333',
+                            titleFont: { family: "'Poppins', sans-serif", size: 14 },
+                            bodyFont: { family: "'Poppins', sans-serif", size: 13 },
+                            padding: 10,
+                            cornerRadius: 8
+                        }
+                    },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { 
+                            beginAtZero: true, 
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+
+            const feeCtx = document.getElementById('feeChart').getContext('2d');
+            new Chart(feeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: <?php echo $fee_labels_json; ?>,
+                    datasets: [{
+                        data: <?php echo $fee_data_json; ?>,
+                        backgroundColor: ['#3498db', '#9b59b6'],
+                        hoverOffset: 6,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true } },
+                        tooltip: {
+                            backgroundColor: '#333',
+                            titleFont: { family: "'Poppins', sans-serif", size: 14 },
+                            bodyFont: { family: "'Poppins', sans-serif", size: 13 },
+                            padding: 10,
+                            cornerRadius: 8
+                        }
+                    }
+                }
+            });
+        });
+
         document.getElementById('menuToggle').addEventListener('click', function() {
             document.getElementById('sidebar').classList.add('active');
             document.getElementById('sidebarOverlay').classList.add('active');

@@ -65,8 +65,8 @@ if ($news_id > 0) {
                     <li><a href="spots.html">Spots</a></li>
                     <li><a href="event.php">Events</a></li>
                     <li><a href="gallery.php">Gallery</a></li>
-                    <li><a href="sponsorship.html">Sponsorship</a></li>
-                    <li><a href="contactUs.html">Contact Us</a></li>
+                    <li><a href="sponsorship.php">Sponsorship</a></li>
+                    <li><a href="contactUs.php">Contact Us</a></li>
                 </ul>
             </div>
             <div class="hamburger" id="hamburger">
@@ -185,7 +185,7 @@ if ($news_id > 0) {
                 <li><a href="spots.html">Spots</a></li>
                 <li><a href="event.php">Events</a></li>
                 <li><a href="gallery.php">Gallery</a></li>
-                <li><a href="sponsorship.html">Sponsorship</a></li>
+                <li><a href="sponsorship.php">Sponsorship</a></li>
                 <li><a href="contactUs.html">Contact Us</a></li>
             </ul>
         </div>

@@ -123,8 +123,9 @@ html, body {
     flex-grow: 1;
     padding: 40px;
     background-image: url('../images/adminbg2.png');
-    background-size: cover;
-    background-position: center;
+    background-size: 100%;
+    background-repeat: repeat;
+    background-position: top left;
     min-height: 100vh;
     box-sizing: border-box;
 }

@@ -5,6 +5,95 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
     header("Location: admin_login.php");
     exit();
 }
+
+$servername = "localhost";
+$username = "u142318015_usr_vf0t87O1";
+$password = "W1xz8gB^";
+$dbname = "u142318015_db_vf0t87O1";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+$trend_query = "
+    SELECT 
+        DATE_FORMAT(submitted_at, '%Y-%m') as sort_date, 
+        DATE_FORMAT(submitted_at, '%b %Y') as display_date, 
+        concerns, 
+        COUNT(*) as total_count 
+    FROM contact_inquiries 
+    GROUP BY sort_date, display_date, concerns 
+    ORDER BY sort_date ASC
+";
+
+$trend_result = $conn->query($trend_query);
+
+$months_array = [];
+$concerns_data = [];
+$latest_month_counts = [];
+
+if ($trend_result && $trend_result->num_rows > 0) {
+    while ($row = $trend_result->fetch_assoc()) {
+        $month = $row['display_date'];
+        $concern = $row['concerns'];
+        $count = (int)$row['total_count'];
+
+        if (!in_array($month, $months_array)) {
+            $months_array[] = $month;
+        }
+
+        if (!isset($concerns_data[$concern])) {
+            $concerns_data[$concern] = [];
+        }
+
+        $concerns_data[$concern][$month] = $count;
+        $latest_month_counts[$concern] = $count; 
+    }
+}
+
+$datasets = [];
+$colors = ['#4a90e2', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#34495e'];
+$color_index = 0;
+
+foreach ($concerns_data as $concern => $data_by_month) {
+    $data_points = [];
+    foreach ($months_array as $month) {
+        $data_points[] = isset($data_by_month[$month]) ? $data_by_month[$month] : 0;
+    }
+
+    $datasets[] = [
+        'label' => $concern,
+        'data' => $data_points,
+        'borderColor' => $colors[$color_index % count($colors)],
+        'backgroundColor' => $colors[$color_index % count($colors)] . '33', 
+        'borderWidth' => 2,
+        'fill' => true,
+        'tension' => 0.4
+    ];
+    $color_index++;
+}
+
+$chart_labels_json = json_encode($months_array);
+$chart_datasets_json = json_encode($datasets);
+
+$ai_insight = "Not enough data to determine trends yet. As more inquiries come in, insights will appear here.";
+
+if (!empty($latest_month_counts)) {
+    arsort($latest_month_counts);
+    $top_concern = key($latest_month_counts);
+    
+    $top_concern_lower = strtolower($top_concern);
+    
+    if (strpos($top_concern_lower, 'general') !== false) {
+        $ai_insight = "<strong>General Inquiries</strong> are currently peaking. If you recently announced an event, review the description to ensure all details are perfectly clear to the public to reduce repetitive questions.";
+    } elseif (strpos($top_concern_lower, 'sponsor') !== false) {
+        $ai_insight = "<strong>Sponsorship Inquiries</strong> are leading the trends! This is a highly positive indicator that the federation's reach and brand visibility are actively growing.";
+    } else {
+        $ai_insight = "<strong>" . htmlspecialchars($top_concern) . "</strong> inquiries are currently the most common. Reviewing these specific messages can reveal immediate community needs or technical issues.";
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -18,8 +107,45 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="Css/view_inquiries.css?v=1.1">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            font-family: 'Poppins', sans-serif;
+        }
+        .chart-header {
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            color: #333;
+            border-bottom: 2px solid #f4f4f4;
+            padding-bottom: 10px;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        .ai-insight {
+            background: #f8faff;
+            border-left: 4px solid #4a90e2;
+            padding: 12px 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #333;
+            font-family: 'Poppins', sans-serif;
+        }
+        .ai-insight i {
+            color: #4a90e2;
+            margin-right: 8px;
+        }
+    </style>
 </head>
-<body>
+<body style="font-family: 'Poppins', sans-serif;">
     <div class="admin-container">
         
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -46,20 +172,33 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
             </div>
 
             <?php
-            $servername = "localhost";
-            $username = "u142318015_usr_vf0t87O1";
-            $password = "W1xz8gB^";
-            $dbname = "u142318015_db_vf0t87O1";
-
-            $conn = new mysqli($servername, $username, $password, $dbname);
-
-            if ($conn->connect_error) {
-                die("Connection failed: " . $conn->connect_error);
-            }
+            $unread_stmt = $conn->query("SELECT COUNT(*) AS unread_count FROM contact_inquiries WHERE archived = 0 AND is_read = 0");
+            $unread_data = $unread_stmt->fetch_assoc();
+            $unread_count = $unread_data['unread_count'];
 
             echo "<div class='content-wrapper'>";
             echo "<h2>Contact Inquiries</h2>";
 
+            if ($unread_count > 0) {
+                echo "<div style='background-color: #d4edda; color: #155724; padding: 10px 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #c3e6cb; font-family: \"Poppins\", sans-serif;'>
+                        <i class='fas fa-bell'></i> You have <strong>{$unread_count}</strong> new unread inquiry(ies).
+                      </div>";
+            }
+            ?>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-line"></i> Inquiry Trend Analysis</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="inquiryTrendChart"></canvas>
+                </div>
+                <div class="ai-insight">
+                    <i class="fas fa-magic"></i> <strong>AI Insight:</strong> <?php echo $ai_insight; ?>
+                </div>
+            </div>
+
+            <?php
             $filter = isset($_GET['filter']) ? $_GET['filter'] : '';
             $concernResult = $conn->query("SELECT DISTINCT concerns FROM contact_inquiries");
             $concernOptions = '';
@@ -102,7 +241,7 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
                         </thead>
                         <tbody id='inquiries_table_body'>";
 
-            $sql = "SELECT id, full_name, email, contact_number, concerns, message, submitted_at, archived FROM contact_inquiries WHERE archived = 0";
+            $sql = "SELECT id, full_name, email, contact_number, concerns, message, submitted_at, archived, is_read FROM contact_inquiries WHERE archived = 0";
             if (!empty($filter)) {
                 $sql .= " AND concerns = '" . $conn->real_escape_string($filter) . "'";
             }
@@ -115,9 +254,11 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
                 while($row = $result->fetch_assoc()) {
                     $shortMessage = strlen($row["message"]) > 25 ? substr($row["message"], 0, 25) . '...' : $row["message"];
                     
+                    $newBadge = ($row['is_read'] == 0) ? " <span style='background: #ff4757; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; font-family: \"Poppins\", sans-serif;'>New</span>" : "";
+                    
                     echo "<tr>
                             <td>" . $counter . "</td>
-                            <td>" . htmlspecialchars($row["full_name"]) . "</td>
+                            <td>" . htmlspecialchars($row["full_name"]) . $newBadge . "</td>
                             <td>" . htmlspecialchars($row["email"]) . "</td>
                             <td>" . htmlspecialchars($row["contact_number"]) . "</td>
                             <td>" . htmlspecialchars($row["concerns"]) . "</td>
@@ -144,6 +285,55 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
     </div>
 
     <script>
+        Chart.defaults.font.family = "'Poppins', sans-serif";
+        
+        document.addEventListener('DOMContentLoaded', function () {
+            const ctx = document.getElementById('inquiryTrendChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: <?php echo $chart_labels_json; ?>,
+                    datasets: <?php echo $chart_datasets_json; ?>
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#333',
+                            titleFont: { family: "'Poppins', sans-serif", size: 14 },
+                            bodyFont: { family: "'Poppins', sans-serif", size: 13 },
+                            padding: 10,
+                            cornerRadius: 8,
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        });
+
         document.getElementById('menuToggle').addEventListener('click', function() {
             document.getElementById('sidebar').classList.add('active');
             document.getElementById('sidebarOverlay').classList.add('active');

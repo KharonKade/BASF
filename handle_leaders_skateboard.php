@@ -5,7 +5,6 @@ $password = "B^vC=ErJ@7";
 $dbname = "u142318015_db_vf0t87O7";
 $conn = new mysqli($servername, $username, $password, $dbname);
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["name"]) && !isset($_POST["edit_id"])) {
-    // Insert new record
     $name = $conn->real_escape_string($_POST["name"]);
     $role = $conn->real_escape_string($_POST["role"]);
     $image = "images/uploads/" . basename($_FILES["image"]["name"]);
@@ -14,7 +13,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["name"]) && !isset($_PO
 }
 
 if (!empty($_POST["edit_id"])) {
-    // Update existing record
     $id = $conn->real_escape_string($_POST["edit_id"]);
     $name = $conn->real_escape_string($_POST["name"]);
     $role = $conn->real_escape_string($_POST["role"]);

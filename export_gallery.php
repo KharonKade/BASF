@@ -17,17 +17,23 @@ if ($conn->connect_error) {
 }
 
 header('Content-Type: text/csv; charset=utf-8');
-header('Content-Disposition: attachment; filename=gallery_data.csv');
+header('Content-Disposition: attachment; filename=gallery_data_' . date('Y-m-d') . '.csv');
 
 $output = fopen('php://output', 'w');
 
-fputcsv($output, array('Title', 'Description', 'Uploaded At'));
+fputcsv($output, ['GALLERY REPORT']);
+fputcsv($output, ['Generated on:', date('F d, Y h:i A')]);
+fputcsv($output, []);
+
+fputcsv($output, ['Title', 'Description', 'Uploaded At']);
 
 $sql = "SELECT title, description, uploaded_at FROM gallery";
 $result = $conn->query($sql);
 
-while ($row = $result->fetch_assoc()) {
-    fputcsv($output, $row);
+if ($result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        fputcsv($output, $row);
+    }
 }
 
 fclose($output);

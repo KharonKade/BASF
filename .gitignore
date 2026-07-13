@@ -1,3 +1,4 @@
 .history/
 secrets.php
 test_secrets.php
+.vscode/sftp.json

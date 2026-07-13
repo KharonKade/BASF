@@ -100,6 +100,9 @@ $result = $conn->query($sql);
                                     <a href="view_event.php?id=<?php echo $row['id']; ?>" title="View">
                                         <i class="fas fa-eye"></i>
                                     </a> |
+                                    <a href="edit_event.php?id=<?php echo $row['id']; ?>" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a> |
                                     <a href="delete_archiveEvent.php?id=<?php echo $row['id']; ?>" title="Delete">
                                         <i class="fas fa-trash"></i>
                                     </a> |

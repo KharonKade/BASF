@@ -1,5 +1,11 @@
 <?php
+// Temporarily enable error reporting to catch any hidden fatal errors
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
+require_once 'secrets.php';
 
 if (isset($_SERVER['HTTP_REFERER'])) {
     $referrer = basename($_SERVER['HTTP_REFERER']);
@@ -8,12 +14,7 @@ if (isset($_SERVER['HTTP_REFERER'])) {
     }
 }
 
-$servername = "localhost";
-$username = "u142318015_usr_vf0t87O1";
-$password = "W1xz8gB^";
-$dbname = "u142318015_db_vf0t87O1";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
   
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
@@ -23,7 +24,8 @@ $event_id = isset($_GET['id']) && is_numeric($_GET['id']) ? (int)$_GET['id'] : 0
 $success_token = isset($_GET['success_token']) ? htmlspecialchars($_GET['success_token']) : '';
 
 if ($event_id > 0) {
-    $event_sql = "SELECT e.event_name, e.description, e.location, e.registration, e.category, e.registration_fee FROM upcoming_events e WHERE e.id = $event_id AND e.status = 'active'";
+    // Removed e.registration_fee since we moved it to event_categories
+    $event_sql = "SELECT e.event_name, e.description, e.location, e.registration, e.category, e.status FROM upcoming_events e WHERE e.id = $event_id AND e.status IN ('active', 'archived')";
     $event_result = $conn->query($event_sql);
 
     if ($event_result && $event_result->num_rows > 0) {
@@ -68,21 +70,62 @@ if ($event_id > 0) {
         }
     }
 
+    // Safely fetching schedules without fetch_all()
     $schedule_sql = "SELECT event_date, start_time, end_time FROM event_schedules WHERE event_id = $event_id";
     $schedule_result = $conn->query($schedule_sql);
-    $schedules = ($schedule_result && $schedule_result->num_rows > 0) ? $schedule_result->fetch_all(MYSQLI_ASSOC) : [];
+    $schedules = [];
+    if ($schedule_result && $schedule_result->num_rows > 0) {
+        while($row = $schedule_result->fetch_assoc()) {
+            $schedules[] = $row;
+        }
+    }
 
+    // Safely fetching sponsors without fetch_all()
     $sponsor_sql = "SELECT logo_path FROM sponsor_logos WHERE event_id = $event_id";
     $sponsor_result = $conn->query($sponsor_sql);
-    $sponsors = ($sponsor_result && $sponsor_result->num_rows > 0) ? $sponsor_result->fetch_all(MYSQLI_ASSOC) : [];
+    $sponsors = [];
+    if ($sponsor_result && $sponsor_result->num_rows > 0) {
+        while($row = $sponsor_result->fetch_assoc()) {
+            $sponsors[] = $row;
+        }
+    }
 
+    // Safely fetching images without fetch_all()
     $image_sql = "SELECT image_path FROM event_images WHERE event_id = $event_id";
     $image_result = $conn->query($image_sql);
-    $images = ($image_result && $image_result->num_rows > 0) ? $image_result->fetch_all(MYSQLI_ASSOC) : [];
+    $images = [];
+    if ($image_result && $image_result->num_rows > 0) {
+        while($row = $image_result->fetch_assoc()) {
+            $images[] = $row;
+        }
+    }
+
+    $leaderboards = null;
+    if (isset($event['status']) && $event['status'] === 'archived') {
+        $table_check = $conn->query("SHOW TABLES LIKE 'event_leaderboards'");
+        if ($table_check && $table_check->num_rows > 0) {
+            $leaderboards = $conn->query("SELECT * FROM event_leaderboards WHERE event_id = $event_id ORDER BY id ASC");
+        }
+    }
 } else {
     echo "Invalid event ID.";
     exit;
 }
+
+// Fetch Dynamic Categories
+$categories_sql = "SELECT sport_type, category_name, fee FROM event_categories WHERE event_id = $event_id";
+$categories_result = $conn->query($categories_sql);
+$dynamic_categories = [];
+if ($categories_result && $categories_result->num_rows > 0) {
+    while ($row = $categories_result->fetch_assoc()) {
+        $sport = strtolower($row['sport_type']);
+        $dynamic_categories[$sport][] = [
+            'name' => $row['category_name'],
+            'fee' => (float)$row['fee']
+        ];
+    }
+}
+$dynamic_categories_json = json_encode($dynamic_categories);
 ?>
 
 <!DOCTYPE html>
@@ -98,6 +141,11 @@ if ($event_id > 0) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <style>
+        body, html, * {
+            font-family: 'Poppins', sans-serif !important;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -109,8 +157,8 @@ if ($event_id > 0) {
                     <li><a href="spots.html">Spots</a></li>
                     <li><a href="event.php">Events</a></li>
                     <li><a href="gallery.php">Gallery</a></li>
-                    <li><a href="sponsorship.html">Sponsorship</a></li>
-                    <li><a href="contactUs.html">Contact Us</a></li>
+                    <li><a href="sponsorship.php">Sponsorship</a></li>
+                    <li><a href="contactUs.php">Contact Us</a></li>
                 </ul>
             </div>
             <div class="hamburger" id="hamburger">
@@ -123,7 +171,7 @@ if ($event_id > 0) {
 
     <section class="event-hero">
         <div class="event-hero-content">
-            <h1><?php echo isset($event['event_name']) ? $event['event_name'] : 'Event not found'; ?></h1>
+            <h1><?php echo isset($event['event_name']) ? htmlspecialchars($event['event_name']) : 'Event not found'; ?></h1>
         </div>
     </section>
 
@@ -141,7 +189,7 @@ if ($event_id > 0) {
                             if (!empty($images)) {
                                 foreach ($images as $image) {
                                     echo '<div class="swiper-slide">';
-                                    echo '<img src="' . $image['image_path'] . '" alt="Event Poster" class="event-poster" onclick="openModal(\'' . $image['image_path'] . '\')">';
+                                    echo '<img src="' . htmlspecialchars($image['image_path']) . '" alt="Event Poster" class="event-poster" onclick="openModal(\'' . htmlspecialchars($image['image_path']) . '\')">';
                                     echo '</div>';
                                 }
                             } else {
@@ -202,7 +250,7 @@ if ($event_id > 0) {
 
                 <div class="location-box">
                     <span style="font-size: 1.2rem;">📍</span>
-                    <span><?php echo isset($event['location']) ? $event['location'] : 'Location not available'; ?></span>
+                    <span><?php echo isset($event['location']) ? htmlspecialchars($event['location']) : 'Location not available'; ?></span>
                 </div>
 
                 <h3 class="section-title">About This Event</h3>
@@ -211,43 +259,81 @@ if ($event_id > 0) {
                 </div>
 
                 <?php if ($event['registration'] == 1): ?>
-                    <div class="registration-area">
-                        <div class="registration-header">
-                            <div class="fee-display">
-                                <?php 
-                                if ($event['registration_fee'] > 0) {
-                                    echo "₱" . number_format($event['registration_fee'], 2); 
-                                } else {
-                                    echo "Free Registration";
-                                }
-                                ?>
+                    <div class="registration-area" <?php echo ($event['status'] === 'archived') ? 'style="padding: 15px; display: flex; justify-content: center; min-height: auto;"' : ''; ?>>
+                        
+                        <?php if ($event['status'] === 'archived'): ?>
+                            <div class="event-popularity" style="margin: 0;">
+                                <span class="popularity-badge" style="background-color: #6b7280; font-family: 'Poppins', sans-serif;">
+                                    Event Concluded
+                                </span>
+                            </div>
+                        <?php else: ?>
+                            <div class="registration-header">
+                                <div class="fee-display" style="font-family: 'Poppins', sans-serif;">
+                                    Registration Open
+                                </div>
+
+                                <?php if ($registration_limit > 0 && $registration_count >= $registration_limit): ?>
+                                    <div class="event-popularity">
+                                        <span class="popularity-badge" style="background-color: #ef4444; font-family: 'Poppins', sans-serif;">
+                                            Registration Closed - Full
+                                        </span>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="event-popularity">
+                                        <span class="popularity-badge" style="font-family: 'Poppins', sans-serif;">
+                                            <?php echo ($registration_limit > 0) ? "$slots_left Slots Remaining" : "$registration_count Joined"; ?>
+                                        </span>
+                                    </div>
+                                <?php endif; ?>
                             </div>
 
-                            <?php if ($registration_limit > 0 && $registration_count >= $registration_limit): ?>
-                                <div class="event-popularity">
-                                    <span class="popularity-badge" style="background-color: #ef4444;">
-                                        Registration Closed - Full
-                                    </span>
-                                </div>
-                            <?php else: ?>
-                                <div class="event-popularity">
-                                    <span class="popularity-badge">
-                                        <?php echo ($registration_limit > 0) ? "$slots_left Slots Remaining" : "$registration_count Joined"; ?>
-                                    </span>
-                                </div>
+                            <?php if ($registration_limit == 0 || $registration_count < $registration_limit): ?>
+                                <button id="registerBtn" class="register-btn" style="font-family: 'Poppins', sans-serif;">
+                                    Secure Your Spot
+                                </button>
                             <?php endif; ?>
-                        </div>
-
-                        <?php if ($registration_limit == 0 || $registration_count < $registration_limit): ?>
-                            <button id="registerBtn" class="register-btn">
-                                <?php echo ($event['registration_fee'] > 0) ? "Register & Pay Now" : "Secure Your Spot"; ?>
-                            </button>
+                            
+                            <div class="link-container">
+                                <a href="#" class="token-link" onclick="showTokenModal()" style="font-family: 'Poppins', sans-serif;">Already registered? Edit registration here</a>
+                            </div>
                         <?php endif; ?>
-                        
-                        <div class="link-container">
-                            <a href="#" class="token-link" onclick="showTokenModal()">Already registered? Edit registration here</a>
-                        </div>
+
                     </div>
+                <?php endif; ?>
+
+                <?php if ($event['status'] === 'archived'): ?>
+                <h3 class="section-title">Event Leaderboard</h3>
+                <div class="info-card" style="padding: 0; overflow: hidden; border: 1px solid #ddd; border-radius: 8px;">
+                    <?php if ($leaderboards && $leaderboards->num_rows > 0): ?>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background-color: #f9f9f9; border-bottom: 2px solid #eee;">
+                                    <th style="padding: 12px 15px; text-align: left; font-weight: 600;">Rank</th>
+                                    <th style="padding: 12px 15px; text-align: left; font-weight: 600;">Name</th>
+                                    <th style="padding: 12px 15px; text-align: left; font-weight: 600;">Category</th>
+                                    <th style="padding: 12px 15px; text-align: left; font-weight: 600;">Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php while($lb = $leaderboards->fetch_assoc()): ?>
+                                    <tr style="border-bottom: 1px solid #eee;">
+                                        <td style="padding: 12px 15px;"><?php echo htmlspecialchars($lb['rank']); ?></td>
+                                        <td style="padding: 12px 15px; font-weight: 600;"><?php echo htmlspecialchars($lb['player_name']); ?></td>
+                                        <td style="padding: 12px 15px;">
+                                            <span style="background: #eef2ff; color: #4f46e5; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight: 500;">
+                                                <?php echo htmlspecialchars($lb['category']); ?>
+                                            </span>
+                                        </td>
+                                        <td style="padding: 12px 15px;"><?php echo htmlspecialchars($lb['score']); ?></td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                    <?php else: ?>
+                        <p style="padding: 20px; text-align: center; color: #666;">No leaderboard data available for this event.</p>
+                    <?php endif; ?>
+                </div>
                 <?php endif; ?>
 
                 <h3 class="section-title">Partners & Sponsors</h3>
@@ -256,7 +342,7 @@ if ($event_id > 0) {
                     if (!empty($sponsors)) {
                         foreach ($sponsors as $sponsor) {
                             echo '<div class="sponsor-logo-container">';
-                            echo '<img src="' . $sponsor['logo_path'] . '" alt="Sponsor Logo" class="sponsor-logo">';
+                            echo '<img src="' . htmlspecialchars($sponsor['logo_path']) . '" alt="Sponsor Logo" class="sponsor-logo">';
                             echo '</div>';
                         }
                     } else {
@@ -296,17 +382,32 @@ if ($event_id > 0) {
 
             <div id="step2-form" class="step-container">
                 <h2>Register for the Event</h2>
-                <div style="text-align:center; margin-bottom:15px; color:#358856; font-weight:bold;">
-                    <?php 
-                        if ($event['registration_fee'] > 0) {
-                            echo "Total to Pay: ₱" . number_format($event['registration_fee'], 2); 
-                        } else {
-                            echo "This event is Free.";
-                        }
-                    ?>
+                <div style="background: rgba(37, 82, 59, 0.05); border: 2px solid rgba(37, 82, 59, 0.2); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 25px; display: flex; flex-direction: column; justify-content: center; align-items: center;" id="feeDisplayContainer">
+                    <span style="font-size: 1rem; color: #666; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px;">Total Registration Fee</span>
+                    <span id="dynamicFeeDisplay" style="font-size: 2.8rem; font-weight: 800; color: #25523B; line-height: 1;">₱0.00</span>
                 </div>
+                
                 <form id="registrationForm" action="submit_registration.php" method="POST">
                     <input type="hidden" name="event_id" value="<?php echo $event_id; ?>">
+
+                    <?php if (isset($event['category']) && strtolower($event['category']) === 'all'): ?>
+                        <label for="sportCategory">Sport Category:</label>
+                        <select name="category" id="sportCategory" required>
+                            <option value="">Select Sport...</option>
+                            <option value="skateboard">Skateboard</option>
+                            <option value="inline">Inline</option>
+                            <option value="bmx">BMX</option>
+                        </select>
+                    <?php else: ?>
+                        <input type="hidden" name="category" id="sportCategory" value="<?php echo htmlspecialchars(strtolower($event['category'])); ?>">
+                    <?php endif; ?>
+
+                    <label for="sub_category">Event Category:</label>
+                    <select name="sub_category" id="sub_category" required disabled>
+                        <option value="">Select Event Category...</option>
+                    </select>
+                    <input type="hidden" name="calculated_fee" id="calculated_fee" value="0">
+
                     <label for="name">Name:</label>
                     <input type="text" id="name" name="name" required>
                     <label for="email">Email:</label>
@@ -320,19 +421,10 @@ if ($event_id > 0) {
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
                     </select>
-                    <?php if (isset($event['category']) && $event['category'] === 'all'): ?>
-                        <label for="category">Category:</label>
-                        <select name="category" id="category" required>
-                            <option value="Skateboard">Skateboard</option>
-                            <option value="Inline">Inline</option>
-                            <option value="BMX">BMX</option>
-                        </select>
-                    <?php else: ?>
-                        <input type="hidden" name="category" value="<?php echo isset($event['category']) ? $event['category'] : ''; ?>">
-                    <?php endif; ?>
+        
                     <div class="g-recaptcha" data-sitekey="6LezuAorAAAAAN_jcei_sHBW0gNq_im-TA4oZ8wI"></div>
                     <button type="submit" id="submitBtn">
-                        <?php echo ($event['registration_fee'] > 0) ? "Proceed to Payment" : "Submit Registration"; ?>
+                        Submit Registration
                     </button>
                     <div id="loader" style="display:none; text-align:center; margin-top:10px;">Processing...</div>
                     <div id="registrationStatus" class="status-msg"></div>
@@ -351,7 +443,7 @@ if ($event_id > 0) {
                 <button onclick="copyGeneratedToken()" style="background: #3498db; color: white; padding: 8px 12px; border: none; border-radius: 5px;">Copy</button>
                 <div id="flashMessage" style="display: none; color: green; font-weight: bold;"></div>
                 <button onclick="closeTokenSuccessModal()" style="background: #2ecc71; color: white; padding: 8px 12px; border: none; border-radius: 5px;">Okay</button>
-                <p>**Use token to manage your Registration**</p>
+                <p>Use token to manage your Registration</p>
             </div>
         </div>
     </div>
@@ -408,8 +500,8 @@ if ($event_id > 0) {
                 <li><a href="spots.html">Spots</a></li>
                 <li><a href="event.php">Events</a></li>
                 <li><a href="gallery.php">Gallery</a></li>
-                <li><a href="sponsorship.html">Sponsorship</a></li>
-                <li><a href="contactUs.html">Contact Us</a></li>
+                <li><a href="sponsorship.php">Sponsorship</a></li>
+                <li><a href="contactUs.php">Contact Us</a></li>
             </ul>
         </div>
         <div class="footer-section contact-section">
@@ -451,79 +543,142 @@ if ($event_id > 0) {
         function closeModal() {
             document.getElementById('imageModal').style.display = 'none';
         }
-    </script>
 
-    <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const registerBtn = document.getElementById('registerBtn');
-        const registrationModal = document.getElementById('registrationModal');
-        const closeModalBtn = document.querySelector('.close');
-        
-        const step1Waiver = document.getElementById('step1-waiver');
-        const step2Form = document.getElementById('step2-form');
-        const waiverCheck = document.getElementById('waiverCheck');
-        const waiverNextBtn = document.getElementById('waiverNextBtn');
+        document.addEventListener("DOMContentLoaded", function () {
+            const registerBtn = document.getElementById('registerBtn');
+            const registrationModal = document.getElementById('registrationModal');
+            const closeModalBtn = document.querySelector('.close');
+            
+            const step1Waiver = document.getElementById('step1-waiver');
+            const step2Form = document.getElementById('step2-form');
+            const waiverCheck = document.getElementById('waiverCheck');
+            const waiverNextBtn = document.getElementById('waiverNextBtn');
 
-        function resetRegistrationModal() {
-            step1Waiver.classList.add('active');
-            step2Form.classList.remove('active');
-            step1Waiver.style.display = 'block';
-            step2Form.style.display = 'none';
-            waiverCheck.checked = false;
-            waiverNextBtn.disabled = true;
-        }
+            function resetRegistrationModal() {
+                step1Waiver.classList.add('active');
+                step2Form.classList.remove('active');
+                step1Waiver.style.display = 'block';
+                step2Form.style.display = 'none';
+                waiverCheck.checked = false;
+                waiverNextBtn.disabled = true;
+            }
 
-        waiverCheck.addEventListener('change', function() {
-            waiverNextBtn.disabled = !this.checked;
-        });
-
-        waiverNextBtn.addEventListener('click', function() {
-            step1Waiver.style.display = 'none';
-            step1Waiver.classList.remove('active');
-            step2Form.style.display = 'block';
-            step2Form.classList.add('active');
-        });
-
-        <?php if (!empty($success_token)): ?>
-            showTokenSuccessModal('<?php echo $success_token; ?>');
-        <?php endif; ?>
-
-        if (registerBtn) registerBtn.onclick = () => {
-            resetRegistrationModal();
-            registrationModal.style.display = 'block';
-        };
-
-        if (closeModalBtn) closeModalBtn.onclick = () => registrationModal.style.display = 'none';
-
-        window.onclick = function (event) {
-            if (event.target === registrationModal) registrationModal.style.display = 'none';
-        };
-
-        const elements = document.querySelectorAll('.animate-on-scroll');
-        elements.forEach(el => { el._fadeTimeout = null; });
-
-        function toggleVisibility() {
-            elements.forEach(el => {
-                const rect = el.getBoundingClientRect();
-                const inView = rect.top <= window.innerHeight * 0.85 && rect.bottom >= 0;
-                if (inView) {
-                    clearTimeout(el._fadeTimeout);
-                    el.classList.add('visible');
-                    el.style.visibility = 'visible';
-                } else {
-                    el.classList.remove('visible');
-                    clearTimeout(el._fadeTimeout);
-                    el._fadeTimeout = setTimeout(() => { el.style.visibility = 'hidden'; }, 600);
-                }
+            waiverCheck.addEventListener('change', function() {
+                waiverNextBtn.disabled = !this.checked;
             });
-        }
 
-        window.addEventListener('scroll', toggleVisibility);
-        window.addEventListener('resize', toggleVisibility);
-        toggleVisibility();
+            waiverNextBtn.addEventListener('click', function() {
+                step1Waiver.style.display = 'none';
+                step1Waiver.classList.remove('active');
+                step2Form.style.display = 'block';
+                step2Form.classList.add('active');
+            });
 
-        const registrationForm = document.getElementById("registrationForm");
+            <?php if (!empty($success_token)): ?>
+                showTokenSuccessModal(<?php echo json_encode($success_token); ?>);
+            <?php endif; ?>
+
+            if (registerBtn) {
+                registerBtn.onclick = () => {
+                    resetRegistrationModal();
+                    registrationModal.style.display = 'block';
+                    const eventId = "<?php echo $event_id; ?>";
+                    const formData = new FormData();
+                    formData.append('event_id', eventId);
+                    
+                    fetch('track_click.php', {
+                        method: 'POST',
+                        body: formData
+                    }).catch(err => console.error(err));
+                };
+            }
+
+            if (closeModalBtn) closeModalBtn.onclick = () => registrationModal.style.display = 'none';
+
+            window.onclick = function (event) {
+                if (event.target === registrationModal) registrationModal.style.display = 'none';
+            };
+
+            const elements = document.querySelectorAll('.animate-on-scroll');
+            elements.forEach(el => { el._fadeTimeout = null; });
+
+            function toggleVisibility() {
+                elements.forEach(el => {
+                    const rect = el.getBoundingClientRect();
+                    const inView = rect.top <= window.innerHeight * 0.85 && rect.bottom >= 0;
+                    if (inView) {
+                        clearTimeout(el._fadeTimeout);
+                        el.classList.add('visible');
+                        el.style.visibility = 'visible';
+                    } else {
+                        el.classList.remove('visible');
+                        clearTimeout(el._fadeTimeout);
+                        el._fadeTimeout = setTimeout(() => { el.style.visibility = 'hidden'; }, 600);
+                    }
+                });
+            }
+
+            window.addEventListener('scroll', toggleVisibility);
+            window.addEventListener('resize', toggleVisibility);
+            toggleVisibility();
+
+            const registrationForm = document.getElementById("registrationForm");
             const statusDiv = document.getElementById('registrationStatus');
+            const dynamicCategories = <?php echo $dynamic_categories_json; ?>;
+            const sportCategoryInput = document.getElementById('sportCategory');
+            const subCategorySelect = document.getElementById('sub_category');
+            const dynamicFeeDisplay = document.getElementById('dynamicFeeDisplay');
+            const calculatedFeeInput = document.getElementById('calculated_fee');
+            const submitBtnDisplay = document.getElementById('submitBtn');
+            const defaultSport = "<?php echo htmlspecialchars(strtolower($event['category'])); ?>";
+
+            function updateSubCategories(sportType) {
+                subCategorySelect.innerHTML = '<option value="">Select Event Category...</option>';
+                dynamicFeeDisplay.innerText = '₱0.00';
+                calculatedFeeInput.value = '0';
+                if(submitBtnDisplay) submitBtnDisplay.innerText = 'Submit Registration';
+                subCategorySelect.disabled = true;
+
+                if (sportType && dynamicCategories[sportType]) {
+                    dynamicCategories[sportType].forEach(cat => {
+                        const option = document.createElement('option');
+                        option.value = cat.name;
+                        option.text = cat.name;
+                        option.dataset.fee = cat.fee;
+                        subCategorySelect.appendChild(option);
+                    });
+                    subCategorySelect.disabled = false;
+                }
+            }
+
+            if (sportCategoryInput && sportCategoryInput.tagName === 'SELECT') {
+                sportCategoryInput.addEventListener('change', function() {
+                    updateSubCategories(this.value.toLowerCase());
+                });
+            } else if (sportCategoryInput) {
+                updateSubCategories(defaultSport);
+            }
+
+            if (subCategorySelect) {
+                subCategorySelect.addEventListener('change', function() {
+                    const selectedOption = this.options[this.selectedIndex];
+                    if (selectedOption && selectedOption.value !== "") {
+                        const fee = parseFloat(selectedOption.dataset.fee);
+                        calculatedFeeInput.value = fee;
+                        if (fee > 0) {
+                            dynamicFeeDisplay.innerText = '₱' + fee.toFixed(2);
+                            if(submitBtnDisplay) submitBtnDisplay.innerText = 'Proceed to Payment';
+                        } else {
+                            dynamicFeeDisplay.innerText = 'Free';
+                            if(submitBtnDisplay) submitBtnDisplay.innerText = 'Submit Registration';
+                        }
+                    } else {
+                        dynamicFeeDisplay.innerText = '₱0.00';
+                        calculatedFeeInput.value = '0';
+                        if(submitBtnDisplay) submitBtnDisplay.innerText = 'Submit Registration';
+                    }
+                });    
+            }
 
             if (registrationForm) {
                 registrationForm.addEventListener("submit", function (event) {
@@ -582,99 +737,97 @@ if ($event_id > 0) {
                     });
                 });
             }
-        
-        const forgotForm = document.getElementById('retrieveTokenForm');
-        if (forgotForm) {
-            forgotForm.addEventListener('submit', function (event) {
-                event.preventDefault();
-                
-                const submitBtn = this.querySelector('button[type="submit"]');
-                const originalText = submitBtn.textContent;
-                const msgDisplay = document.getElementById('retrieveTokenMessage');
-                
-                submitBtn.textContent = "Sending Email...";
-                submitBtn.disabled = true;
-                
-                msgDisplay.style.display = 'none';
-                msgDisplay.className = 'status-msg';
-
-                const formData = new FormData(this);
-                
-                fetch('forgot_token.php', { method: 'POST', body: formData })
-                .then(async response => {
-                    const data = await response.json();
+            
+            const forgotForm = document.getElementById('retrieveTokenForm');
+            if (forgotForm) {
+                forgotForm.addEventListener('submit', function (event) {
+                    event.preventDefault();
                     
-                    msgDisplay.textContent = data.message;
-                    msgDisplay.style.display = 'block';
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    const originalText = submitBtn.textContent;
+                    const msgDisplay = document.getElementById('retrieveTokenMessage');
+                    
+                    submitBtn.textContent = "Sending Email...";
+                    submitBtn.disabled = true;
+                    
+                    msgDisplay.style.display = 'none';
+                    msgDisplay.className = 'status-msg';
 
-                    if (data.success) {
-                        msgDisplay.classList.add('success');
-                        setTimeout(() => {
-                            closeTokenModal(); 
-                        }, 3000);
-                    } else {
+                    const formData = new FormData(this);
+                    
+                    fetch('forgot_token.php', { method: 'POST', body: formData })
+                    .then(async response => {
+                        const data = await response.json();
+                        
+                        msgDisplay.textContent = data.message;
+                        msgDisplay.style.display = 'block';
+
+                        if (data.success) {
+                            msgDisplay.classList.add('success');
+                            setTimeout(() => {
+                                closeTokenModal(); 
+                            }, 3000);
+                        } else {
+                            msgDisplay.classList.add('error');
+                        }
+                    })
+                    .catch(() => {
+                        msgDisplay.textContent = 'Something went wrong. Please try again.';
                         msgDisplay.classList.add('error');
-                    }
-                })
-                .catch(() => {
-                    msgDisplay.textContent = 'Something went wrong. Please try again.';
-                    msgDisplay.classList.add('error');
-                    msgDisplay.style.display = 'block';
-                })
-                .finally(() => {
-                    submitBtn.textContent = originalText;
-                    submitBtn.disabled = false;
+                        msgDisplay.style.display = 'block';
+                    })
+                    .finally(() => {
+                        submitBtn.textContent = originalText;
+                        submitBtn.disabled = false;
+                    });
                 });
+            }
+        });
+
+        function showTokenModal() {
+            document.getElementById('tokenModal').style.display = 'block';
+        }
+
+        function closeTokenModal(event) {
+            if (event) event.stopPropagation();
+            document.getElementById('tokenModal').style.display = 'none';
+            document.getElementById('forgotTokenForm').style.display = 'none';
+            document.getElementById('tokenForm').style.display = 'block';
+        }
+
+        function showTokenSuccessModal(token) {
+            document.getElementById('generatedTokenText').textContent = token;
+            document.getElementById('tokenSuccessModal').style.display = 'block';
+            document.getElementById('registrationModal').style.display = 'none';
+        }
+
+        function closeTokenSuccessModal() {
+            document.getElementById('tokenSuccessModal').style.display = 'none';
+            window.location.href = "eventPages.php?id=<?php echo $event_id; ?>";
+        }
+
+        function copyGeneratedToken() {
+            const token = document.getElementById('generatedTokenText').textContent;
+            navigator.clipboard.writeText(token).then(() => {
+                const flash = document.getElementById('flashMessage');
+                flash.textContent = "Token copied to clipboard!";
+                flash.style.display = 'block';
+            }).catch(() => {
+                const flash = document.getElementById('flashMessage');
+                flash.textContent = "Failed to copy token.";
+                flash.style.display = 'block';
             });
         }
-    });
 
-    function showTokenModal() {
-        document.getElementById('tokenModal').style.display = 'block';
-    }
+        function showForgotTokenForm() {
+            document.getElementById('tokenForm').style.display = 'none';
+            document.getElementById('forgotTokenForm').style.display = 'block';
+        }
 
-    function closeTokenModal(event) {
-        if (event) event.stopPropagation();
-        document.getElementById('tokenModal').style.display = 'none';
-        document.getElementById('forgotTokenForm').style.display = 'none';
-        document.getElementById('tokenForm').style.display = 'block';
-    }
-
-    function showTokenSuccessModal(token) {
-        document.getElementById('generatedTokenText').textContent = token;
-        document.getElementById('tokenSuccessModal').style.display = 'block';
-        document.getElementById('registrationModal').style.display = 'none';
-    }
-
-    function closeTokenSuccessModal() {
-        document.getElementById('tokenSuccessModal').style.display = 'none';
-        window.location.href = "eventPages.php?id=<?php echo $event_id; ?>";
-    }
-
-    function copyGeneratedToken() {
-        const token = document.getElementById('generatedTokenText').textContent;
-        navigator.clipboard.writeText(token).then(() => {
-            const flash = document.getElementById('flashMessage');
-            flash.textContent = "Token copied to clipboard!";
-            flash.style.display = 'block';
-        }).catch(() => {
-            const flash = document.getElementById('flashMessage');
-            flash.textContent = "Failed to copy token.";
-            flash.style.display = 'block';
-        });
-    }
-
-    function showForgotTokenForm() {
-        document.getElementById('tokenForm').style.display = 'none';
-        document.getElementById('forgotTokenForm').style.display = 'block';
-    }
-
-    function goBack() {
-        const referrer = '<?php echo isset($_SESSION['referrer']) ? $_SESSION['referrer'] : ''; ?>';
-        window.location.href = referrer ? referrer : 'event.php';
-    }
-
-    
+        function goBack() {
+            const referrer = '<?php echo isset($_SESSION['referrer']) ? htmlspecialchars($_SESSION['referrer']) : ''; ?>';
+            window.location.href = referrer ? referrer : 'event.php';
+        }
 
         function showToast(message) {
             const toast = document.getElementById("toast-notification");
@@ -701,7 +854,7 @@ if ($event_id > 0) {
 
         function shareTo(platform) {
             const url = encodeURIComponent(window.location.href);
-            const title = encodeURIComponent("<?php echo isset($event['event_name']) ? addslashes($event['event_name']) : 'Check out this event'; ?>");
+            const title = encodeURIComponent("<?php echo isset($event['event_name']) ? addslashes(htmlspecialchars($event['event_name'])) : 'Check out this event'; ?>");
             let shareUrl = '';
 
             switch (platform) {
@@ -723,25 +876,7 @@ if ($event_id > 0) {
             }
             document.getElementById('shareDropdown').classList.remove('show');
         }
-    </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const registerBtn = document.getElementById('registerBtn');
-            if (registerBtn) {
-                registerBtn.addEventListener('click', function() {
-                    const eventId = "<?php echo $event_id; ?>";
-                    const formData = new FormData();
-                    formData.append('event_id', eventId);
-                    
-                    fetch('track_click.php', {
-                        method: 'POST',
-                        body: formData
-                    }).catch(err => console.error(err));
-                });
-            }
-        });
-        </script>
-        <script>
+
         const hamburger = document.getElementById('hamburger');
         const navLinks = document.getElementById('navLinks');
 

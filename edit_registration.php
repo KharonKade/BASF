@@ -21,6 +21,38 @@ if ($result->num_rows === 0) {
 }
 
 $registration = $result->fetch_assoc();
+$event_id = $registration['event_id'];
+
+$evt_stmt = $conn->prepare("SELECT category FROM upcoming_events WHERE id = ?");
+$evt_stmt->bind_param("i", $event_id);
+$evt_stmt->execute();
+$evt_res = $evt_stmt->get_result();
+$event_data = $evt_res->fetch_assoc();
+$event_base_category = strtolower($event_data['category'] ?? 'all');
+$evt_stmt->close();
+
+$categories_sql = "SELECT sport_type, category_name FROM event_categories WHERE event_id = $event_id";
+$categories_result = $conn->query($categories_sql);
+$dynamic_categories = [];
+if ($categories_result && $categories_result->num_rows > 0) {
+    while ($row = $categories_result->fetch_assoc()) {
+        $sport = strtolower($row['sport_type']);
+        $dynamic_categories[$sport][] = $row['category_name'];
+    }
+}
+$dynamic_categories_json = json_encode($dynamic_categories);
+
+$current_category = (string)$registration['category'];
+$cat_parts = explode(' - ', $current_category);
+$current_sport = '';
+$current_sub = '';
+
+if (count($cat_parts) === 2) {
+    $current_sport = strtolower(trim((string)$cat_parts));
+    $current_sub = trim((string)$cat_parts);
+} else {
+    $current_sport = strtolower(trim($current_category));
+}
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $name = $_POST['name'] ?? '';
@@ -28,7 +60,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $phone = $_POST['phone'] ?? '';
     $age = $_POST['age'] ?? '';
     $gender = $_POST['gender'] ?? '';
-    $category = $_POST['category'] ?? '';
+    
+    $sport_category = strtolower(trim($_POST['sport_category'] ?? ''));
+    $sub_category = trim($_POST['sub_category'] ?? '');
+    
+    if ($event_base_category !== 'all') {
+        $sport_category = $event_base_category;
+    }
+    
+    if (empty($sub_category)) {
+        $category = ucfirst($sport_category); 
+    } else {
+        $category = ucfirst($sport_category) . " - " . $sub_category;
+    }
 
     if (empty($name) || empty($email) || empty($phone) || empty($age) || empty($gender) || empty($category)) {
         echo "<script>alert('All fields are required!');</script>";
@@ -61,6 +105,16 @@ $conn->close();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="Css/edit_registration.css">
+    <style>
+        body, html, * {
+            font-family: 'Poppins', sans-serif !important;
+        }
+        .readonly-input {
+            background-color: #f5f5f5;
+            color: #666;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
 <body>
     <div class="main-wrapper">
@@ -112,15 +166,33 @@ $conn->close();
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="category">Category</label>
-                    <div class="select-wrapper">
-                        <select id="category" name="category" required>
-                            <option value="Skateboard" <?php echo ($registration['category'] == 'Skateboard') ? 'selected' : ''; ?>>Skateboard</option>
-                            <option value="Inline" <?php echo ($registration['category'] == 'Inline') ? 'selected' : ''; ?>>Inline</option>
-                            <option value="BMX" <?php echo ($registration['category'] == 'BMX') ? 'selected' : ''; ?>>BMX</option>
-                        </select>
-                        <i class="fas fa-chevron-down select-icon"></i>
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label for="sportCategory">Sport Category</label>
+                        <div class="select-wrapper">
+                            <?php if ($event_base_category === 'all'): ?>
+                                <select id="sportCategory" name="sport_category" required>
+                                    <option value="">Select Sport...</option>
+                                    <option value="skateboard" <?php echo ($current_sport == 'skateboard') ? 'selected' : ''; ?>>Skateboard</option>
+                                    <option value="inline" <?php echo ($current_sport == 'inline') ? 'selected' : ''; ?>>Inline</option>
+                                    <option value="bmx" <?php echo ($current_sport == 'bmx') ? 'selected' : ''; ?>>BMX</option>
+                                </select>
+                                <i class="fas fa-chevron-down select-icon"></i>
+                            <?php else: ?>
+                                <input type="hidden" name="sport_category" id="sportCategory" value="<?php echo htmlspecialchars($event_base_category); ?>">
+                                <input type="text" class="readonly-input" value="<?php echo ucfirst(htmlspecialchars($event_base_category)); ?>" readonly>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div class="form-group half">
+                        <label for="sub_category">Event Category</label>
+                        <div class="select-wrapper">
+                            <select id="sub_category" name="sub_category" required disabled>
+                                <option value="">Select Event Category...</option>
+                            </select>
+                            <i class="fas fa-chevron-down select-icon"></i>
+                        </div>
                     </div>
                 </div>
 
@@ -135,5 +207,45 @@ $conn->close();
             </form>
         </div>
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const dynamicCategories = <?php echo $dynamic_categories_json; ?>;
+            const sportCategoryInput = document.getElementById('sportCategory');
+            const subCategorySelect = document.getElementById('sub_category');
+            const currentSub = "<?php echo htmlspecialchars($current_sub); ?>";
+            const defaultSport = "<?php echo $event_base_category === 'all' ? htmlspecialchars($current_sport) : htmlspecialchars($event_base_category); ?>";
+
+            function updateSubCategories(sportType, preselect = '') {
+                subCategorySelect.innerHTML = '<option value="">Select Event Category...</option>';
+                subCategorySelect.disabled = true;
+
+                if (sportType && dynamicCategories[sportType]) {
+                    dynamicCategories[sportType].forEach(catName => {
+                        const option = document.createElement('option');
+                        option.value = catName;
+                        option.text = catName;
+                        if (catName === preselect) {
+                            option.selected = true;
+                        }
+                        subCategorySelect.appendChild(option);
+                    });
+                    subCategorySelect.disabled = false;
+                }
+            }
+
+            if (sportCategoryInput && sportCategoryInput.tagName === 'SELECT') {
+                sportCategoryInput.addEventListener('change', function() {
+                    updateSubCategories(this.value.toLowerCase());
+                });
+                
+                if (sportCategoryInput.value) {
+                    updateSubCategories(sportCategoryInput.value.toLowerCase(), currentSub);
+                }
+            } else if (sportCategoryInput) {
+                updateSubCategories(defaultSport, currentSub);
+            }
+        });
+    </script>
 </body>
 </html>

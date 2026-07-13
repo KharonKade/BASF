@@ -19,8 +19,8 @@
                     <li><a href="spots.html">Spots</a></li>
                     <li><a href="event.php">Events</a></li>
                     <li><a href="gallery.php">Gallery</a></li>
-                    <li><a href="sponsorship.html">Sponsorship</a></li>
-                    <li><a href="contactUs.html">Contact Us</a></li>
+                    <li><a href="sponsorship.php">Sponsorship</a></li>
+                    <li><a href="contactUs.php">Contact Us</a></li>
                 </ul>
             </div>
             <div class="hamburger" id="hamburger">
@@ -49,7 +49,7 @@
     <section class="inline-container">
         <div class="inline-content animate-on-scroll">
             <div class="middle-content">
-                <h2 id="about-us"><i class="fas fa-info-circle"></i> About Us</h2>
+                <h2 id="about-us" style="font-family: 'Poppins', sans-serif;"><i class="fa-solid fa-circle-info" style="font-family: 'Font Awesome 6 Free' !important; font-weight: 900 !important; font-style: normal !important;"></i> About Us</h2>
                 <?php
                 $result = $conn_content->query("SELECT content FROM content WHERE section='about_us'");
                 if ($row = $result->fetch_assoc()) {
@@ -59,15 +59,7 @@
                 }            
                 ?>
             </div>
-            <div class="advertisement animate-on-scroll">
-                <a id="ad-link" href="#" target="_blank">
-                    <div class="ad-container">
-                        <img id="ad-image" src="" alt="Advertisement">
-                        <span class="ad-label">Ads</span>
-                    </div>
-                </a>
-            </div>
-        </div>
+        </div>    
     </section>
 
     <section class="container event-container animate-on-scroll" id="events">
@@ -334,8 +326,8 @@
                 <li><a href="spots.html">Spots</a></li>
                 <li><a href="event.php">Events</a></li>
                 <li><a href="gallery.php">Gallery</a></li>
-                <li><a href="sponsorship.html">Sponsorship</a></li>
-                <li><a href="contactUs.html">Contact Us</a></li>
+                <li><a href="sponsorship.php">Sponsorship</a></li>
+                <li><a href="contactUs.php">Contact Us</a></li>
             </ul>
         </div>
     
@@ -752,6 +744,33 @@
         hamburger.addEventListener('click', () => {
             navLinks.classList.toggle('active');
             hamburger.classList.toggle('active');
+        });
+    </script>
+    <script>
+        let startTime = Date.now();
+        const pageName = "Skateboard"; // Change this on bmx.php and skateboard.php
+
+        function sendEngagementData() {
+            let timeSpent = Math.floor((Date.now() - startTime) / 1000); 
+            let payload = JSON.stringify({ page: pageName, time: timeSpent });
+
+            if (navigator.sendBeacon) {
+                navigator.sendBeacon('track_engagement.php', payload);
+            } else {
+                fetch('track_engagement.php', {
+                    method: 'POST',
+                    body: payload,
+                    headers: { 'Content-Type': 'application/json' },
+                    keepalive: true
+                });
+            }
+        }
+
+        window.addEventListener('beforeunload', sendEngagementData);
+        window.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
+                sendEngagementData();
+            }
         });
     </script>
 </body>

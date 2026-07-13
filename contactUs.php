@@ -1,3 +1,9 @@
+<?php
+session_start();
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,8 +26,8 @@
                     <li><a href="spots.html">Spots</a></li>
                     <li><a href="event.php">Events</a></li>
                     <li><a href="gallery.php">Gallery</a></li>
-                    <li><a href="sponsorship.html">Sponsorship</a></li>
-                    <li><a href="contactUs.html">Contact Us</a></li>
+                    <li><a href="sponsorship.php">Sponsorship</a></li>
+                    <li><a href="contactUs.php">Contact Us</a></li>
                 </ul>
             </div>
             <div class="hamburger" id="hamburger">
@@ -45,6 +51,13 @@
             <div class="contact-form">
                 <h3>Get in Touch</h3>
                 <form action="sendEmail.php" method="post">
+                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                    
+                    <div class="form-group" style="display:none; visibility:hidden;">
+                        <label for="website_url">Website URL</label>
+                        <input type="text" id="website_url" name="website_url" tabindex="-1" autocomplete="off">
+                    </div>
+
                     <div class="form-group">
                         <label for="fullName">Full Name</label>
                         <input type="text" id="fullName" name="fullName" placeholder="Juan Dela Cruz" required>
@@ -73,7 +86,7 @@
                             <div class="select-items select-hide">
                             </div>
                         </div>
-                        </div>
+                    </div>
                     <div id="companyNameContainer" class="form-group" style="display: none;">
                         <label for="companyName">Company Name</label>
                         <input type="text" id="companyName" name="companyName" placeholder="Your Organization">
@@ -116,14 +129,31 @@
         </div>
     </section>
 
-    <div class="advertisement animate-on-scroll">
-        <a id="ad-link" href="#" target="_blank">
-            <div class="ad-container">
-                <img id="ad-image" src="" alt="Advertisement">
-                <span class="ad-label">Ads</span>
+    <section class="marquee-section animate-on-scroll">
+        <h2 class="section-title" style="margin: 0; padding-bottom: 40px;">Our Current Sponsors</h2>
+        <div class="marquee-container">
+            <div class="marquee-content">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
             </div>
-        </a>
-    </div>
+        </div>
+    </section>
 
     <div class="footer-ramp-icons animate-on-scroll">
         <img src="images/ramp.png" alt="Left Ramp" class="ramp-icon left">
@@ -146,8 +176,8 @@
                 <li><a href="spots.html">Spots</a></li>
                 <li><a href="event.php">Events</a></li>
                 <li><a href="gallery.php">Gallery</a></li>
-                <li><a href="sponsorship.html">Sponsorship</a></li>
-                <li><a href="contactUs.html">Contact Us</a></li>
+                <li><a href="sponsorship.php">Sponsorship</a></li>
+                <li><a href="contactUs.php">Contact Us</a></li>
             </ul>
         </div>
     
@@ -230,7 +260,7 @@
             clearButton.innerText = "Clear Saved Info";
             clearButton.style.marginTop = "10px";
             clearButton.type = "button"; 
-            clearButton.classList.add("clear-button")
+            clearButton.classList.add("clear-button");
             document.querySelector(".contact-form").appendChild(clearButton);
     
             clearButton.addEventListener("click", function () {

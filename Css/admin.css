@@ -117,8 +117,9 @@ html, body {
     margin-left: 250px;
     width: calc(100% - 250px);
     background-image: url('../images/adminbg2.png');
-    background-size: cover;
-    background-position: center;
+    background-size: 100%;
+    background-repeat: repeat;
+    background-position: top left;
     min-height: 100vh;
     padding-bottom: 50px;
     box-sizing: border-box;

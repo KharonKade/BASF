@@ -116,8 +116,9 @@ html, body {
     flex-grow: 1;
     padding: 40px 40px 40px 60px;
     background-image: url('../images/adminbg2.png');
-    background-size: cover;
-    background-position: center;
+    background-size: 100%;
+    background-repeat: repeat;
+    background-position: top left;
     box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
     min-height: 100vh;
     box-sizing: border-box;

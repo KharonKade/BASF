@@ -22,7 +22,7 @@ if (isset($_GET['highlight_id'])) {
     $_SESSION['highlight_archive_id'] = $highlight_id;
 }
 
-$sql = "SELECT id, full_name, email, contact_number, concerns, message, submitted_at, archived FROM contact_inquiries WHERE archived = 1 ORDER BY id DESC";
+$sql = "SELECT id, full_name, email, contact_number, concerns, message, submitted_at, archived, is_replied FROM contact_inquiries WHERE archived = 1 ORDER BY id DESC";
 $result = $conn->query($sql);
 ?>
 
@@ -37,6 +37,9 @@ $result = $conn->query($sql);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="Css/archived_inquiries.css?v=1.1">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .replied-row { background-color: #f0fdf4 !important; }
+    </style>
 </head>
 <body>
     <div class="admin-container">
@@ -92,10 +95,15 @@ $result = $conn->query($sql);
                     $shortMessage = strlen($row["message"]) > 25 ? substr($row["message"], 0, 25) . '...' : $row["message"];
                     
                     $rowClass = ($row['id'] == $highlight_id) ? 'highlight-row' : '';
+                    if ($row['is_replied'] == 1) {
+                        $rowClass .= ' replied-row';
+                    }
+                    
+                    $repliedBadge = ($row['is_replied'] == 1) ? " <i class='fas fa-check-circle' style='color: #28a745; margin-left: 5px;' title='Replied'></i>" : "";
                     
                     echo "<tr class='$rowClass' id='inquiry-" . $row['id'] . "'>
                             <td>" . $counter++ . "</td> 
-                            <td>" . htmlspecialchars($row["full_name"]) . "</td>
+                            <td>" . htmlspecialchars($row["full_name"]) . $repliedBadge . "</td>
                             <td>" . htmlspecialchars($row["email"]) . "</td>
                             <td>" . htmlspecialchars($row["contact_number"]) . "</td>
                             <td>" . htmlspecialchars($row["concerns"]) . "</td>

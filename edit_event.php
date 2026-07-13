@@ -15,7 +15,25 @@ $images = $conn->query("SELECT * FROM event_images WHERE event_id = $event_id");
 
 $sponsors = $conn->query("SELECT * FROM sponsor_logos WHERE event_id = $event_id");
 
+$categories_query = $conn->query("SELECT * FROM event_categories WHERE event_id = $event_id");
+$existing_categories = [];
+while ($cat = $categories_query->fetch_assoc()) {
+    $existing_categories[$cat['sport_type']][] = [
+        'name' => $cat['category_name'],
+        'fee' => $cat['fee']
+    ];
+}
+$existing_categories_json = json_encode($existing_categories);
+
 $is_paid = ($event['registration_fee'] > 0);
+
+$leaderboards = null;
+if ($event['status'] == 'archived') {
+    $leaderboards_query = $conn->query("SHOW TABLES LIKE 'event_leaderboards'");
+    if ($leaderboards_query->num_rows > 0) {
+        $leaderboards = $conn->query("SELECT * FROM event_leaderboards WHERE event_id = $event_id ORDER BY id ASC");
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -86,13 +104,13 @@ $is_paid = ($event['registration_fee'] > 0);
                             <div class="form-group">
                                 <label>Category</label>
                                 <div class="select-wrapper">
-                                    <select name="category">
-                                        <option value="skateboard" <?php if ($event['category'] == "skateboard") echo "selected"; ?>>Skateboard</option>
-                                        <option value="inline" <?php if ($event['category'] == "inline") echo "selected"; ?>>Inline</option>
-                                        <option value="bmx" <?php if ($event['category'] == "bmx") echo "selected"; ?>>BMX</option>
-                                        <option value="all" <?php if ($event['category'] == "all") echo "selected"; ?>>All</option>
+                                    <select name="category" id="category">
+                                        <option value="skateboard" <?php if (strtolower($event['category']) == 'skateboard') echo 'selected'; ?>>Skateboard</option>
+                                        <option value="inline" <?php if (strtolower($event['category']) == 'inline') echo 'selected'; ?>>Inline</option>
+                                        <option value="bmx" <?php if (strtolower($event['category']) == 'bmx') echo 'selected'; ?>>BMX</option>
+                                        <option value="All" <?php if (strtolower($event['category']) == 'all') echo 'selected'; ?>>All</option>
                                     </select>
-                                </div>
+                                </div>  
                             </div>
 
                             <div class="form-group">
@@ -121,22 +139,8 @@ $is_paid = ($event['registration_fee'] > 0);
                                         <label>Registration Limit</label>
                                         <input type="number" name="registration_limit" value="<?php echo isset($event['registration_limit']) ? htmlspecialchars($event['registration_limit']) : ''; ?>" min="1" placeholder="Max participants">
                                     </div>
-
-                                    <div class="form-group">
-                                        <label>Registration Type</label>
-                                        <div class="select-wrapper">
-                                            <select name="registration_type" id="registration_type">
-                                                <option value="free" <?php echo (!$is_paid) ? 'selected' : ''; ?>>Free</option>
-                                                <option value="paid" <?php echo ($is_paid) ? 'selected' : ''; ?>>Paid</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div id="fee-container" style="display: <?php echo ($is_paid) ? 'block' : 'none'; ?>;">
-                                    <div class="form-group">
-                                        <label>Registration Fee (PHP)</label>
-                                        <input type="number" name="registration_fee" id="registration_fee" min="1" step="0.01" value="<?php echo ($event['registration_fee'] > 0) ? htmlspecialchars($event['registration_fee']) : ''; ?>" placeholder="0.00">
+                                    <div class="form-group" style="grid-column: 1 / -1; width: 100%;">
+                                        <div id="dynamic-categories-wrapper" style="font-family: 'Poppins', sans-serif;"></div>
                                     </div>
                                 </div>
                             </div>
@@ -191,7 +195,7 @@ $is_paid = ($event['registration_fee'] > 0);
                                 </div>
                                 <div class="upload-box">
                                     <label>Upload New Posters</label>
-                                    <input type="file" name="posters[]" multiple class="file-input">
+                                    <input type="file" name="posters[]" multiple class="file-input" accept="image/*" style="font-family: 'Poppins', sans-serif;">
                                 </div>
                             </div>
 
@@ -213,6 +217,45 @@ $is_paid = ($event['registration_fee'] > 0);
                             </div>
                         </div>
                     </div>
+
+                    <?php if ($event['status'] == 'archived'): ?>
+                    <div class="form-card" style="font-family: 'Poppins', sans-serif;">
+                        <div class="card-header flex-header">
+                            <h3>Event Leaderboard</h3>
+                            <button type="button" id="add-leaderboard" class="btn-secondary small-btn">+ Add Player</button>
+                        </div>
+                        <div class="card-body">
+                            <p style="margin-bottom: 15px; font-size: 0.9em; color: #666;">Enter the final standings. You can specify different categories or divisions.</p>
+                            <div id="leaderboard-container">
+                                <?php if ($leaderboards && $leaderboards->num_rows > 0): ?>
+                                    <?php while ($lb = $leaderboards->fetch_assoc()): ?>
+                                    <div class="schedule-row slide-in">
+                                        <div class="form-group" style="flex: 0.5;">
+                                            <label>Rank</label>
+                                            <input type="text" name="lb_rank[]" value="<?php echo htmlspecialchars($lb['rank']); ?>" required style="font-family: 'Poppins', sans-serif;">
+                                        </div>
+                                        <div class="form-group" style="flex: 2;">
+                                            <label>Player Name</label>
+                                            <input type="text" name="lb_name[]" value="<?php echo htmlspecialchars($lb['player_name']); ?>" required style="font-family: 'Poppins', sans-serif;">
+                                        </div>
+                                        <div class="form-group" style="flex: 1.5;">
+                                            <label>Category</label>
+                                            <input type="text" name="lb_category[]" value="<?php echo htmlspecialchars($lb['category']); ?>" required style="font-family: 'Poppins', sans-serif;">
+                                        </div>
+                                        <div class="form-group" style="flex: 1;">
+                                            <label>Score/Rating</label>
+                                            <input type="text" name="lb_score[]" value="<?php echo htmlspecialchars($lb['score']); ?>" required style="font-family: 'Poppins', sans-serif;">
+                                        </div>
+                                        <button type="button" class="btn-icon-danger" onclick="this.closest('.schedule-row').remove()">
+                                            &times;
+                                        </button>
+                                    </div>
+                                    <?php endwhile; ?>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
 
                     <div class="form-actions">
                         <button type="button" class="btn-secondary-large" style="margin-right: 15px;" onclick="window.location.href='manage_upcoming.php';">Cancel</button>
@@ -239,24 +282,89 @@ $is_paid = ($event['registration_fee'] > 0);
         this.classList.remove('active');
     });
 
-    const regType = document.getElementById("registration_type");
-    const feeContainer = document.getElementById("fee-container");
-    const feeInput = document.getElementById("registration_fee");
+    const existingCategories = <?php echo $existing_categories_json; ?>;
+    const categorySelect = document.querySelector('select[name="category"]');
+    const dynamicCategoriesWrapper = document.getElementById('dynamic-categories-wrapper');
 
-    function updateFeeStatus() {
-        if (regType.value === "paid") {
-            feeContainer.style.display = "block";
-            feeInput.required = true;
+    function renderCategorySections() {
+        const selectedSport = categorySelect.value.toLowerCase();
+        dynamicCategoriesWrapper.innerHTML = '';
+
+        if (selectedSport === 'all') {
+            createSportSection('skateboard', 'Skateboard Categories', existingCategories['skateboard'] || []);
+            createSportSection('inline', 'Inline Categories', existingCategories['inline'] || []);
+            createSportSection('bmx', 'BMX Categories', existingCategories['bmx'] || []);
         } else {
-            feeContainer.style.display = "none";
-            feeInput.required = false;
-            feeInput.value = "";
+            const title = selectedSport.charAt(0).toUpperCase() + selectedSport.slice(1) + ' Categories';
+            createSportSection(selectedSport, title, existingCategories[selectedSport] || []);
         }
     }
 
-    regType.addEventListener("change", updateFeeStatus);
+    function createSportSection(sportKey, title, existingData = []) {
+        const section = document.createElement('div');
+        section.style.marginTop = '20px';
+        section.style.padding = '15px';
+        section.style.border = '1px solid #ddd';
+        section.style.borderRadius = '8px';
+        section.style.fontFamily = "'Poppins', sans-serif";
 
-    updateFeeStatus();
+        const header = document.createElement('div');
+        header.classList.add('flex-header');
+        header.style.display = 'flex';
+        header.style.justifyContent = 'space-between';
+        header.style.alignItems = 'center';
+        header.style.marginBottom = '15px';
+
+        const heading = document.createElement('h4');
+        heading.innerText = title;
+        heading.style.margin = '0';
+        heading.style.fontFamily = "'Poppins', sans-serif";
+
+        const addBtn = document.createElement('button');
+        addBtn.type = 'button';
+        addBtn.classList.add('btn-secondary', 'small-btn');
+        addBtn.innerText = '+ Add Category';
+        addBtn.style.fontFamily = "'Poppins', sans-serif";
+
+        const rowsContainer = document.createElement('div');
+
+        const addRow = (nameVal = '', feeVal = '') => {
+            const row = document.createElement('div');
+            row.classList.add('form-grid');
+            row.style.alignItems = 'end';
+            row.style.marginBottom = '10px';
+
+            row.innerHTML = `
+                <div class="form-group">
+                    <label style="font-family: 'Poppins', sans-serif;">Category Name</label>
+                    <input type="text" name="sport_categories[${sportKey}][name][]" value="${nameVal}" placeholder="e.g. Open Class" required style="font-family: 'Poppins', sans-serif;">
+                </div>
+                <div class="form-group">
+                    <label style="font-family: 'Poppins', sans-serif;">Registration Fee (PHP)</label>
+                    <input type="number" name="sport_categories[${sportKey}][fee][]" value="${feeVal}" min="0" step="0.01" placeholder="0.00" required style="font-family: 'Poppins', sans-serif;">
+                </div>
+                <button type="button" class="btn-icon-danger remove-sub-category" style="margin-bottom: 15px; font-family: 'Poppins', sans-serif;">&times;</button>
+            `;
+
+            row.querySelector('.remove-sub-category').addEventListener('click', () => row.remove());
+            rowsContainer.appendChild(row);
+        };
+
+        if (existingData.length > 0) {
+            existingData.forEach(data => addRow(data.name, data.fee));
+        }
+
+        addBtn.addEventListener('click', () => addRow());
+
+        header.appendChild(heading);
+        header.appendChild(addBtn);
+        section.appendChild(header);
+        section.appendChild(rowsContainer);
+        dynamicCategoriesWrapper.appendChild(section);
+    }
+
+    categorySelect.addEventListener('change', renderCategorySections);
+    renderCategorySections();
 
     document.getElementById('add-schedule').addEventListener('click', function () {
         const container = document.getElementById('schedule-container');
@@ -290,6 +398,39 @@ $is_paid = ($event['registration_fee'] > 0);
     function removeElement(button) {
         button.closest('.media-item').remove();
     }
+
+    <?php if ($event['status'] == 'archived'): ?>
+    const addLeaderboardBtn = document.getElementById('add-leaderboard');
+    if (addLeaderboardBtn) {
+        addLeaderboardBtn.addEventListener('click', function () {
+            const container = document.getElementById('leaderboard-container');
+            const lbDiv = document.createElement('div');
+            lbDiv.className = 'schedule-row slide-in';
+            lbDiv.innerHTML = `
+                <div class="form-group" style="flex: 0.5;">
+                    <label>Rank</label>
+                    <input type="text" name="lb_rank[]" placeholder="e.g. 1st, 2nd" required style="font-family: 'Poppins', sans-serif;">
+                </div>
+                <div class="form-group" style="flex: 2;">
+                    <label>Player Name</label>
+                    <input type="text" name="lb_name[]" placeholder="Enter player name" required style="font-family: 'Poppins', sans-serif;">
+                </div>
+                <div class="form-group" style="flex: 1.5;">
+                    <label>Category</label>
+                    <input type="text" name="lb_category[]" placeholder="e.g. Open, Pro" required style="font-family: 'Poppins', sans-serif;">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Score/Rating</label>
+                    <input type="text" name="lb_score[]" placeholder="Score or Time" required style="font-family: 'Poppins', sans-serif;">
+                </div>
+                <button type="button" class="btn-icon-danger" onclick="this.closest('.schedule-row').remove()">
+                    &times;
+                </button>
+            `;
+            container.appendChild(lbDiv);
+        });
+    }
+    <?php endif; ?>
 
     let editorInstance;
     ClassicEditor

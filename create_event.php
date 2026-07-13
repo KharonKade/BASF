@@ -109,23 +109,9 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
                                         <label for="registration_limit">Registration Limit</label>
                                         <input type="number" name="registration_limit" id="registration_limit" min="1" placeholder="Max participants">
                                     </div>
-                                    
-                                    <div class="form-group">
-                                        <label for="registration_type">Registration Type</label>
-                                        <div class="select-wrapper">
-                                            <select name="registration_type" id="registration_type">
-                                                <option value="free">Free</option>
-                                                <option value="paid">Paid</option>
-                                            </select>
+                                        <div class="form-group" style="grid-column: 1 / -1; width: 100%;">
+                                            <div id="dynamic-categories-wrapper" style="font-family: 'Poppins', sans-serif;"></div>
                                         </div>
-                                    </div>
-                                </div>
-
-                                <div id="fee-container" style="display: none; margin-top: 15px;">
-                                    <div class="form-group">
-                                        <label for="registration_fee">Registration Fee (PHP)</label>
-                                        <input type="number" name="registration_fee" id="registration_fee" min="1" step="0.01" placeholder="0.00">
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -267,19 +253,82 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
             }
         });
 
-        document.getElementById("registration_type").addEventListener("change", function () {
-            var feeContainer = document.getElementById("fee-container");
-            var feeInput = document.getElementById("registration_fee");
-            
-            if (this.value === "paid") {
-                feeContainer.style.display = "block";
-                feeInput.required = true;
+        const categorySelect = document.getElementById('category');
+        const dynamicCategoriesWrapper = document.getElementById('dynamic-categories-wrapper');
+
+        function renderCategorySections() {
+            const selectedSport = categorySelect.value;
+            dynamicCategoriesWrapper.innerHTML = '';
+
+            if (selectedSport === 'All') {
+                createSportSection('skateboard', 'Skateboard Categories');
+                createSportSection('inline', 'Inline Categories');
+                createSportSection('bmx', 'BMX Categories');
             } else {
-                feeContainer.style.display = "none";
-                feeInput.required = false;
-                feeInput.value = "";
+                const title = selectedSport.charAt(0).toUpperCase() + selectedSport.slice(1) + ' Categories';
+                createSportSection(selectedSport, title);
             }
-        });
+        }
+
+        function createSportSection(sportKey, title) {
+            const section = document.createElement('div');
+            section.style.marginTop = '20px';
+            section.style.padding = '15px';
+            section.style.border = '1px solid #ddd';
+            section.style.borderRadius = '8px';
+            section.style.fontFamily = "'Poppins', sans-serif";
+
+            const header = document.createElement('div');
+            header.classList.add('flex-header');
+            header.style.display = 'flex';
+            header.style.justifyContent = 'space-between';
+            header.style.alignItems = 'center';
+            header.style.marginBottom = '15px';
+
+            const heading = document.createElement('h4');
+            heading.innerText = title;
+            heading.style.margin = '0';
+            heading.style.fontFamily = "'Poppins', sans-serif";
+
+            const addBtn = document.createElement('button');
+            addBtn.type = 'button';
+            addBtn.classList.add('btn-secondary', 'small-btn');
+            addBtn.innerText = '+ Add Category';
+            addBtn.style.fontFamily = "'Poppins', sans-serif";
+
+            const rowsContainer = document.createElement('div');
+
+            addBtn.addEventListener('click', () => {
+                const row = document.createElement('div');
+                row.classList.add('form-grid');
+                row.style.alignItems = 'end';
+                row.style.marginBottom = '10px';
+
+                row.innerHTML = `
+                    <div class="form-group">
+                        <label style="font-family: 'Poppins', sans-serif;">Category Name</label>
+                        <input type="text" name="sport_categories[${sportKey}][name][]" placeholder="e.g. Open Class" required style="font-family: 'Poppins', sans-serif;">
+                    </div>
+                    <div class="form-group">
+                        <label style="font-family: 'Poppins', sans-serif;">Registration Fee (PHP)</label>
+                        <input type="number" name="sport_categories[${sportKey}][fee][]" min="0" step="0.01" placeholder="0.00" required style="font-family: 'Poppins', sans-serif;">
+                    </div>
+                    <button type="button" class="btn-icon-danger remove-sub-category" style="margin-bottom: 15px; font-family: 'Poppins', sans-serif;">&times;</button>
+                `;
+
+                row.querySelector('.remove-sub-category').addEventListener('click', () => row.remove());
+                rowsContainer.appendChild(row);
+            });
+
+            header.appendChild(heading);
+            header.appendChild(addBtn);
+            section.appendChild(header);
+            section.appendChild(rowsContainer);
+            dynamicCategoriesWrapper.appendChild(section);
+        }
+
+        categorySelect.addEventListener('change', renderCategorySections);
+        renderCategorySections();
     </script>
 </body>
 </html>

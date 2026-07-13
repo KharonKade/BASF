@@ -10,6 +10,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="Css/event.css">
+    <style>
+        body, html, * {
+            font-family: 'Poppins', sans-serif !important;
+        }
+    </style>
 </head>
 
 <body>
@@ -22,8 +27,8 @@
                     <li><a href="spots.html">Spots</a></li>
                     <li><a href="event.php">Events</a></li>
                     <li><a href="gallery.php">Gallery</a></li>
-                    <li><a href="sponsorship.html">Sponsorship</a></li>
-                    <li><a href="contactUs.html">Contact Us</a></li>
+                    <li><a href="sponsorship.php">Sponsorship</a></li>
+                    <li><a href="contactUs.php">Contact Us</a></li>
                 </ul>
             </div>
             <div class="hamburger" id="hamburger">
@@ -40,14 +45,29 @@
         </div>
     </section>
 
-    <section class="event-navigation"> 
-        <div class="advertisement animate-on-scroll">
-            <a id="ad-link" href="#" target="_blank">
-                <div class="ad-container">
-                    <img id="ad-image" src="" alt="Advertisement">
-                    <span class="ad-label">Ads</span>
-                </div>
-            </a>
+    <section class="marquee-section animate-on-scroll">
+        <h2 class="section-title" style="margin: 0; padding-bottom: 40px;">Our Current Sponsors</h2>
+        <div class="marquee-container">
+            <div class="marquee-content">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+            </div>
         </div>
     </section>
 
@@ -70,7 +90,7 @@
     </div>
 
     <section class="container event-container animate-on-scroll" id="upcoming">
-        <h2>Events & Activities</h2>
+        <h2>Upcoming Events & Activities</h2>
         <div id="event-count" class="event-count">Total Events: 0</div>
         
         <div class="event-grid" id="eventGrid">
@@ -168,12 +188,72 @@
             } else {
                 echo "<p>No upcoming events found.</p>";
             }
-
-            $conn->close();
             ?>
         </div>
         
         <div id="pagination-controls" class="pagination-container"></div>
+    </section>
+
+    <section class="container event-container animate-on-scroll" id="past-events">
+        <h2>Past Events</h2>
+        <div class="event-grid" id="pastEventGrid">
+            <?php
+            $past_sql = "
+            SELECT 
+                e.id,
+                e.event_name, 
+                e.category, 
+                s.event_date, 
+                MIN(i.image_path) AS image_path
+            FROM 
+                upcoming_events e
+            JOIN 
+                event_schedules s ON e.id = s.event_id
+            JOIN 
+                event_images i ON e.id = i.event_id
+            WHERE 
+                e.status = 'archived'
+            GROUP BY 
+                e.id
+            ORDER BY 
+                e.id DESC
+            ";
+
+            $past_result = $conn->query($past_sql);
+
+            if ($past_result->num_rows > 0) {
+                while ($row = $past_result->fetch_assoc()) {
+                    echo '<div class="past-event-item animate-on-scroll">
+                            <a href="eventPages.php?id=' . $row['id'] . '">
+                                <div class="flip-card">
+                                    <div class="flip-card-inner">
+                                        <div class="flip-card-front">
+                                            <img src="' . $row["image_path"] . '" alt="' . $row["event_name"] . '">
+                                        </div>
+                                        <div class="flip-card-back" style="background-image: url(' . "'" . $row["image_path"] . "'" . ');">
+                                            <div class="back-content">
+                                                <p>' . $row["event_name"] . '</p>
+                                                <p>Category: ' . $row["category"] . '</p>';
+
+                                                $event_date = new DateTime($row["event_date"]);
+                                                $formatted_date = $event_date->format('l, F j, Y');
+                                                echo '<p>Date: ' . $formatted_date . '</p>';
+
+                                                echo '<br><p>Click for more...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>';
+                }
+            } else {
+                echo "<p>No past events found.</p>";
+            }
+
+            $conn->close();
+            ?>
+        </div>
     </section>
 
     <div class="footer-ramp-icons animate-on-scroll">
@@ -197,8 +277,8 @@
                 <li><a href="spots.html">Spots</a></li>
                 <li><a href="event.php">Events</a></li>
                 <li><a href="gallery.php">Gallery</a></li>
-                <li><a href="sponsorship.html">Sponsorship</a></li>
-                <li><a href="contactUs.html">Contact Us</a></li>
+                <li><a href="sponsorship.php">Sponsorship</a></li>
+                <li><a href="contactUs.php">Contact Us</a></li>
             </ul>
         </div>
     
@@ -231,7 +311,6 @@
     <script>
 document.addEventListener("DOMContentLoaded", function () {
     
-    // --- 1. Animation Logic ---
     const elements = document.querySelectorAll('.animate-on-scroll');
     elements.forEach(el => { el._fadeTimeout = null; });
 
@@ -259,7 +338,6 @@ document.addEventListener("DOMContentLoaded", function () {
     window.addEventListener('resize', toggleVisibility);
     toggleVisibility(); 
 
-    // --- 2. Ads Logic ---
     const ads = [
         { image: 'images/vansads.png', link: 'https://www.vans.com/en-us/shoes-c00081/old-skool-shoe-pvn000d3hy28' },
         { image: 'images/nikead.webp', link: 'https://www.nike.com/ph/' },
@@ -279,12 +357,10 @@ document.addEventListener("DOMContentLoaded", function () {
     rotateAd();
     setInterval(rotateAd, 3000);
 
-    // --- 3. Search, Filter & Pagination Logic ---
     let currentPage = 1;
     let itemsPerPage = 8;
     
-    // Grab all items rendered by PHP immediately
-    let filteredItems = Array.from(document.querySelectorAll('.event-item')); 
+    let filteredItems = Array.from(document.querySelectorAll('#eventGrid .event-item')); 
 
     const searchInput = document.getElementById('searchFilter');
     const categorySelect = document.getElementById('categoryFilter');
@@ -293,7 +369,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const eventCount = document.getElementById('event-count');
     const paginationContainer = document.getElementById('pagination-controls');
 
-    // FIX: Update the counter immediately on load
     if(eventCount) {
         eventCount.textContent = `Total Events: ${filteredItems.length}`;
     }
@@ -309,7 +384,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function renderPage() {
-        const allItems = document.querySelectorAll('.event-item');
+        const allItems = document.querySelectorAll('#eventGrid .event-item');
         allItems.forEach(item => item.style.display = 'none');
 
         const start = (currentPage - 1) * itemsPerPage;
@@ -323,7 +398,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         renderPaginationControls();
         
-        // Retrigger animation check for new items
         setTimeout(toggleVisibility, 100);
     }
 
@@ -400,13 +474,8 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(data => {
             eventGrid.innerHTML = data;
             
-            // Update our list of items based on new results
             filteredItems = Array.from(eventGrid.querySelectorAll('.event-item'));
-            
-            // Update the counter
             eventCount.textContent = `Total Events: ${filteredItems.length}`;
-            
-            // Reset to page 1
             currentPage = 1;
             
             calculateItemsPerPage();
@@ -418,8 +487,6 @@ document.addEventListener("DOMContentLoaded", function () {
     categorySelect.addEventListener('change', fetchEvents);
     dateSelect.addEventListener('change', fetchEvents);
     window.addEventListener('resize', calculateItemsPerPage);
-
-    // Initial calculation
     calculateItemsPerPage();
 });
 </script>

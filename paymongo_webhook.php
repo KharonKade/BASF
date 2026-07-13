@@ -1,13 +1,33 @@
 <?php
+require_once 'secrets.php';
+
 $input = @file_get_contents("php://input");
+$signature_header = $_SERVER['HTTP_PAYMONGO_SIGNATURE'] ?? '';
+
+$timestamp = '';
+$test_signature = '';
+$live_signature = '';
+
+$parts = explode(',', $signature_header);
+foreach ($parts as $part) {
+    $pair = explode('=', trim($part), 2);
+    if (count($pair) === 2) {
+        if ($pair[0] === 't') $timestamp = $pair[1];
+        if ($pair[0] === 'te') $test_signature = $pair[1];
+        if ($pair[0] === 'li') $live_signature = $pair[1];
+    }
+}
+
+$computed_signature = hash_hmac('sha256', $timestamp . '.' . $input, $paymongo_webhook_secret);
+
+if (!hash_equals($computed_signature, $test_signature) && !hash_equals($computed_signature, $live_signature)) {
+    http_response_code(401);
+    exit;
+}
+
 $event = json_decode($input, true);
 
-$servername = "localhost";
-$username = "u142318015_usr_vf0t87O1";
-$password = "W1xz8gB^";
-$dbname = "u142318015_db_vf0t87O1";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
 
 if (!$event || !isset($event['data']['attributes']['type'])) {
     http_response_code(400);
@@ -30,8 +50,11 @@ if ($type === 'checkout_session.payment.paid') {
         $stmt->execute();
         $stmt->close();
 
-        $user_sql = "SELECT r.email, r.name, e.event_name, e.registration_fee FROM event_registrations r JOIN upcoming_events e ON r.event_id = e.id WHERE r.id = $db_id";
-        $result = $conn->query($user_sql);
+        $user_sql = "SELECT r.email, r.name, e.event_name, e.registration_fee FROM event_registrations r JOIN upcoming_events e ON r.event_id = e.id WHERE r.id = ?";
+        $user_stmt = $conn->prepare($user_sql);
+        $user_stmt->bind_param("i", $db_id);
+        $user_stmt->execute();
+        $result = $user_stmt->get_result();
         
         if ($result && $result->num_rows > 0) {
             $user = $result->fetch_assoc();
@@ -78,10 +101,11 @@ if ($type === 'checkout_session.payment.paid') {
 
             $headers = "MIME-Version: 1.0" . "\r\n";
             $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-            $headers .= "From: @basfevents.com" . "\r\n";
+            $headers .= "From: no-reply@basfevents.com" . "\r\n";
 
             mail($to, $subject, $message, $headers);
         }
+        $user_stmt->close();
     }
 }
 

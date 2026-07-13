@@ -14,18 +14,26 @@ if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
     exit();
 }
 
-$conn = new mysqli("localhost", "u142318015_usr_vf0t87O1", "W1xz8gB^", "u142318015_db_vf0t87O1");
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+$conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+    die("A database connection error occurred. Please try again later.");
 }
 
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $statusMsg = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_reply'])) {
-    $recipient_email = $_POST['recipient_email'];
-    $subject_line = "Re: " . $_POST['original_subject'];
-    $reply_body = $_POST['reply_message'];
+    if (!isset($_POST['csrf_token']) || hash_equals($_SESSION['csrf_token'], $_POST['csrf_token']) === false) {
+        die("Invalid CSRF token.");
+    }
+
+    $recipient_email = filter_var($_POST['recipient_email'], FILTER_SANITIZE_EMAIL);
+    $subject_line = "Re: " . htmlspecialchars($_POST['original_subject']);
+    $reply_body = htmlspecialchars($_POST['reply_message']);
 
     $mail = new PHPMailer(true);
 
@@ -48,37 +56,47 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_reply'])) {
 
         $mail->send();
 
-        $update_sql = "UPDATE contact_inquiries SET archived = 1 WHERE id = $id";
-        if ($conn->query($update_sql) === TRUE) {
+        $stmt = $conn->prepare("UPDATE contact_inquiries SET archived = 1, is_replied = 1 WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        
+        if ($stmt->execute()) {
             $_SESSION['highlight_archive_id'] = $id;
-            
             header("Location: archived_inquiries.php?status=replied");
             exit();
         } else {
-            $statusMsg = "<div class='alert error'>Reply sent, but failed to archive inquiry: " . $conn->error . "</div>";
+            $statusMsg = "<div class='alert error'>Reply sent, but failed to archive inquiry.</div>";
         }
+        $stmt->close();
 
     } catch (Exception $e) {
-        $statusMsg = "<div class='alert error'>Message could not be sent. Mailer Error: {$mail->ErrorInfo}</div>";
+        $statusMsg = "<div class='alert error'>Message could not be sent. Please contact support.</div>";
     }
 }
 
-$sql_all_inquiries = "SELECT id FROM contact_inquiries ORDER BY id DESC";
-$result_all = $conn->query($sql_all_inquiries);
+$pos_stmt = $conn->prepare("SELECT COUNT(*) as pos FROM contact_inquiries WHERE id >= ?");
+$pos_stmt->bind_param("i", $id);
+$pos_stmt->execute();
+$pos_result = $pos_stmt->get_result();
+$pos_row = $pos_result->fetch_assoc();
+$inquiry_position = $pos_row['pos'];
+$pos_stmt->close();
 
-$counter = 1;
-$inquiry_position = 0;
-while($row_all = $result_all->fetch_assoc()) {
-    if ($row_all['id'] == $id) {
-        $inquiry_position = $counter;
-        break;
-    }
-    $counter++;
+$stmt = $conn->prepare("SELECT * FROM contact_inquiries WHERE id = ?");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows === 0) {
+    die("Inquiry not found.");
 }
 
-$sql = "SELECT * FROM contact_inquiries WHERE id = $id";
-$result = $conn->query($sql);
 $row = $result->fetch_assoc();
+$stmt->close();
+
+$update_read_stmt = $conn->prepare("UPDATE contact_inquiries SET is_read = 1 WHERE id = ?");
+$update_read_stmt->bind_param("i", $id);
+$update_read_stmt->execute();
+$update_read_stmt->close();
 ?>
 
 <!DOCTYPE html>
@@ -89,9 +107,10 @@ $row = $result->fetch_assoc();
     <title>View Inquiry Message</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="Css/view_message.css?v=1.1">
     <style>
+        i.fas { font-family: "Font Awesome 6 Free" !important; font-weight: 900 !important; }
         body { font-family: 'Poppins', sans-serif; }
         .reply-section { margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; }
         .reply-form textarea { width: 95%; height: 150px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Poppins', sans-serif; resize: vertical; margin-bottom: 15px; }
@@ -190,6 +209,7 @@ $row = $result->fetch_assoc();
                             <div class="reply-section">
                                 <h3>Reply to User</h3>
                                 <form method="POST" class="reply-form">
+                                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                                     <input type="hidden" name="recipient_email" value="<?php echo htmlspecialchars($row['email']); ?>">
                                     <input type="hidden" name="original_subject" value="<?php echo htmlspecialchars($row['concerns']); ?>">
                                     
@@ -224,4 +244,3 @@ $row = $result->fetch_assoc();
     </script>
 </body>
 </html>
-<?php $conn->close(); ?>

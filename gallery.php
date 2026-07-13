@@ -57,8 +57,8 @@ $conn->close();
                     <li><a href="spots.html">Spots</a></li>
                     <li><a href="event.php">Events</a></li>
                     <li><a href="gallery.php">Gallery</a></li>
-                    <li><a href="sponsorship.html">Sponsorship</a></li>
-                    <li><a href="contactUs.html">Contact Us</a></li>
+                    <li><a href="sponsorship.php">Sponsorship</a></li>
+                    <li><a href="contactUs.php">Contact Us</a></li>
                 </ul>
             </div>
             <div class="hamburger" id="hamburger">
@@ -116,6 +116,32 @@ $conn->close();
             </div>
         </div>
     </div>
+
+    <section class="marquee-section animate-on-scroll">
+        <h2 class="section-title" style="margin: 0; padding-bottom: 40px;">Our Current Sponsors</h2>
+        <div class="marquee-container">
+            <div class="marquee-content">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+            </div>
+        </div>
+    </section>
     
     <div class="footer-ramp-icons animate-on-scroll">
         <img src="images/ramp.png" alt="Left Ramp" class="ramp-icon left">
@@ -137,8 +163,8 @@ $conn->close();
                 <li><a href="spots.html">Spots</a></li>
                 <li><a href="event.php">Events</a></li>
                 <li><a href="gallery.php">Gallery</a></li>
-                <li><a href="sponsorship.html">Sponsorship</a></li>
-                <li><a href="contactUs.html">Contact Us</a></li>
+                <li><a href="sponsorship.php">Sponsorship</a></li>
+                <li><a href="contactUs.php">Contact Us</a></li>
             </ul>
         </div>
         <div class="footer-section contact-section">
@@ -249,7 +275,6 @@ $conn->close();
             };
             container.appendChild(prevBtn);
 
-            // --- Sliding Window Logic (Max 4 pages) ---
             let maxVisible = 4;
             let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
             let endPage = startPage + maxVisible - 1;
@@ -270,7 +295,6 @@ $conn->close();
                 };
                 container.appendChild(btn);
             }
-            // -------------------------------------------
 
             const nextBtn = document.createElement('button');
             nextBtn.innerText = 'Next';

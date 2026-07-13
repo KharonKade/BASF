@@ -20,7 +20,16 @@ header("Content-Disposition: attachment; filename=\"$filename\"");
 
 $output = fopen("php://output", "w");
 
-fputcsv($output, array('ID', 'News Title', 'Category', 'Publish Date', 'Status'));
+fputcsv($output, ['NEWS AND ANNOUNCEMENTS REPORT']);
+fputcsv($output, ['Generated on:', date('F d, Y h:i A')]);
+
+if (!empty($category) && strtolower($category) !== 'all') {
+    fputcsv($output, ['Filtered by Category:', $category]);
+}
+
+fputcsv($output, []);
+
+fputcsv($output, ['ID', 'News Title', 'Category', 'Publish Date', 'Status']);
 
 $sql = "SELECT news_id, news_title, category, publish_date, status FROM news_announcements WHERE status = 'active'";
 

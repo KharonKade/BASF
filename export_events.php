@@ -18,6 +18,19 @@ header('Content-Disposition: attachment; filename=events_list_' . date('Y-m-d') 
 
 $output = fopen('php://output', 'w');
 
+fputcsv($output, ['BAGUIO ACTION SPORTS - UPCOMING EVENTS REPORT']);
+fputcsv($output, ['Generated on:', date('F d, Y h:i A')]);
+
+if (!empty($filter_category) && $filter_category !== 'All') {
+    fputcsv($output, ['Filtered by Category:', $filter_category]);
+}
+
+if (!empty($search_query)) {
+    fputcsv($output, ['Search Query:', $search_query]);
+}
+
+fputcsv($output, []);
+
 fputcsv($output, ['Event Name', 'Location', 'Category', 'Registration Type', 'Fee', 'Limit', 'Schedules']);
 
 $sql = "

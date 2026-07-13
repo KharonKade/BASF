@@ -20,8 +20,8 @@
                     <li><a href="spots.html">Spots</a></li>
                     <li><a href="event.php">Events</a></li>
                     <li><a href="gallery.php">Gallery</a></li>
-                    <li><a href="sponsorship.html">Sponsorship</a></li>
-                    <li><a href="contactUs.html">Contact Us</a></li>
+                    <li><a href="sponsorship.php">Sponsorship</a></li>
+                    <li><a href="contactUs.php">Contact Us</a></li>
                 </ul>
             </div>
             <div class="hamburger" id="hamburger">
@@ -101,15 +101,6 @@
                 </div>
             </div>
         </section>
-        
-    <div class="advertisement animate-on-scroll">
-        <a id="ad-link" href="#" target="_blank">
-            <div class="ad-container">
-                <img id="ad-image" src="" alt="Advertisement">
-                <span class="ad-label">Ads</span>
-            </div>
-        </a>
-    </div>
     
     <div class="spots-gallery-container animate-on-scroll">
         <h2 class="gallery-heading">Gallery</h2>
@@ -126,6 +117,32 @@
             </div>
         </div>
     </div>
+
+    <section class="marquee-section animate-on-scroll">
+        <h2 class="section-title" style="margin: 0; padding-bottom: 40px;">Our Current Sponsors</h2>
+        <div class="marquee-container">
+            <div class="marquee-content">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+                <img src="images/vanswhite.png" alt="Sponsor">
+                <img src="images/dclogo.png" alt="Sponsor">
+            </div>
+        </div>
+    </section>
 
     <div class="footer-ramp-icons animate-on-scroll">
         <img src="images/ramp.png" alt="Left Ramp" class="ramp-icon left">
@@ -148,8 +165,8 @@
                 <li><a href="spots.html">Spots</a></li>
                 <li><a href="event.php">Events</a></li>
                 <li><a href="gallery.php">Gallery</a></li>
-                <li><a href="sponsorship.html">Sponsorship</a></li>
-                <li><a href="contactUs.html">Contact Us</a></li>
+                <li><a href="sponsorship.php">Sponsorship</a></li>
+                <li><a href="contactUs.php">Contact Us</a></li>
             </ul>
         </div>
     
@@ -182,7 +199,7 @@
         const elements = document.querySelectorAll('.animate-on-scroll');
 
         elements.forEach(el => {
-            el._fadeTimeout = null; // custom property for tracking timeout
+            el._fadeTimeout = null; 
         });
 
         function toggleVisibility() {
@@ -191,18 +208,15 @@
                 const inView = rect.top <= window.innerHeight * 0.85 && rect.bottom >= 0;
 
                 if (inView) {
-                    clearTimeout(el._fadeTimeout); // cancel any pending hide
+                    clearTimeout(el._fadeTimeout); 
                     el.classList.add('visible');
                 } else {
-                    // fade out first, then hide after transition
                     el.classList.remove('visible');
                     clearTimeout(el._fadeTimeout);
                     el._fadeTimeout = setTimeout(() => {
                         el.style.visibility = 'hidden';
-                    }, 600); // must match transition duration
+                    }, 600); 
                 }
-
-                // Always reset visibility to visible if showing
                 if (inView) {
                     el.style.visibility = 'visible';
                 }
@@ -211,7 +225,7 @@
 
         window.addEventListener('scroll', toggleVisibility);
         window.addEventListener('resize', toggleVisibility);
-        toggleVisibility(); // Run on load
+        toggleVisibility();
     });
     </script>
     <script>
@@ -239,8 +253,8 @@
             currentAd = (currentAd + 1) % ads.length;
         }
 
-        rotateAd(); // Initial
-        setInterval(rotateAd, 3000); // Change every 8 seconds
+        rotateAd(); 
+        setInterval(rotateAd, 3000); 
     </script>
     <script>
         const hamburger = document.getElementById('hamburger');

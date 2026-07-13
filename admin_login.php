@@ -1,22 +1,28 @@
 <?php
+session_set_cookie_params([
+    'lifetime' => 86400,
+    'path' => '/',
+    'domain' => '',
+    'secure' => true,
+    'httponly' => true,
+    'samesite' => 'Strict'
+]);
 session_start();
+
 $admin_username = "admin";
 $admin_hashed_password = '$2y$10$63CGLTs10sIm7AeZ/gcmzOlCJewedw0o9Iykk.1sAuXA0yq5GFk.2';
 
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'];
+    $username = filter_input(INPUT_POST, 'username', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
     $password = $_POST['password'];
 
-    if ($username === $admin_username) {
-        if (password_verify($password, $admin_hashed_password)) {
-            $_SESSION['is_admin'] = true;
-            header("Location: admin.php");
-            exit();
-        } else {
-            $error = "Invalid login credentials.";
-        }
+    if ($username === $admin_username && password_verify($password, $admin_hashed_password)) {
+        session_regenerate_id(true);
+        $_SESSION['is_admin'] = true;
+        header("Location: admin.php");
+        exit();
     } else {
         $error = "Invalid login credentials.";
     }
@@ -94,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="login-wrapper">
         <h2>Admin Login</h2>
-        <?php if (!empty($error)) echo "<p class='error'>$error</p>"; ?>
+        <?php if (!empty($error)) echo "<p class='error'>" . htmlspecialchars($error, ENT_QUOTES, 'UTF-8') . "</p>"; ?>
         <form method="POST" action="">
             <input type="text" name="username" placeholder="Username" required>
             <input type="password" name="password" placeholder="Password" required>

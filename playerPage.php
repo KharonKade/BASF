@@ -1,25 +1,16 @@
 <?php
-// Include the database connection
 $servername = "localhost";
 $username = "u142318015_usr_vf0t87O2";
 $password = "0^Yf>YXE/C";
 $dbname = "u142318015_db_vf0t87O3";
 $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
-
-// Get the athlete ID from the query string
 $athlete_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-
-// Fetch the athlete's information from the database
 $query = "SELECT * FROM top_athletes WHERE id = $athlete_id";
 $athlete_result = $conn->query($query);
 $athlete = $athlete_result->fetch_assoc();
-
-// Fetch the athlete's achievements
 $achievements_query = "SELECT title, description FROM achievements WHERE athlete_id = $athlete_id";
 $achievements_result = $conn->query($achievements_query);
-
-// Fetch the athlete's gallery images
 $gallery_query = "SELECT image, description FROM athlete_gallery WHERE athlete_id = $athlete_id";
 $gallery_result = $conn->query($gallery_query);
 ?>
@@ -140,12 +131,9 @@ $gallery_result = $conn->query($gallery_query);
 
     
     <footer class="footer animate-on-scroll">
-        <!-- BASF Logo Section -->
         <div class="footer-section logo-section">
             <img src="images/whitelogo.png" alt="BASF Logo" class="footer-logo">
         </div>
-    
-        <!-- Explore Us Section -->
         <div class="footer-section explore-section">
             <h3>Explore Us</h3>
             <ul>
@@ -160,8 +148,6 @@ $gallery_result = $conn->query($gallery_query);
                 <li><a href="contactUs.html">Contact Us</a></li>
             </ul>
         </div>
-    
-        <!-- Contact Us Section -->
         <div class="footer-section contact-section">
             <h3>Contact Us</h3>
             <ul>
@@ -171,8 +157,6 @@ $gallery_result = $conn->query($gallery_query);
                 <li>basf@gmail.com</li>
             </ul>
         </div>
-    
-        <!-- Connect with Us Section -->
         <div class="footer-section social-section">
             <h3>Connect with us</h3>
             <div class="social-icons">
@@ -192,7 +176,7 @@ $gallery_result = $conn->query($gallery_query);
         const elements = document.querySelectorAll('.animate-on-scroll');
 
         elements.forEach(el => {
-            el._fadeTimeout = null; // custom property for tracking timeout
+            el._fadeTimeout = null; 
         });
 
         function toggleVisibility() {
@@ -201,18 +185,16 @@ $gallery_result = $conn->query($gallery_query);
                 const inView = rect.top <= window.innerHeight * 0.85 && rect.bottom >= 0;
 
                 if (inView) {
-                    clearTimeout(el._fadeTimeout); // cancel any pending hide
+                    clearTimeout(el._fadeTimeout); 
                     el.classList.add('visible');
                 } else {
-                    // fade out first, then hide after transition
                     el.classList.remove('visible');
                     clearTimeout(el._fadeTimeout);
                     el._fadeTimeout = setTimeout(() => {
                         el.style.visibility = 'hidden';
-                    }, 600); // must match transition duration
+                    }, 600); 
                 }
 
-                // Always reset visibility to visible if showing
                 if (inView) {
                     el.style.visibility = 'visible';
                 }
@@ -221,7 +203,7 @@ $gallery_result = $conn->query($gallery_query);
 
         window.addEventListener('scroll', toggleVisibility);
         window.addEventListener('resize', toggleVisibility);
-        toggleVisibility(); // Run on load
+        toggleVisibility(); 
     });
     </script>
     

@@ -15,6 +15,13 @@
 </head>
 
 <body>
+    <div id="usabilityModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Usability Testing Notice</h2>
+            <p>This website is currently for usability testing purposes. Please note that the content displayed here is not official.</p>
+            <button id="closeModalBtn">I Understand</button>
+        </div>
+    </div>
     <header>
         <nav class="navbar">
             <img src="images/basflogo.png" alt="BASF Logo" id="basflogo" class="logo">
@@ -24,8 +31,8 @@
                     <li><a href="spots.html">Spots</a></li>
                     <li><a href="event.php">Events</a></li>
                     <li><a href="gallery.php">Gallery</a></li>
-                    <li><a href="sponsorship.html">Sponsorship</a></li>
-                    <li><a href="contactUs.html">Contact Us</a></li>
+                    <li><a href="sponsorship.php">Sponsorship</a></li>
+                    <li><a href="contactUs.php">Contact Us</a></li>
                 </ul>
             </div>
             <div class="hamburger" id="hamburger">
@@ -104,15 +111,32 @@
             </div>
         </div>
 
-        <div class="advertisement animate-on-scroll">
-            <a id="ad-link" href="#" target="_blank">
-                <div class="ad-container">
-                    <img id="ad-image" src="" alt="Advertisement">
-                    <span class="ad-label">Ads</span>
-                </div>
-            </a>
-        </div>
     </section>
+    <section class="marquee-section animate-on-scroll">
+            <h2 class="section-title" style="margin: 0; padding-bottom: 40px;">Our Current Sponsors</h2>
+            <div class="marquee-container">
+                <div class="marquee-content">
+                    <img src="images/vanswhite.png" alt="Sponsor">
+                    <img src="images/dclogo.png" alt="Sponsor">
+                    <img src="images/vanswhite.png" alt="Sponsor">
+                    <img src="images/dclogo.png" alt="Sponsor">
+                    <img src="images/vanswhite.png" alt="Sponsor">
+                    <img src="images/dclogo.png" alt="Sponsor">
+                    <img src="images/vanswhite.png" alt="Sponsor">
+                    <img src="images/dclogo.png" alt="Sponsor">
+                    <img src="images/vanswhite.png" alt="Sponsor">
+                    <img src="images/dclogo.png" alt="Sponsor">
+                    <img src="images/vanswhite.png" alt="Sponsor">
+                    <img src="images/dclogo.png" alt="Sponsor">
+                    <img src="images/vanswhite.png" alt="Sponsor">
+                    <img src="images/dclogo.png" alt="Sponsor">
+                    <img src="images/vanswhite.png" alt="Sponsor">
+                    <img src="images/dclogo.png" alt="Sponsor">
+                    <img src="images/vanswhite.png" alt="Sponsor">
+                    <img src="images/dclogo.png" alt="Sponsor">
+                </div>
+            </div>
+        </section>
 
     <section class="partnership-section animate-on-scroll">
         <h2>In Partnership With</h2>
@@ -146,8 +170,8 @@
                 <li><a href="spots.html">Spots</a></li>
                 <li><a href="event.php">Events</a></li>
                 <li><a href="gallery.php">Gallery</a></li>
-                <li><a href="sponsorship.html">Sponsorship</a></li>
-                <li><a href="contactUs.html">Contact Us</a></li>
+                <li><a href="sponsorship.php">Sponsorship</a></li>
+                <li><a href="contactUs.php">Contact Us</a></li>
             </ul>
         </div>
 
@@ -411,6 +435,21 @@
             navLinks.classList.toggle('active');
             hamburger.classList.toggle('active');
         });
+    </script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const modal = document.getElementById("usabilityModal");
+        const closeBtn = document.getElementById("closeModalBtn");
+
+        if (!localStorage.getItem("usabilityModalSeen")) {
+            modal.style.display = "flex";
+        }
+
+        closeBtn.addEventListener("click", function () {
+            modal.style.display = "none";
+            localStorage.setItem("usabilityModalSeen", "true");
+        });
+    });
     </script>
 </body>
 </html>
