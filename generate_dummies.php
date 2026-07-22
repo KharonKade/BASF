@@ -22,8 +22,33 @@ if ($res) {
     }
 }
 
-$first_names = ['Kharon', 'Al John', 'Myeong', 'Mark Julius', 'Bonifacio', 'Jane', 'Chris', 'Sam', 'Taylor', 'Jordan'];
-$last_names = ['Togana', 'Orpilla', 'San Juan', 'Espeso', 'Smith', 'Doe', 'Garcia', 'Miller', 'Davis', 'Rodriguez'];
+$first_names = [
+    'Joyce', 'Leonard Damong jr', 'Vazir', 'Kurt', 'Michael', 'Ethan', 'Jemuel', 'Mark', 'JOHANNES', 'Bonifacio', 
+    'Mat', 'Zechariah', 'Kurt', 'Ally', 'mohamad ali', 'velascoroseann', 'Nathaniel', 'chris', 'Carl Justine', 
+    'Xadrian Matthew', 'Nicolas Brein A.', 'evo semic', 'kaito', 'cherzed', 'Jilliana', 'bianca beyonce', 
+    'Colleen', 'Lavigne', 'Kyle', 'Ali', 'Chiradee', 'karl', 'Cy', 'Aidan Ziya', 'Sean', 'Deon', 'Bryce', 
+    'Sherry', 'Jelmar Anne A.', 'Mhie', 'Jelmar', 'Ezriah', 'Federico', 'Kristel de', 'Shayra', 'Shayra', 
+    'Ezriah', 'Danji', 'ZEN', 'Kvana', 'Shan', 'Princess Brylle N', 'Aerianne', 'Jazzelle', 'Hannah Gail', 
+    'gabrielle', 'mark julius san', 'Dharel', 'HOMBREBUENO FRITZER', 'Hyacinth', 'Emerson', 'Craeven Marc C.', 
+    'Dreick', 'fritzer', 'Joyce', 'James', 'crae', 'Dharel', 'Jasmine', 'matthew jastine L.', 'Raphael Matthew', 
+    'mark san', 'Dennielle', 'Jovenele', 'Dreick', 'luis', 'Paul Dean Mark S.', 'Marvin San', 'Paul Dean Mark S.', 
+    'Jeric Lemonayde', 'craeven Marc C.', 'Evo', 'Jovany', 'Alia', 'Adrian Dantly B.', 'Adriel De', 'Alex', 
+    'Andrea', 'Angelo', 'Axel', 'Carl', 'Cristoff', 'Curt Jervy', 'Derryl Hanes', 'Ermo', 'Jonark', 'Faith', 
+    'Evo', 'Nathan', 'Jeferson Llaneta', 'Jericho', 'John Hnery', 'John Michael', 'Kishi', 'Micka', 'Ryama', 
+    'Mark Gregory', 'Nathan', 'Yoram', 'Cristoff', 'Gab', 'Ryan', 'Adirel De', 'BronsonBagalay', 'Bryce'
+];
+
+$last_names = [
+    'Tayaban', 's', 'Paolo', 'Corpuz', 'DUQUE', 'Garcia', 'malana', 'Ortiz', 'batua', 'Quirante', 'rosal', 
+    'demot', 'Manalo', 'Patalinghug', 'cabanban', 'espeleta', 'Camatayan', 'camatayan', 'Reinoso', 'Reinoso', 
+    'Togana', 'Domingo', 'Dominic', 'Lou', 'Bested', 'Biason', 'Bested', 'Martinez', 'Eden', 'Villa', 'Bawayan', 
+    'Bawayan', 'Martinez', 'Rifani', 'elwas', 'Bangnan', 'Tadena', 'Warren', 'juan', 'P', 'Leigh', 'Reduca', 
+    'Daileg', 'Dangatan', 'hombrebueno', 'Tayaban', 'bahilango', 'Orlino', 'juan', 'Paddison', 'Santos', 'Pila', 
+    'Juan', 'Pila', 'Aspuria', 'Daileg', 'Semic', 'Palabay', 'Pundogar', 'Dato', 'Luna', 'Guimayen', 'Castillo', 
+    'Aquino', 'Antonio', 'Lhein', 'Lawan', 'Bonifacio', 'Segundo', 'Blaza', 'Estocio', 'Tolentino', 'Cabanban', 
+    'Gayog', 'Mendoza', 'Valdez', 'Danao', 'Ico', 'Dariano', 'Rhenziel', 'Alani', 'Andrada', 'Lansang', 'Blake', 
+    'Ramos', 'Luna', 'Tamingo'
+];
 $genders = ['Male', 'Female'];
 
 $query = "INSERT INTO event_registrations (event_id, name, email, phone, age, gender, category, status, token, registration_date, registration_time, paymongo_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -31,7 +56,7 @@ $stmt = $conn->prepare($query);
 
 for ($i = 0; $i < $limit; $i++) {
     $name = $first_names[array_rand($first_names)] . ' ' . $last_names[array_rand($last_names)];
-    $email = strtolower(str_replace(' ', '.', $name)) . rand(10,99) . '@example.com';
+    $email = strtolower(str_replace(' ', '.', $name)) . rand(10,99) . '@gmail.com';
     $phone = '09' . rand(100000000, 999999999);
     $age = rand(15, 35);
     $gender = $genders[array_rand($genders)];

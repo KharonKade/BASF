@@ -112,16 +112,23 @@ if ($event_id > 0) {
     exit;
 }
 
-// Fetch Dynamic Categories
 $categories_sql = "SELECT sport_type, category_name, fee FROM event_categories WHERE event_id = $event_id";
 $categories_result = $conn->query($categories_sql);
 $dynamic_categories = [];
+$is_paid_event = false;
+
 if ($categories_result && $categories_result->num_rows > 0) {
     while ($row = $categories_result->fetch_assoc()) {
         $sport = strtolower($row['sport_type']);
+        $fee = (float)$row['fee'];
+        
+        if ($fee > 0) {
+            $is_paid_event = true;
+        }
+
         $dynamic_categories[$sport][] = [
             'name' => $row['category_name'],
-            'fee' => (float)$row['fee']
+            'fee' => $fee
         ];
     }
 }
@@ -230,6 +237,9 @@ $dynamic_categories_json = json_encode($dynamic_categories);
             </div>
 
             <div class="event-content">
+                <span style="display: inline-block; background-color: <?php echo $is_paid_event ? '#f39c12' : '#27ae60'; ?>; color: #ffffff; padding: 6px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; margin-bottom: 15px; font-family: 'Poppins', sans-serif;">
+                    <?php echo $is_paid_event ? 'Paid Event' : 'Free Event'; ?>
+                </span>
                 <h3 class="section-title">Schedule</h3>
                 <div class="info-card">
                     <ul class="schedule-list">

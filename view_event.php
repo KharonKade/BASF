@@ -279,7 +279,7 @@ if ($categories_result && $categories_result->num_rows > 0) {
             let category = row.getAttribute("data-category");
             let name = row.querySelector(".bold-text").textContent.toLowerCase();
             
-            let matchesCategory = (selectedCategory === "all" || category === selectedCategory);
+            let matchesCategory = (selectedCategory === "all" || category.includes(selectedCategory));
             let matchesName = name.includes(nameQuery);
             
             if (matchesCategory && matchesName) {
